@@ -1,0 +1,48 @@
+{
+    "name": "@elizaos-plugins/plugin-hivefi",
+    "version": "0.0.1",
+    "type": "module",
+    "main": "dist/index.js",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": {
+                "@elizaos/source": "./src/index.ts",
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            }
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup --format esm --dts",
+        "dev": "tsup --format esm --dts --watch",
+        "test": "vitest run",
+        "lint": "eslint ."
+    },
+    "dependencies": {
+        "@elizaos/core": "workspace:*",
+        "ethers": "^6.9.0",
+        "form-data": "^4.0.0",
+        "combined-stream": "^1.0.8",
+        "@uniswap/sdk-core": "6.0.0",
+        "axios": "^1.6.7",
+        "whatwg-url": "7.1.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "tsup": "^8.0.1",
+        "vitest": "^1.0.4",
+        "@types/node": "^20.10.4"
+    },
+    "peerDependencies": {
+        "whatwg-url": "7.1.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

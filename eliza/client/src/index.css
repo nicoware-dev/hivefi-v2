@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 222 47% 11%;
+        --foreground: 0 0% 98%;
+        --card: 222 47% 11%;
+        --card-foreground: 0 0% 98%;
+        --popover: 222 47% 11%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 271 100% 50%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 328 100% 50%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 271 45% 56%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217.2 32.6% 17.5%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 271 100% 50%;
+        --radius: 0.75rem;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+/* Gradient text */
+.gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(to right, #4a0080, #7f00ff, #ff1492);
+}
+
+.title-gradient {
+    @apply bg-clip-text text-transparent font-black;
+    background-image: linear-gradient(to right, #4a0080, #7f00ff, #ff00ff, #ff1492, #7b4bd2);
+    animation: shine 8s linear infinite;
+    background-size: 200% auto;
+    line-height: 1.2;
+    padding: 0.1em 0;
+}
+
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}
