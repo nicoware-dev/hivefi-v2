@@ -1,20 +1,20 @@
 import { type Address } from 'viem';
 
-// Lendle Contract Addresses
+// Lendle Protocol Contract Addresses on Mantle Network
 export const LENDING_ADDRESSES = {
-    LENDING_POOL: '0xCFa5aE7c2CE8Fadc6426C1ff872cA45378Fb7cF3' as Address,
-    LENDING_POOL_ADDRESS_PROVIDER: '0xAb94Bedd21ae3411eB2698945dfCab1D5C19C3d4' as Address,
-    DATA_PROVIDER: '0x552b9e4bae485C4B7F540777d7D25614CdB84773' as Address,
-    PRICE_ORACLE: '0x870c9692Ab04944C86ec6FEeF63F261226506EfC' as Address,
+    LENDING_POOL: '0xCFa5aE7c2CE8Fadc6426C1ff872cA45378Fb7cF3' as Address, // Lendle Lending Pool on Mantle
+    LENDING_POOL_ADDRESS_PROVIDER: '0xAb94Bedd21ae3411eB2698945dfCab1D5C19C3d4' as Address, // Lendle Address Provider on Mantle
+    DATA_PROVIDER: '0x552b9e4bae485C4B7F540777d7D25614CdB84773' as Address, // Lendle Data Provider on Mantle
+    PRICE_ORACLE: '0x870c9692Ab04944C86ec6FEeF63F261226506EfC' as Address, // Lendle Price Oracle on Mantle
 } as const;
 
-// Market Token Addresses
+// Lendle Market Token Addresses on Mantle Network
 export const MARKET_TOKENS = {
     USDC: {
         underlying: '0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9' as Address, // USDC on Mantle
-        aToken: '0xf36afb467d1f05541d998bbbcd5f7167d67bd8fc' as Address,     // lvUSDC (Lendle USDC)
-        stableDebtToken: '0xd8A36c0E6148fFB374C6726d4c60Bbd55B745407' as Address,
-        variableDebtToken: '0xB3f838d219A0cFba73193453C2023090277d6Af5' as Address,
+        aToken: '0xf36afb467d1f05541d998bbbcd5f7167d67bd8fc' as Address,     // lvUSDC (Lendle USDC) on Mantle
+        stableDebtToken: '0xd8A36c0E6148fFB374C6726d4c60Bbd55B745407' as Address, // Lendle USDC Stable Debt Token
+        variableDebtToken: '0xB3f838d219A0cFba73193453C2023090277d6Af5' as Address, // Lendle USDC Variable Debt Token
     },
     USDT: {
         underlying: '0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE' as Address,
@@ -48,7 +48,7 @@ export const MARKET_TOKENS = {
     },
 } as const;
 
-// Lendle LendingPool ABI
+// Lendle Protocol ABIs for Mantle Network
 export const LENDING_POOL_ABI = [{
     inputs: [
         { name: "asset", type: "address" },
@@ -223,7 +223,7 @@ export const LENDING_POOL_EVENTS = [{
     type: "event"
 }] as const;
 
-// Response formatting helpers
+// Lendle Protocol Constants
 export const MANTLESCAN_TX_URL = 'https://explorer.mantle.xyz/tx/';
 export const MANTLESCAN_ADDRESS_URL = 'https://explorer.mantle.xyz/address/';
 

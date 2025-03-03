@@ -5,14 +5,14 @@ import {
     createPublicClient,
     http
 } from "viem";
-import { mantleChain } from "../config/chains";
-import { initWalletProvider } from "../providers/wallet";
+import { mantleChain } from "../../config/chains";
+import { initWalletProvider } from "../../providers/wallet";
 import {
     TOKENS,
     getTokenBySymbol,
     isERC20Token,
     type TokenConfig
-} from "../config/tokens";
+} from "../../config/tokens";
 
 // Merchant Moe Router and Factory addresses
 const MOE_ROUTER_ADDRESS = "0xeaee7ee68874218c3558b40063c42b82d3e7232a" as const;
@@ -209,6 +209,12 @@ class SwapAction {
 
 export const swap: Action = {
     name: "SWAP_MANTLE",
+    similes: [
+        "SWAP_MANTLE_MERCHANT_MOE",
+        "SWAP_MANTLE_EXCHANGE",
+        "SWAP_MANTLE_TRADE",
+        "SWAP_MANTLE_MERCHANT_MOE",
+    ],
     description: "Swap tokens using Merchant Moe Router on Mantle network",
     examples: [
         [
@@ -295,9 +301,4 @@ export const swap: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like trading tokens on Merchant Moe",
-        "like exchanging assets on Mantle",
-        "like swapping tokens through Merchant Moe",
-    ],
 };

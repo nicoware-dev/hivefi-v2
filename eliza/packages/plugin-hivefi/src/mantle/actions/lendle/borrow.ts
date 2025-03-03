@@ -16,8 +16,13 @@ import {
 } from './utils';
 
 export const borrow: Action = {
-    name: "BORROW_LENDING",
-    description: "Borrow tokens from Lendle lending pools on Mantle",
+    name: "BORROW_LENDLE_MANTLE",
+    similes: [
+        "BORROW_TOKENS_LENDLE",
+        "TAKE_LOAN_LENDLE",
+        "GET_LOAN_LENDLE_MANTLE"
+    ],
+    description: "Borrow tokens from Lendle lending pools on Mantle network",
     examples: [
         [
             {
@@ -202,9 +207,4 @@ export const borrow: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like taking out a loan from a bank",
-        "like borrowing money with collateral",
-        "like getting a loan from a lending pool",
-    ],
 };

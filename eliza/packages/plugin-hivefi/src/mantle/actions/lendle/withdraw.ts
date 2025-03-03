@@ -16,8 +16,13 @@ import {
 } from './utils';
 
 export const withdraw: Action = {
-    name: "WITHDRAW_LENDING",
-    description: "Withdraw tokens from Lendle lending pools on Mantle",
+    name: "WITHDRAW_LENDLE_MANTLE",
+    similes: [
+        "REMOVE_FUNDS_LENDLE",
+        "TAKE_OUT_LENDLE",
+        "RETRIEVE_TOKENS_LENDLE"
+    ],
+    description: "Withdraw tokens from Lendle lending pools on Mantle network",
     examples: [
         [
             {
@@ -181,9 +186,4 @@ export const withdraw: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like taking money out of a savings account",
-        "like withdrawing assets from a lending pool",
-        "like removing liquidity from a protocol",
-    ],
 };

@@ -8,6 +8,11 @@ import { initWalletProvider } from "../providers/wallet";
 
 export const transfer: Action = {
     name: "SEND_MNT",
+    similes: [
+        "SEND_MANTLE",
+        "SEND_MNT_MANTLE",
+        "SEND_MNT_MANTLE_NETWORK",
+    ],
     description: "Send MNT on Mantle network",
     examples: [
         [
@@ -111,9 +116,5 @@ export const transfer: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like sending digital cash through the Mantle network",
-        "like making an instant transfer in the Mantle ecosystem",
-        "like beaming MNT through the network",
-    ],
+
 };

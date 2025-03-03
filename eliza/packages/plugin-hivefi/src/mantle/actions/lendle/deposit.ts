@@ -18,20 +18,25 @@ import {
 } from './utils';
 
 export const deposit: Action = {
-    name: "DEPOSIT_LENDING",
-    description: "Deposit tokens into Lendle lending pools on Mantle",
+    name: "DEPOSIT_LENDLE_MANTLE",
+    similes: [
+        "SUPPLY_LENDLE_MANTLE",
+        "LEND_TOKENS_LENDLE",
+        "PROVIDE_LIQUIDITY_LENDLE"
+    ],
+    description: "Deposit tokens into Lendle lending pools on Mantle network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Supply 100 USDC to Lendle",
+                    text: "Supply 100 USDC to Lendle on Mantle",
                 },
             },
             {
                 user: "assistant",
                 content: {
-                    text: "Let's proceed with supplying 100 USDC to Lendle on the Mantle network. Please hold on while I process the transaction.",
+                    text: "Let's proceed with supplying 100 USDC to Lendle protocol on the Mantle network. Please hold on while I process the transaction.",
                 },
             },
         ],
@@ -233,9 +238,4 @@ export const deposit: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like depositing assets into a savings account",
-        "like providing liquidity to earn interest",
-        "like supplying tokens to a lending pool",
-    ],
 };

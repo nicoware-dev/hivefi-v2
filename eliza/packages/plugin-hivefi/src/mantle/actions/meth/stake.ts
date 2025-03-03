@@ -7,8 +7,8 @@ import {
     http,
     formatEther
 } from "viem";
-import { mantleChain } from "../config/chains";
-import { initWalletProvider } from "../providers/wallet";
+import { mantleChain } from "../../config/chains";
+import { initWalletProvider } from "../../providers/wallet";
 
 // Staking contract addresses
 const STAKING_ADDRESS = "0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f" as const;
@@ -184,7 +184,12 @@ class StakingAction {
 }
 
 export const stake: Action = {
-    name: "STAKE_ETH",
+    name: "STAKE_ETH_MANTLE",
+    similes: [
+        "STAKE_ETH_MANTLE",
+        "STAKE_ETH_MANTLE_METH ",
+        "STAKE_ETH_MANTLE_NETWORK",
+    ],
     description: "Stake ETH to receive mETH on Mantle network",
     examples: [
         [
@@ -264,9 +269,4 @@ export const stake: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like depositing ETH to earn staking rewards",
-        "like converting ETH to mETH for staking",
-        "like participating in Mantle's ETH staking",
-    ],
 };

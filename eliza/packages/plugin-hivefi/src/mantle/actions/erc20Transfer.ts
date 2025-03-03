@@ -15,25 +15,45 @@ interface TransferEntities {
 
 export const erc20Transfer: Action = {
     name: "SEND_TOKEN_MANTLE",
+    similes: [
+        "TRANSFER_TOKEN_MANTLE",
+        "MOVE_TOKEN_MANTLE",
+        "SEND_ERC20_MANTLE"
+    ],
     description: "Send ERC20 tokens on Mantle network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Send 0.01 USDC to 0x1234567890123456789012345678901234567890",
+                    text: "Transfer 100 USDC to 0x1234... on Mantle",
                     entities: {
-                        amount: "0.01",
-                        to: "0x1234567890123456789012345678901234567890",
+                        amount: "100",
                         token: "USDC",
-                    },
-                },
+                        to: "0x1234567890123456789012345678901234567890",
+                        chain: "mantle"
+                    }
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "The transaction has been initiated. You will receive a confirmation once the transaction is complete.",
-                },
+                    text: "Initiating transfer of 100 USDC on Mantle network..."
+                }
+            }
+        ],
+        [
+            {
+                user: "user1",
+                content: {
+                    text: "Send 50 USDT to 0x1234567890123456789012345678901234567890 on Mantle",
+                    entities: {
+                        amount: "50",
+                        token: "USDT",
+                        to: "0x1234567890123456789012345678901234567890",
+                        chain: "mantle"
+                    }
+                }
             },
             {
                 user: "assistant",
@@ -167,9 +187,4 @@ export const erc20Transfer: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like sending tokens through the Mantle network",
-        "like making a token transfer in the Mantle ecosystem",
-        "like beaming tokens across Mantle",
-    ],
 };

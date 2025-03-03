@@ -8,9 +8,9 @@ import {
     formatEther,
     parseUnits
 } from "viem";
-import { mantleChain } from "../config/chains";
-import { initWalletProvider } from "../providers/wallet";
-import { TOKENS, getTokenBySymbol } from "../config/tokens";
+import { mantleChain } from "../../config/chains";
+import { initWalletProvider } from "../../providers/wallet";
+import { TOKENS, getTokenBySymbol } from "../../config/tokens";
 
 // Contract addresses
 const STAKING_ADDRESS = "0xe3cBd06D7dadB3F4e6557bAb7EdD924CD1489E8f" as const;
@@ -206,7 +206,12 @@ class UnstakeAction {
 }
 
 export const unstake: Action = {
-    name: "UNSTAKE_METH",
+    name: "UNSTAKE_METH_MANTLE",
+    similes: [
+        "WITHDRAW_ETH_STAKING_MANTLE",
+        "REDEEM_METH_MANTLE",
+        "EXIT_STAKING_MANTLE"
+    ],
     description: "Unstake mETH to receive ETH on Mantle network",
     examples: [
         [
@@ -293,9 +298,4 @@ export const unstake: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like withdrawing ETH from staking",
-        "like converting mETH back to ETH",
-        "like exiting from Mantle's ETH staking",
-    ],
 };

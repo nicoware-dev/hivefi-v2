@@ -16,8 +16,13 @@ import {
 } from './utils';
 
 export const repay: Action = {
-    name: "REPAY_LENDING",
-    description: "Repay borrowed tokens to Lendle lending pools on Mantle",
+    name: "REPAY_LENDLE_MANTLE",
+    similes: [
+        "PAY_BACK_LENDLE",
+        "RETURN_LOAN_LENDLE",
+        "SETTLE_DEBT_LENDLE"
+    ],
+    description: "Repay borrowed tokens to Lendle lending pools on Mantle network",
     examples: [
         [
             {
@@ -238,9 +243,4 @@ export const repay: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like paying back a loan to a bank",
-        "like returning borrowed money with interest",
-        "like settling a debt with a lending pool",
-    ],
 };

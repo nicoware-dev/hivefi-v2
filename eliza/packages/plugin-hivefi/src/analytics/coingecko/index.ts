@@ -1,4 +1,4 @@
-import { createGenericAction } from "../../action/base";
+import { createGenericAction } from "../../core/actions/base";
 import { getTokenPrice, getMultipleTokenPrices } from './module';
 import type { Action, ActionExample, Memory, State, HandlerCallback, IAgentRuntime } from "@elizaos/core";
 import { elizaLogger, composeContext, generateObjectDeprecated, ModelClass, generateText } from "@elizaos/core";

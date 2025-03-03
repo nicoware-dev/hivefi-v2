@@ -115,15 +115,15 @@ export function formatSuccessMessage(
     accountData: UserAccountData
 ): string {
     return [
-        `Successfully ${action}ed ${amount} ${tokenSymbol} into Lendle`,
+        `Successfully ${action}ed ${amount} ${tokenSymbol} ${action === 'deposit' ? 'into' : 'from'} Lendle protocol on Mantle network`,
         '',
-        `[View on Explorer](https://explorer.mantle.xyz/tx/${txHash})`,
+        `[View on Mantle Explorer](https://explorer.mantle.xyz/tx/${txHash})`,
         '',
-        '📊 Position Summary',
+        '📊 Lendle Position Summary',
         `💰 Total Collateral: ${Number(accountData.totalCollateralETH).toFixed(4)} USD`,
         `💳 Total Debt: ${Number(accountData.totalDebtETH).toFixed(4)} USD`,
         '',
-        '📈 Account Status',
+        '📈 Lendle Account Status',
         `💵 Available to borrow: ${Number(accountData.availableBorrowsETH).toFixed(4)} USD`,
         `❤️ Health Factor: ${Number(accountData.healthFactor).toFixed(2)}`
     ].join('\n');
@@ -202,15 +202,15 @@ export function formatBorrowRepayMessage(
     _borrowedBalance?: string
 ): string {
     return [
-        `Successfully ${action}ed ${amount} ${tokenSymbol} ${action === 'borrow' ? 'from' : 'to'} Lendle`,
+        `Successfully ${action}ed ${amount} ${tokenSymbol} ${action === 'borrow' ? 'from' : 'to'} Lendle protocol on Mantle network`,
         '',
-        `[View on Explorer](https://explorer.mantle.xyz/tx/${txHash})`,
+        `[View on Mantle Explorer](https://explorer.mantle.xyz/tx/${txHash})`,
         '',
-        '📊 Position Summary',
+        '📊 Lendle Position Summary',
         `💰 Total Collateral: ${Number(accountData.totalCollateralETH).toFixed(4)} USD`,
         `💳 Total Debt: ${Number(accountData.totalDebtETH).toFixed(4)} USD`,
         '',
-        '📈 Account Status',
+        '📈 Lendle Account Status',
         `💵 Available to borrow: ${Number(accountData.availableBorrowsETH).toFixed(4)} USD`,
         `❤️ Health Factor: ${Number(accountData.healthFactor).toFixed(2)}`
     ].join('\n');

@@ -36,15 +36,23 @@ setInterval(() => {
 }, 60000);
 
 export const portfolio: Action = {
-    name: "SHOW_PORTFOLIO",
+    name: "SHOW_PORTFOLIO_MANTLE",
+    similes: [
+        "VIEW_PORTFOLIO_MANTLE",
+        "CHECK_BALANCE_MANTLE",
+        "GET_HOLDINGS_MANTLE"
+    ],
     description: "Show your Mantle wallet portfolio with token balances and USD values",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Show my portfolio",
-                },
+                    text: "Show my portfolio on Mantle",
+                    entities: {
+                        chain: "mantle"
+                    }
+                }
             },
             {
                 user: "assistant",
@@ -182,9 +190,4 @@ export const portfolio: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like checking your digital wallet's contents",
-        "like getting a snapshot of your crypto holdings",
-        "like viewing your investment portfolio on Mantle",
-    ],
 };
