@@ -2,483 +2,320 @@ import axios from 'axios';
 import { StandardResponse, createSuccessResponse, createErrorResponse } from '../utils/response';
 import { elizaLogger } from "@elizaos/core";
 
-// Map of MultiversX denoms to CoinGecko IDs
-const DENOM_TO_COINGECKO_ID: Record<string, string> = {
-  'egld': 'elrond-erd-2',
-  'mex': 'maiar-exchange-token',
+// Map of token symbols to CoinGecko IDs
+const TOKEN_TO_COINGECKO_ID: Record<string, string> = {
+  // Mantle Network
+  'mnt': 'mantle',
+  'wmnt': 'wrapped-mantle',
+  
+  // Sonic Chain
+  's': 'sonic-3',
+  'ws': 'wrapped-sonic',
+  'shadow': 'shadow-2',
+  'swpx': 'swapx-2',
+  'beets': 'beets',
+  
+  // Ethereum
+  'eth': 'ethereum',
+  'weth': 'weth',
+  
+  // Bitcoin
+  'btc': 'bitcoin',
+  'wbtc': 'wrapped-bitcoin',
+  
+  // Stablecoins
   'usdc': 'usd-coin',
   'usdt': 'tether',
-  'btc': 'bitcoin',
-  'eth': 'ethereum',
-  'bhat': 'hatom',
-  'ride': 'holoride',
-  'utk': 'utrust',
-  'itheum': 'itheum',
-  'aero': 'aerovek-aviation',
-  'lkmex': 'locked-maiar-exchange-token',
-  'lpad': 'launchpad-token',
-  'zpay': 'zpay',
-  'ada': 'cardano',
+  'dai': 'dai',
+  'busd': 'binance-usd',
+  'tusd': 'true-usd',
+  'usdd': 'usdd',
+  
+  // Major Layer 1s
+  'bnb': 'binancecoin',
   'sol': 'solana',
-  'dot': 'polkadot',
+  'ada': 'cardano',
   'avax': 'avalanche-2',
+  'dot': 'polkadot',
   'matic': 'matic-network',
-  'link': 'chainlink',
+  'near': 'near',
+  'atom': 'cosmos',
+  'ftm': 'fantom',
+  'arb': 'arbitrum',
+  'op': 'optimism',
+  
+  // DeFi
   'uni': 'uniswap',
+  'aave': 'aave',
+  'link': 'chainlink',
+  'crv': 'curve-dao-token',
+  'mkr': 'maker',
+  'comp': 'compound-governance-token',
+  'sushi': 'sushi',
+  'cake': 'pancakeswap-token',
+  'snx': 'synthetix-network-token',
+  '1inch': '1inch',
+  
+  // Other popular tokens
   'doge': 'dogecoin',
   'shib': 'shiba-inu',
-  'xrp': 'ripple',
-  'bnb': 'binancecoin',
-  'near': 'near',
+  'ape': 'apecoin',
+  'grt': 'the-graph',
+  'ldo': 'lido-dao',
+  'mana': 'decentraland',
+  'sand': 'the-sandbox',
+  'axs': 'axie-infinity',
 };
 
-// Common token data for fallback when API fails
-const COMMON_TOKEN_PRICES: Record<string, any> = {
-  'elrond-erd-2': {
-    name: 'MultiversX',
-    symbol: 'EGLD',
-    price: 45.20,
-    lastUpdated: Date.now()
-  },
-  'maiar-exchange-token': {
-    name: 'xExchange',
-    symbol: 'MEX',
-    price: 0.000045,
-    lastUpdated: Date.now()
-  },
-  'bitcoin': {
-    name: 'Bitcoin',
-    symbol: 'BTC',
-    price: 62500.00,
-    lastUpdated: Date.now()
-  },
-  'ethereum': {
-    name: 'Ethereum',
-    symbol: 'ETH',
-    price: 3200.00,
-    lastUpdated: Date.now()
-  },
-  'tether': {
-    name: 'Tether',
-    symbol: 'USDT',
-    price: 1.00,
-    lastUpdated: Date.now()
-  },
-  'usd-coin': {
-    name: 'USD Coin',
-    symbol: 'USDC',
-    price: 1.00,
-    lastUpdated: Date.now()
-  },
-  'hatom': {
-    name: 'Hatom',
-    symbol: 'BHAT',
-    price: 0.12,
-    lastUpdated: Date.now()
-  },
-  'holoride': {
-    name: 'Holoride',
-    symbol: 'RIDE',
-    price: 0.03,
-    lastUpdated: Date.now()
-  },
-  'utrust': {
-    name: 'Utrust',
-    symbol: 'UTK',
-    price: 0.15,
-    lastUpdated: Date.now()
-  },
-  'itheum': {
-    name: 'Itheum',
-    symbol: 'ITHEUM',
-    price: 0.05,
-    lastUpdated: Date.now()
-  }
-};
-
-// Cache for storing price data to avoid rate limits
+// Cache for token prices to reduce API calls
 interface PriceCache {
   [key: string]: {
     price: number;
     timestamp: number;
     name?: string;
     symbol?: string;
+    market_cap?: number;
+    volume_24h?: number;
+    price_change_24h?: number;
+    price_change_percentage_24h?: number;
   };
 }
 
-// Global price cache
 const priceCache: PriceCache = {};
-const cacheExpiryMs: number = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-// Create axios instance with timeout
-const api = axios.create({
-  timeout: 10000, // 10 seconds
-});
-
-/**
- * Format currency for display
- */
+// Format currency with appropriate precision
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 6
-  }).format(value);
+  if (value >= 1000) {
+    return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  } else if (value >= 1) {
+    return value.toLocaleString('en-US', { maximumFractionDigits: 4 });
+  } else {
+    return value.toLocaleString('en-US', { maximumFractionDigits: 6 });
+  }
+}
+
+// Get CoinGecko ID for a token symbol
+function getTokenCoinGeckoId(symbol: string): string | null {
+  const normalizedSymbol = symbol.toLowerCase();
+  return TOKEN_TO_COINGECKO_ID[normalizedSymbol] || null;
 }
 
 /**
- * Get the CoinGecko ID for a given denom
- */
-function getDenomCoinGeckoId(denom: string): string | null {
-  // Normalize the denom to lowercase
-  const normalizedDenom = denom.toLowerCase();
-  return DENOM_TO_COINGECKO_ID[normalizedDenom] || null;
-}
-
-/**
- * Get the USD price for a specific token
+ * Get price information for a single token
  */
 export async function getTokenPrice(params: { denom: string }): Promise<StandardResponse> {
   try {
-    const denom = params.denom.toLowerCase();
-    const coinId = getDenomCoinGeckoId(denom);
-    
-    if (!coinId) {
-      return createErrorResponse("InvalidDenom", `Unknown token denomination: ${denom}`);
-    }
+    const { denom } = params;
+    const normalizedDenom = denom.toLowerCase();
     
     // Check cache first
     const now = Date.now();
-    if (priceCache[coinId] && (now - priceCache[coinId].timestamp) < cacheExpiryMs) {
-      elizaLogger.info(`Using cached price for ${denom} (${coinId})`);
-      
-      const cachedPrice = priceCache[coinId].price;
-      const formattedPrice = formatCurrency(cachedPrice);
+    if (priceCache[normalizedDenom] && now - priceCache[normalizedDenom].timestamp < CACHE_TTL) {
+      const cachedData = priceCache[normalizedDenom];
       
       return createSuccessResponse({
-        denom,
-        coinId,
-        price: cachedPrice,
-        formattedPrice,
-        name: priceCache[coinId].name || coinId,
-        symbol: priceCache[coinId].symbol || denom.toUpperCase(),
-        currency: 'USD',
-        timestamp: priceCache[coinId].timestamp,
-        isFromCache: true
+        denom: normalizedDenom,
+        price: cachedData.price,
+        formattedPrice: `$${formatCurrency(cachedData.price)}`,
+        name: cachedData.name || normalizedDenom,
+        symbol: cachedData.symbol || normalizedDenom,
+        market_cap: cachedData.market_cap,
+        volume_24h: cachedData.volume_24h,
+        price_change_24h: cachedData.price_change_24h,
+        price_change_percentage_24h: cachedData.price_change_percentage_24h,
+        timestamp: cachedData.timestamp,
+        source: "CoinGecko (cached)"
       });
     }
     
-    // Make API request with proper headers and parameters
-    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_last_updated_at=true`;
+    // Get CoinGecko ID
+    const coinGeckoId = getTokenCoinGeckoId(normalizedDenom);
+    if (!coinGeckoId) {
+      return createErrorResponse(
+        "InvalidToken", 
+        `Token '${denom}' is not supported. Please use a valid token symbol.`
+      );
+    }
     
-    elizaLogger.info(`Fetching price from CoinGecko for ${denom} (${coinId})`);
-    
-    const response = await api.get(url, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        // Add a user agent to be nice to the API
-        'User-Agent': 'HiveX-MultiversX-Integration/0.1'
-      },
-      timeout: 5000 // 5 second timeout
-    });
+    // Fetch price data from CoinGecko
+    const response = await axios.get(
+      `https://api.coingecko.com/api/v3/coins/${coinGeckoId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`
+    );
     
     const data = response.data;
+    const price = data.market_data.current_price.usd;
     
-    if (data && data[coinId] && data[coinId].usd) {
-      const price = data[coinId].usd;
-      const lastUpdatedAt = data[coinId].last_updated_at * 1000 || now;
-      const formattedPrice = formatCurrency(price);
-      
-      // Update cache
-      priceCache[coinId] = {
-        price,
-        timestamp: now
-      };
-      
-      return createSuccessResponse({
-        denom,
-        coinId,
-        price,
-        formattedPrice,
-        currency: 'USD',
-        timestamp: lastUpdatedAt
-      });
-    } else {
-      elizaLogger.warn(`No price data returned for ${coinId}, using fallback`);
-      
-      // Try fallback data
-      if (COMMON_TOKEN_PRICES[coinId]) {
-        const fallbackData = COMMON_TOKEN_PRICES[coinId];
-        elizaLogger.warn(`Using fallback data for ${coinId}`);
-        
-        return createSuccessResponse({
-          denom,
-          coinId,
-          price: fallbackData.price,
-          formattedPrice: formatCurrency(fallbackData.price),
-          name: fallbackData.name,
-          symbol: fallbackData.symbol,
-          currency: 'USD',
-          timestamp: now,
-          isEstimated: true
-        });
-      }
-      
-      return createErrorResponse("NoData", `No price data available for ${denom}`);
-    }
-  } catch (error) {
-    // Detailed error logging
-    elizaLogger.error(`CoinGecko API error for ${params.denom}:`, {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      headers: error.response?.headers
+    // Update cache
+    priceCache[normalizedDenom] = {
+      price,
+      timestamp: now,
+      name: data.name,
+      symbol: data.symbol,
+      market_cap: data.market_data.market_cap?.usd,
+      volume_24h: data.market_data.total_volume?.usd,
+      price_change_24h: data.market_data.price_change_24h,
+      price_change_percentage_24h: data.market_data.price_change_percentage_24h
+    };
+    
+    return createSuccessResponse({
+      denom: normalizedDenom,
+      price,
+      formattedPrice: `$${formatCurrency(price)}`,
+      name: data.name,
+      symbol: data.symbol,
+      market_cap: data.market_data.market_cap?.usd,
+      volume_24h: data.market_data.total_volume?.usd,
+      price_change_24h: data.market_data.price_change_24h,
+      price_change_percentage_24h: data.market_data.price_change_percentage_24h,
+      timestamp: now,
+      source: "CoinGecko"
     });
     
-    // Check for rate limiting
-    if (error.response && error.response.status === 429) {
-      elizaLogger.warn('CoinGecko rate limit reached, using fallback data');
-    }
-    
-    // Try to use fallback data
-    const coinId = getDenomCoinGeckoId(params.denom);
-    if (coinId && COMMON_TOKEN_PRICES[coinId]) {
-      const fallbackData = COMMON_TOKEN_PRICES[coinId];
-      elizaLogger.warn(`Using fallback data for ${coinId} due to API error`);
-      
-      return createSuccessResponse({
-        denom: params.denom,
-        coinId,
-        price: fallbackData.price,
-        formattedPrice: formatCurrency(fallbackData.price),
-        name: fallbackData.name,
-        symbol: fallbackData.symbol,
-        currency: 'USD',
-        timestamp: Date.now(),
-        isEstimated: true
+  } catch (error: unknown) {
+    // Detailed error logging
+    if (error instanceof Error) {
+      elizaLogger.error(`CoinGecko API error for ${params.denom}:`, {
+        message: error.message,
+        status: axios.isAxiosError(error) ? error.response?.status : undefined,
+        statusText: axios.isAxiosError(error) ? error.response?.statusText : undefined,
+        data: axios.isAxiosError(error) ? error.response?.data : undefined,
+        headers: axios.isAxiosError(error) ? error.response?.headers : undefined
       });
+      
+      // Check for rate limiting
+      if (axios.isAxiosError(error) && error.response && error.response.status === 429) {
+        elizaLogger.warn('CoinGecko rate limit reached, using fallback data');
+      }
+      
+      return createErrorResponse("ApiError", `Error fetching price: ${error.message}`);
     }
     
-    return createErrorResponse("ApiError", `Error fetching price: ${error.message}`);
+    return createErrorResponse("ApiError", `Error fetching price: Unknown error`);
   }
 }
 
 /**
- * Get prices for multiple tokens
+ * Get price information for multiple tokens
  */
 export async function getMultipleTokenPrices(params: { denoms: string[] }): Promise<StandardResponse> {
-  const { denoms } = params;
-  const now = Date.now();
-  
   try {
-    // Map denoms to CoinGecko IDs
-    const denomToCoinIdMap: Record<string, string> = {};
-    const coinIds: string[] = [];
-    
-    for (const denom of denoms) {
-      const coinId = getDenomCoinGeckoId(denom);
-      if (coinId) {
-        denomToCoinIdMap[denom] = coinId;
-        coinIds.push(coinId);
-      }
-    }
-    
-    if (coinIds.length === 0) {
-      return createErrorResponse("InvalidDenom", "No valid token denominations provided");
-    }
+    const { denoms } = params;
+    const normalizedDenoms = denoms.map(d => d.toLowerCase());
     
     // Prepare result object
-    const result: Record<string, any> = {};
+    const result: Record<string, any> = {
+      prices: {},
+      timestamp: Date.now(),
+      source: "CoinGecko"
+    };
     
-    // Check cache first for each token
-    for (const denom of denoms) {
-      const coinId = denomToCoinIdMap[denom];
-      if (!coinId) continue;
-      
-      if (priceCache[coinId] && (now - priceCache[coinId].timestamp) < cacheExpiryMs) {
-        elizaLogger.info(`Using cached price for ${denom} (${coinId})`);
-        
-        const cachedPrice = priceCache[coinId].price;
-        const cachedName = priceCache[coinId].name || denom.toUpperCase();
-        const cachedSymbol = priceCache[coinId].symbol || denom.toUpperCase();
-        
-        result[denom] = {
-          denom,
-          coinId,
-          price: cachedPrice,
-          formattedPrice: formatCurrency(cachedPrice),
-          name: cachedName,
-          symbol: cachedSymbol,
-          currency: 'USD',
-          timestamp: now,
-          fromCache: true
+    // Get CoinGecko IDs
+    const coinGeckoIds: string[] = [];
+    const denomToId: Record<string, string> = {};
+    
+    for (const denom of normalizedDenoms) {
+      const id = getTokenCoinGeckoId(denom);
+      if (id) {
+        coinGeckoIds.push(id);
+        denomToId[denom] = id;
+      } else {
+        result.prices[denom] = {
+          error: `Token '${denom}' is not supported`
         };
       }
     }
     
-    // Get remaining tokens from API
-    const remainingCoinIds = coinIds.filter(coinId => {
-      return !Object.values(result).some((r: any) => r.coinId === coinId);
-    });
-    
-    if (remainingCoinIds.length > 0) {
-      const coinIdsParam = remainingCoinIds.join(',');
-      
-      // Try to get the API key from environment
-      const apiKey = process.env.COINGECKO_API_KEY;
-      
-      // Construct the endpoint URL based on whether we have an API key
-      const endpoint = apiKey 
-        ? `https://pro-api.coingecko.com/api/v3/simple/price?ids=${coinIdsParam}&vs_currencies=usd&include_last_updated_at=true&x_cg_pro_api_key=${apiKey}`
-        : `https://api.coingecko.com/api/v3/simple/price?ids=${coinIdsParam}&vs_currencies=usd&include_last_updated_at=true`;
-
-      const response = await api.get(endpoint);
-      
-      // Process the response and update cache
-      for (const denom of denoms) {
-        const coinId = denomToCoinIdMap[denom];
-        if (!coinId || result[denom]) continue;
-        
-        if (response.data && response.data[coinId] && response.data[coinId].usd) {
-          const price = response.data[coinId].usd;
-          const lastUpdatedAt = response.data[coinId].last_updated_at || now;
-          
-          // Get additional token info if available
-          let name = denom.toUpperCase();
-          let symbol = denom.toUpperCase();
-          
-          // Try to get token info from common data
-          if (COMMON_TOKEN_PRICES[coinId]) {
-            name = COMMON_TOKEN_PRICES[coinId].name;
-            symbol = COMMON_TOKEN_PRICES[coinId].symbol;
-          }
-          
-          // Update cache
-          priceCache[coinId] = {
-            price,
-            timestamp: now,
-            name,
-            symbol
-          };
-          
-          result[denom] = {
-            denom,
-            coinId,
-            price,
-            formattedPrice: formatCurrency(price),
-            name,
-            symbol,
-            currency: 'USD',
-            timestamp: lastUpdatedAt
-          };
-        } else {
-          // If API doesn't have data for this coin, try fallback
-          if (COMMON_TOKEN_PRICES[coinId]) {
-            const fallbackData = COMMON_TOKEN_PRICES[coinId];
-            elizaLogger.warn(`Using fallback data for ${coinId}`);
-            
-            // Update cache with fallback data
-            priceCache[coinId] = {
-              price: fallbackData.price,
-              timestamp: now,
-              name: fallbackData.name,
-              symbol: fallbackData.symbol
-            };
-            
-            result[denom] = {
-              denom,
-              coinId,
-              price: fallbackData.price,
-              formattedPrice: formatCurrency(fallbackData.price),
-              name: fallbackData.name,
-              symbol: fallbackData.symbol,
-              currency: 'USD',
-              timestamp: now,
-              isEstimated: true
-            };
-          } else {
-            result[denom] = { 
-              error: `Failed to fetch price for ${denom}`,
-              denom
-            };
-          }
-        }
-      }
+    if (coinGeckoIds.length === 0) {
+      return createErrorResponse(
+        "InvalidTokens", 
+        `None of the provided tokens are supported. Please use valid token symbols.`
+      );
     }
-
-    // Check if we have any results
-    const successfulResults = Object.values(result).filter((r: any) => !r.error);
-    if (successfulResults.length === 0) {
-      // If all API calls failed, try to use fallback data
-      for (const denom of denoms) {
-        const coinId = denomToCoinIdMap[denom];
-        if (!coinId) continue;
-        
-        if (COMMON_TOKEN_PRICES[coinId]) {
-          const fallbackData = COMMON_TOKEN_PRICES[coinId];
-          elizaLogger.warn(`Using fallback data for ${coinId} due to API failure`);
-          
-          result[denom] = {
-            denom,
-            coinId,
-            price: fallbackData.price,
-            formattedPrice: formatCurrency(fallbackData.price),
-            name: fallbackData.name,
-            symbol: fallbackData.symbol,
-            currency: 'USD',
-            timestamp: now,
-            isEstimated: true
-          };
-        }
-      }
-    }
-
-    return createSuccessResponse({
-      prices: result,
-      timestamp: now,
-      count: Object.keys(result).length
-    });
-  } catch (error) {
-    elizaLogger.error('Error fetching multiple token prices:', error);
     
-    // Try to use fallback data for all requested tokens
-    const result: Record<string, any> = {};
+    // Check cache first
     const now = Date.now();
+    const idsToFetch: string[] = [];
     
-    for (const denom of params.denoms) {
-      const coinId = getDenomCoinGeckoId(denom);
-      if (!coinId) continue;
-      
-      if (COMMON_TOKEN_PRICES[coinId]) {
-        const fallbackData = COMMON_TOKEN_PRICES[coinId];
+    for (const denom of Object.keys(denomToId)) {
+      if (priceCache[denom] && now - priceCache[denom].timestamp < CACHE_TTL) {
+        const cachedData = priceCache[denom];
         
-        result[denom] = {
-          denom,
-          coinId,
-          price: fallbackData.price,
-          formattedPrice: formatCurrency(fallbackData.price),
-          name: fallbackData.name,
-          symbol: fallbackData.symbol,
-          currency: 'USD',
-          timestamp: now,
-          isEstimated: true
+        result.prices[denom] = {
+          price: cachedData.price,
+          formattedPrice: `$${formatCurrency(cachedData.price)}`,
+          name: cachedData.name || denom,
+          symbol: cachedData.symbol || denom,
+          market_cap: cachedData.market_cap,
+          volume_24h: cachedData.volume_24h,
+          price_change_24h: cachedData.price_change_24h,
+          price_change_percentage_24h: cachedData.price_change_percentage_24h,
+          source: "CoinGecko (cached)"
         };
+      } else {
+        idsToFetch.push(denomToId[denom]);
       }
     }
     
-    if (Object.keys(result).length > 0) {
-      elizaLogger.warn(`Using fallback data for ${Object.keys(result).length} tokens due to API error`);
-      return createSuccessResponse({
-        prices: result,
-        timestamp: now,
-        count: Object.keys(result).length,
-        isEstimated: true
-      });
+    // If all tokens are cached, return the result
+    if (idsToFetch.length === 0) {
+      return createSuccessResponse(result);
     }
     
-    return createErrorResponse("ApiError", `Error fetching prices: ${(error as Error).message}`);
+    // Fetch price data from CoinGecko
+    const response = await axios.get(
+      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${idsToFetch.join(',')}&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h`
+    );
+    
+    const data = response.data;
+    
+    // Process the response
+    for (const item of data) {
+      // Find the corresponding denom
+      const denom = Object.keys(denomToId).find(key => denomToId[key] === item.id);
+      if (!denom) continue;
+      
+      // Update cache
+      priceCache[denom] = {
+        price: item.current_price,
+        timestamp: now,
+        name: item.name,
+        symbol: item.symbol,
+        market_cap: item.market_cap,
+        volume_24h: item.total_volume,
+        price_change_24h: item.price_change_24h,
+        price_change_percentage_24h: item.price_change_percentage_24h
+      };
+      
+      // Add to result
+      result.prices[denom] = {
+        price: item.current_price,
+        formattedPrice: `$${formatCurrency(item.current_price)}`,
+        name: item.name,
+        symbol: item.symbol,
+        market_cap: item.market_cap,
+        volume_24h: item.total_volume,
+        price_change_24h: item.price_change_24h,
+        price_change_percentage_24h: item.price_change_percentage_24h,
+        source: "CoinGecko"
+      };
+    }
+    
+    return createSuccessResponse(result);
+    
+  } catch (error: unknown) {
+    // Detailed error logging
+    if (error instanceof Error) {
+      elizaLogger.error(`CoinGecko API error for multiple tokens:`, {
+        message: error.message,
+        status: axios.isAxiosError(error) ? error.response?.status : undefined,
+        statusText: axios.isAxiosError(error) ? error.response?.statusText : undefined,
+        data: axios.isAxiosError(error) ? error.response?.data : undefined
+      });
+      
+      return createErrorResponse("ApiError", `Error fetching prices: ${error.message}`);
+    }
+    
+    return createErrorResponse("ApiError", `Error fetching prices: Unknown error`);
   }
 } 

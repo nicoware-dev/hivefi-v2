@@ -34,6 +34,14 @@ await sonicAgent.execute('SEND_S_SONIC', {
 - `to`: Recipient address (0x format)
 - `amount`: Amount of S to send
 
+**Example Prompts for Testing**:
+```
+Send 0.01 S to 0x1234567890123456789012345678901234567890
+```
+```
+Transfer 0.05 S to 0xabcdef1234567890abcdef1234567890abcdef12
+```
+
 ### ERC20 Token Operations
 
 #### SEND_TOKEN_SONIC
@@ -56,6 +64,14 @@ await sonicAgent.execute('SEND_TOKEN_SONIC', {
 - `token`: Token symbol (e.g., 'USDC', 'WETH')
 - `amount`: Amount of tokens to send
 
+**Example Prompts for Testing**:
+```
+Send 10 USDC to 0x1234567890123456789012345678901234567890 on Sonic
+```
+```
+Transfer 5 USDT to 0xabcdef1234567890abcdef1234567890abcdef12 on Sonic Chain
+```
+
 ### Portfolio Management
 
 #### PORTFOLIO_SONIC
@@ -73,6 +89,14 @@ const portfolio = await sonicAgent.execute('PORTFOLIO_SONIC');
 - Array of token balances with USD values
 - Native S token balance
 - ERC20 token balances
+
+**Example Prompts for Testing**:
+```
+Show my Sonic wallet balance
+```
+```
+What tokens do I have on Sonic Chain?
+```
 
 ### Beets DEX Operations
 
@@ -98,6 +122,14 @@ await sonicAgent.execute('SWAP_BEETS_SONIC', {
 - `amount`: Amount to swap
 - `slippage`: (Optional) Maximum slippage percentage
 
+**Example Prompts for Testing**:
+```
+Swap 0.1 S for USDC on Beets
+```
+```
+Exchange 0.05 S for USDT on Beets DEX
+```
+
 #### ADD_LIQUIDITY_BEETS_SONIC
 
 Adds liquidity to Beets DEX pools on Sonic Chain.
@@ -117,6 +149,14 @@ await sonicAgent.execute('ADD_LIQUIDITY_BEETS_SONIC', {
 - `pool`: Pool identifier (e.g., 'S-USDC')
 - `amount0`: Amount of first token
 - `amount1`: Amount of second token
+
+**Example Prompts for Testing**:
+```
+Add liquidity to S-USDC pool on Beets
+```
+```
+Provide 0.1 S and 10 USDC to Beets liquidity pool
+```
 
 ### Silo Finance Lending Operations
 
@@ -138,6 +178,14 @@ await sonicAgent.execute('DEPOSIT_SILO_SONIC', {
 - `token`: Token symbol to deposit
 - `amount`: Amount to deposit
 
+**Example Prompts for Testing**:
+```
+Deposit 100 USDC to Silo
+```
+```
+Supply 50 USDT to Silo Finance on Sonic
+```
+
 #### BORROW_SILO_SONIC
 
 Borrows assets from Silo Finance lending protocol on Sonic Chain.
@@ -155,6 +203,14 @@ await sonicAgent.execute('BORROW_SILO_SONIC', {
 **Parameters**:
 - `token`: Token symbol to borrow
 - `amount`: Amount to borrow
+
+**Example Prompts for Testing**:
+```
+Borrow 50 USDC from Silo
+```
+```
+Take a loan of 25 USDT from Silo Finance on Sonic
+```
 
 #### REPAY_SILO_SONIC
 
@@ -174,6 +230,14 @@ await sonicAgent.execute('REPAY_SILO_SONIC', {
 - `token`: Token symbol to repay
 - `amount`: Amount to repay
 
+**Example Prompts for Testing**:
+```
+Repay 50 USDC to Silo
+```
+```
+Pay back 25 USDT loan on Silo Finance
+```
+
 #### WITHDRAW_SILO_SONIC
 
 Withdraws deposited assets from Silo Finance lending protocol on Sonic Chain.
@@ -191,6 +255,14 @@ await sonicAgent.execute('WITHDRAW_SILO_SONIC', {
 **Parameters**:
 - `token`: Token symbol to withdraw
 - `amount`: Amount to withdraw
+
+**Example Prompts for Testing**:
+```
+Withdraw 50 USDC from Silo
+```
+```
+Remove 25 USDT from Silo Finance on Sonic
+```
 
 ## Configuration
 

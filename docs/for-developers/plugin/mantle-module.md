@@ -35,6 +35,14 @@ await mantleAgent.execute('SEND_MNT', {
 - `to`: Recipient address (0x format)
 - `amount`: Amount of MNT to send
 
+**Example Prompts for Testing**:
+```
+Send 0.01 MNT to 0x1234567890123456789012345678901234567890
+```
+```
+Transfer 0.05 MNT to 0xabcdef1234567890abcdef1234567890abcdef12
+```
+
 ### ERC20 Token Operations
 
 #### SEND_TOKEN_MANTLE
@@ -57,6 +65,14 @@ await mantleAgent.execute('SEND_TOKEN_MANTLE', {
 - `token`: Token symbol (e.g., 'USDC', 'USDT')
 - `amount`: Amount of tokens to send
 
+**Example Prompts for Testing**:
+```
+Send 10 USDC to 0x1234567890123456789012345678901234567890 on Mantle
+```
+```
+Transfer 5 USDT to 0xabcdef1234567890abcdef1234567890abcdef12 on Mantle network
+```
+
 ### Portfolio Management
 
 #### PORTFOLIO_MANTLE
@@ -74,6 +90,14 @@ const portfolio = await mantleAgent.execute('PORTFOLIO_MANTLE');
 - Array of token balances with USD values
 - Native MNT token balance
 - ERC20 token balances
+
+**Example Prompts for Testing**:
+```
+Show my Mantle wallet balance
+```
+```
+What tokens do I have on Mantle?
+```
 
 ### Merchant Moe DEX Operations
 
@@ -99,6 +123,14 @@ await mantleAgent.execute('SWAP_MERCHANT_MANTLE', {
 - `amount`: Amount to swap
 - `slippage`: (Optional) Maximum slippage percentage
 
+**Example Prompts for Testing**:
+```
+Swap 0.1 MNT for USDC on Merchant Moe
+```
+```
+Exchange 0.05 MNT for USDT on Mantle
+```
+
 ### Lendle Lending Operations
 
 #### DEPOSIT_LENDLE_MANTLE
@@ -119,6 +151,14 @@ await mantleAgent.execute('DEPOSIT_LENDLE_MANTLE', {
 - `token`: Token symbol to deposit
 - `amount`: Amount to deposit
 
+**Example Prompts for Testing**:
+```
+Deposit 100 USDC to Lendle
+```
+```
+Supply 50 USDT to Lendle on Mantle
+```
+
 #### BORROW_LENDLE_MANTLE
 
 Borrows assets from Lendle lending protocol on Mantle Network.
@@ -136,6 +176,14 @@ await mantleAgent.execute('BORROW_LENDLE_MANTLE', {
 **Parameters**:
 - `token`: Token symbol to borrow
 - `amount`: Amount to borrow
+
+**Example Prompts for Testing**:
+```
+Borrow 50 USDC from Lendle
+```
+```
+Take a loan of 25 USDT from Lendle on Mantle
+```
 
 #### REPAY_LENDLE_MANTLE
 
@@ -155,6 +203,14 @@ await mantleAgent.execute('REPAY_LENDLE_MANTLE', {
 - `token`: Token symbol to repay
 - `amount`: Amount to repay
 
+**Example Prompts for Testing**:
+```
+Repay 50 USDC to Lendle
+```
+```
+Pay back 25 USDT loan on Lendle
+```
+
 #### WITHDRAW_LENDLE_MANTLE
 
 Withdraws deposited assets from Lendle lending protocol on Mantle Network.
@@ -172,6 +228,14 @@ await mantleAgent.execute('WITHDRAW_LENDLE_MANTLE', {
 **Parameters**:
 - `token`: Token symbol to withdraw
 - `amount`: Amount to withdraw
+
+**Example Prompts for Testing**:
+```
+Withdraw 50 USDC from Lendle
+```
+```
+Remove 25 USDT from Lendle on Mantle
+```
 
 ### METH Staking Operations
 
@@ -191,6 +255,14 @@ await mantleAgent.execute('STAKE_METH_MANTLE', {
 **Parameters**:
 - `amount`: Amount of MNT to stake
 
+**Example Prompts for Testing**:
+```
+Stake 1.0 MNT for METH
+```
+```
+Stake 0.5 MNT on Mantle
+```
+
 #### UNSTAKE_METH_MANTLE
 
 Unstakes METH tokens to receive MNT tokens.
@@ -208,6 +280,14 @@ await mantleAgent.execute('UNSTAKE_METH_MANTLE', {
 **Parameters**:
 - `amount`: Amount of METH to unstake
 - `minMntAmount`: (Optional) Minimum amount of MNT to receive
+
+**Example Prompts for Testing**:
+```
+Unstake 1.0 METH to MNT
+```
+```
+Redeem 0.5 METH for MNT on Mantle
+```
 
 ## Configuration
 
