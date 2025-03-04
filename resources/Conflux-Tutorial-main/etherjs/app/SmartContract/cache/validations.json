@@ -1,0 +1,97 @@
+{
+  "version": "3.4",
+  "log": [
+    {
+      "contracts/Greetings.sol:Greeting": {
+        "src": "contracts/Greetings.sol:4",
+        "version": {
+          "withMetadata": "8fefc10af96bcfaf15f21b5643fd01e9bd485eb5f5a85ba7e1e2a6a962e24ac3",
+          "withoutMetadata": "782afdffef85a7ab36200526d823aef667b654b36e1604d8fa724bc07bac9ef3",
+          "linkedWithoutMetadata": "782afdffef85a7ab36200526d823aef667b654b36e1604d8fa724bc07bac9ef3"
+        },
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "setGreeting(string)",
+          "getGreeting()"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "state-variable-assignment",
+            "name": "greeting",
+            "src": "contracts/Greetings.sol:5"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "greeting",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "Greeting",
+              "src": "contracts/Greetings.sol:5"
+            }
+          ],
+          "types": {
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.10"
+      }
+    },
+    {
+      "contracts/Greetings.sol:Greeting": {
+        "src": "contracts/Greetings.sol:4",
+        "version": {
+          "withMetadata": "8fefc10af96bcfaf15f21b5643fd01e9bd485eb5f5a85ba7e1e2a6a962e24ac3",
+          "withoutMetadata": "782afdffef85a7ab36200526d823aef667b654b36e1604d8fa724bc07bac9ef3",
+          "linkedWithoutMetadata": "782afdffef85a7ab36200526d823aef667b654b36e1604d8fa724bc07bac9ef3"
+        },
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "setGreeting(string)",
+          "getGreeting()"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "state-variable-assignment",
+            "name": "greeting",
+            "src": "contracts/Greetings.sol:5"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "greeting",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_string_storage",
+              "contract": "Greeting",
+              "src": "contracts/Greetings.sol:5"
+            }
+          ],
+          "types": {
+            "t_string_storage": {
+              "label": "string",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.10"
+      }
+    }
+  ]
+}

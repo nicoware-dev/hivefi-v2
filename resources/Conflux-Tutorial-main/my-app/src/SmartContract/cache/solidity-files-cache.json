@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/home/vishal/Desktop/allgitfiles/UHACK/Frontend/src/SmartContract/contracts/InvestmentClub.sol": {
+      "lastModificationDate": 1709636335776,
+      "contentHash": "1d6461f7d342046eab2fced6a99d4ec6",
+      "sourceName": "contracts/InvestmentClub.sol",
+      "solcConfig": {
+        "version": "0.8.10",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.10"
+      ],
+      "artifacts": [
+        "ClubLibrary",
+        "InvestmentClub"
+      ]
+    }
+  }
+}

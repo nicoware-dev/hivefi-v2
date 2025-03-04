@@ -1,0 +1,43 @@
+{
+  "name": "@brian-ai/sdk",
+  "version": "0.3.7",
+  "description": "Official Typescript SDK for Brian AI.",
+  "homepage": "https://docs.brianknows.org",
+  "repository": {
+    "url": "git+https://github.com/brian-knows/brian-sdk"
+  },
+  "main": "./dist/index.js",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "test": "jest"
+  },
+  "keywords": [
+    "brian",
+    "ai",
+    "web3",
+    "typescript",
+    "javascript",
+    "sdk"
+  ],
+  "author": "Brian",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/bun": "latest",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ky": "^1.5.0"
+  }
+}

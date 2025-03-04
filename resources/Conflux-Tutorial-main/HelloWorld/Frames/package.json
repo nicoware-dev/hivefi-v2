@@ -1,0 +1,21 @@
+{
+  "name": "test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "frog vercel-build",
+    "dev": "frog dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {
+    "frog": "latest",
+    "graphql": "^16.8.1",
+    "hono": "^4",
+    "urql": "^3.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3",
+    "vercel": "^32.4.1"
+  }
+}
