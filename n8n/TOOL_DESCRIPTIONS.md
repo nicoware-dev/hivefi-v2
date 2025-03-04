@@ -1,193 +1,79 @@
-# HiveFi Agent Tool Descriptions
+# HiveFi Agent Descriptions
 
-## Analytics Agent Tools
+## MultiChain Agent
 
-### marketDataTool
-This tool provides real-time market data and price information across supported chains.
-- Input: Market data queries (prices, volumes, trends)
-- Output: Current market data and analysis
-- Example: "Get current prices for MNT, S, and BTC"
+### multiChainAgent
+This tool connects to the MultiChain Agent that handles operations on protocols deployed across multiple EVM chains.
+- Input: Any operation on multichain protocols like Aave, Uniswap, 1inch, and Beefy
+- Output: Transaction execution or protocol data
+- Example: "Find best lending rate for USDC across Aave markets"
 
-### tvlAnalyticsTool
-This tool tracks and analyzes Total Value Locked (TVL) across protocols and chains.
-- Input: TVL analysis requests
-- Output: TVL data and trend analysis
-- Example: "What's the TVL trend for Lendle over the past week?"
+#### Capabilities
+- Lending and borrowing on Aave across deployments
+- Trading on Uniswap across deployments
+- Yield farming on Beefy across chains
+- DEX aggregation via 1inch across networks
+- Protocol analytics and comparison
 
-### portfolioAnalyticsTool
-This tool provides portfolio analysis and performance tracking.
-- Input: Portfolio analysis requests
-- Output: Portfolio metrics and visualizations
-- Example: "Show my portfolio distribution across chains"
+## Analytics Agent
 
-### yieldAnalyticsTool
-This tool analyzes and compares yield opportunities across protocols.
-- Input: Yield analysis requests
-- Output: Yield comparisons and recommendations
-- Example: "Find the highest yielding USDC opportunities"
+### analyticsAgent
+This tool connects to the Analytics Agent that provides data analysis and visualization across chains.
+- Input: Any analytics, metrics, prices,or reporting request
+- Output: Detailed analytics and visualizations
+- Example: "What's the total TVL across all supported chains?"
 
-### protocolMetricsTool
-This tool tracks and analyzes protocol-specific metrics.
-- Input: Protocol metric queries
-- Output: Protocol performance data
-- Example: "Compare trading volumes on Merchant Moe vs SwapX"
+#### Capabilities
+- Price tracking and analysis (Coingecko)
+- Protocol and Chain TVL metrics (DefiLlama)
+- Token price and pools metrics (GeckoTerminal)
+- Portfolio analysis and tracking (Zerion)
+- Protocol performance metrics
+- Yield opportunity comparison
+- Risk assessment and monitoring
+- Custom reporting and visualization
 
-## Sonic Chain Agent Tools
+## Sonic Chain Agent
 
-### sonicWalletTool
-This tool manages Sonic wallet operations and balances.
-- Input: Wallet operations on Sonic chain
-- Output: Transaction execution or balance data
-- Example: "Check my S token balance"
-
-### sonicDexTool
-This tool handles DEX operations on Sonic chain.
-- Input: DEX trading operations
-- Output: Trade execution or quotes
+### sonicAgent
+This tool connects to the Sonic Chain Agent that handles all Sonic-specific operations.
+- Input: Any Sonic chain operation or query
+- Output: Transaction execution or chain data
 - Example: "Swap 10 S for USDC on SwapX"
 
-### sonicLendingTool
-This tool manages lending operations on Sonic protocols.
-- Input: Lending operations
-- Output: Lending transaction execution
-- Example: "Supply 100 USDC to Silo Finance"
+#### Capabilities
+- Wallet management on Sonic chain
+- DEX operations (SwapX, Beets, Shadow Exchange)
+- Lending operations (Silo Finance)
+- Sonic Liquid Staking (Beets LST)
+- Sonic NFTs
 
-### sonicYieldTool
-This tool handles yield farming operations on Sonic chain.
-- Input: Yield farming operations
-- Output: Staking transaction execution
-- Example: "Stake LP tokens in Beefy vault"
+## Mantle Chain Agent
 
-### sonicNftTool
-This tool manages NFT operations on Sonic chain.
-- Input: NFT operations
-- Output: NFT transaction execution
-- Example: "List NFT on Sonic marketplace"
+### mantleAgent
+This tool connects to the Mantle Chain Agent that manages all Mantle-specific operations.
+- Input: Any Mantle chain operation or query
+- Output: Transaction execution or chain data
+- Example: "Supply 100 USDC to Lendle"
 
-## Mantle Chain Agent Tools
+#### Capabilities
+- Wallet operations on Mantle network
+- DEX trading (Merchant Moe, Agni Finance)
+- Lending operations (Lendle, Init Capital)
+- Yield farming (Pendle)
+- NFT operations on Mantle
 
-### mantleWalletTool
-This tool manages Mantle wallet operations and balances.
-- Input: Wallet operations on Mantle chain
-- Output: Transaction execution or balance data
-- Example: "Check my MNT balance"
+## Cross Chain Agent
 
-### mantleDexTool
-This tool handles DEX operations on Mantle chain.
-- Input: DEX trading operations
-- Output: Trade execution or quotes
-- Example: "Swap MNT for USDC on Merchant Moe"
+### crossChainAgent
+This tool connects to the Cross Chain Agent that manages bridge operations and cross-chain transactions using Wormhole and deBridge.
+- Input: Any cross-chain operation or bridge request
+- Output: Bridge transaction execution or status
+- Example: "Bridge 100 USDC from Mantle to Sonic using Wormhole"
 
-### mantleLendingTool
-This tool manages lending operations on Mantle protocols.
-- Input: Lending operations
-- Output: Lending transaction execution
-- Example: "Borrow USDC from Lendle"
-
-### mantleYieldTool
-This tool handles yield farming operations on Mantle chain.
-- Input: Yield farming operations
-- Output: Staking transaction execution
-- Example: "Stake in Pendle pool"
-
-### mantleNftTool
-This tool manages NFT operations on Mantle chain.
-- Input: NFT operations
-- Output: NFT transaction execution
-- Example: "Mint NFT on Mantle"
-
-## Bitcoin Agent Tools
-
-### bitcoinWalletTool
-This tool manages Bitcoin wallet operations and balances.
-- Input: Bitcoin wallet operations
-- Output: Transaction execution or balance data
-- Example: "Check my BTC balance"
-
-### bitcoinTransactionTool
-This tool handles Bitcoin transaction creation and signing.
-- Input: Bitcoin transaction requests
-- Output: Transaction execution
-- Example: "Send 0.01 BTC to address"
-
-### bitcoinNetworkTool
-This tool monitors Bitcoin network status and fees.
-- Input: Network status queries
-- Output: Network information
-- Example: "Get current Bitcoin network fees"
-
-### bitcoinUtxoTool
-This tool manages Bitcoin UTXO selection and management.
-- Input: UTXO operations
-- Output: UTXO data or management
-- Example: "Optimize UTXO set for transaction"
-
-### bitcoinMultisigTool
-This tool handles Bitcoin multisig operations.
-- Input: Multisig operations
-- Output: Multisig transaction execution
-- Example: "Create multisig transaction"
-
-## Cross Chain Agent Tools
-
-### bridgeOperationTool
-This tool manages cross-chain bridge operations.
-- Input: Bridge transaction requests
-- Output: Bridge operation execution
-- Example: "Bridge USDC from Mantle to Sonic"
-
-### bridgeMonitorTool
-This tool monitors bridge transaction status.
-- Input: Bridge status queries
-- Output: Transaction status updates
-- Example: "Check status of bridge transaction"
-
-### routeOptimizerTool
-This tool finds optimal cross-chain routes.
-- Input: Route optimization requests
-- Output: Optimal route suggestions
-- Example: "Find best route to bridge USDC to Sonic"
-
-### liquidityCheckTool
-This tool monitors bridge liquidity across chains.
-- Input: Liquidity check requests
-- Output: Bridge liquidity information
-- Example: "Check Wormhole USDC liquidity"
-
-### crossChainBalanceTool
-This tool tracks balances across multiple chains.
-- Input: Cross-chain balance queries
-- Output: Multi-chain balance data
-- Example: "Show my USDC balance across all chains"
-
-## Usage Guidelines
-
-### Tool Selection
-- Use appropriate chain-specific tools for each operation
-- Combine tools for complex operations
-- Follow operation prerequisites
-
-### Error Handling
-- Check balances before operations
-- Verify gas/fee requirements
-- Monitor transaction status
-- Handle timeouts and retries
-
-### Security
-- Validate all inputs
-- Check operation limits
-- Monitor for suspicious activity
-- Follow security protocols
-
-### Performance
-- Batch operations when possible
-- Cache frequently used data
-- Monitor resource usage
-- Implement rate limiting
-
-## Next Steps
-
-For more information about:
-- Tool implementation, see [Plugin Guide](../docs/for-developers/plugin-guide.md)
-- Agent coordination, see [Multi-Agent System](../docs/under-the-hood/multi-agent-system.md)
-- Integration details, see [Integrations](../docs/under-the-hood/integrations.md) 
+#### Capabilities
+- Bridge operations management
+- Cross-chain transaction tracking
+- Bridge status monitoring
+- Liquidity verification
+- Error recovery for bridge operations

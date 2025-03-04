@@ -224,11 +224,11 @@ plugin-hivefi/
    - **Primary Functions**: Execute Sonic transactions, interact with Sonic protocols
    - **Plugins**: plugin-hivefi (sonic module)
 
-6. **Bitcoin Agent**
+6. **MultiChain Agent**
    - **Framework**: Eliza
-   - **Role**: Bitcoin operations
-   - **Primary Functions**: Execute Bitcoin transactions, monitor Bitcoin network
-   - **Plugins**: plugin-hivefi (bitcoin module)
+   - **Role**: Multichain protocols operations
+   - **Primary Functions**: Execute multichain transactions, interact with multichain protocols
+   - **Plugins**: plugin-hivefi (multichain module)
 
 ## 6. Web Application
 

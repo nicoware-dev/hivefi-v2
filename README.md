@@ -109,10 +109,11 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - 🌾 Yield farming on Beefy
 - 💧 Liquidity provision on Shadow Exchange
 
-#### Bitcoin
-- 💰 Wallet management
-- 💸 Bitcoin transfers
-- 🔍 Transaction tracking
+#### MultiChain Protocols (Coming Soon)
+- 💱 Swaps and Liquidity Provisioning via Uniswap, 1inch, and other Multichain DEXes
+- 💸 Lending & Borrowing on Aave and Compound
+- 🌾 Multi-chain yield farming on Beefy
+
 
 #### Cross-Chain Operations
 - 🌉 Bridge operations via Wormhole
@@ -166,7 +167,7 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 12. **Cross Chain Agent**: Cross-chain operations management
 13. **Mantle Agent**: Mantle-specific operations
 14. **Sonic Agent**: Sonic-specific operations
-15. **Bitcoin Agent**: Bitcoin operations
+15. **MultiChain Agent**: Multichain Protocols operations and integrations
 
 ## 🏠 Self-Hosting
 
@@ -217,7 +218,6 @@ Edit `.env` file and add your credentials:
 EVM_PRIVATE_KEY=your_private_key
 MANTLE_RPC_URL=https://rpc.mantle.xyz
 SONIC_RPC_URL=https://mainnet.sonic.org/rpc
-BTC_RPC_URL=https://btc.getblock.io/mainnet/
 
 # Choose an API provider and add the API_KEY
 OPENAI_API_KEY=                # OpenAI API key
@@ -245,7 +245,7 @@ pnpm start --characters="characters/demo-agent.character.json"
 pnpm start --characters="characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/web3-advisor-agent.character.json"
 
 # Start all agents
-pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/cross-chain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/bitcoin-agent.character.json"
+pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/cross-chain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json"
 ```
 
 ### Running the Web Client
@@ -333,8 +333,7 @@ hivefi/
 │   │       │   ├── crosschain/ # Cross-chain module
 │   │       │   │   └── actions/
 │   │       │   │       ├── wormhole/
-│   │       │   │       ├── debridge/
-│   │       │   │       └── multichain/
+│   │       │   │       └── debridge/
 │   │       │   ├── mantle/    # Mantle module
 │   │       │   │   ├── actions/
 │   │       │   │   │   ├── mantle/        # General actions
@@ -357,9 +356,15 @@ hivefi/
 │   │       │   │   │   └── uniswap/       # DEX
 │   │       │   │   └── providers/
 │   │       │   │       └── sonic-wallet.ts
-│   │       │   ├── bitcoin/   # Bitcoin module
-│   │       │   │   └── actions/
-│   │       │   │       └── transfer/
+│   │       │   ├── multichain/   # MultiChain module
+│   │       │   │   ├── actions/
+│   │       │   │   │   ├── aave/          # Cross-chain lending
+│   │       │   │   │   ├── uniswap/       # Cross-chain DEX
+│   │       │   │   │   ├── beefy/         # Cross-chain yield
+│   │       │   │   │   ├── compound/      # Cross-chain lending
+│   │       │   │   │   └── aggregators/   # DEX aggregators
+│   │       │   │   └── providers/
+│   │       │   │       └── multichain-wallet.ts
 │   │       │   ├── predictions/ # Predictions module
 │   │       │   ├── kol/        # KOL module
 │   │       │   ├── alpha/      # Alpha module

@@ -18,7 +18,7 @@ import analyticsAgentImg from "./assets/agents/analytics-agent.png";
 import crosschainAgentImg from "./assets/agents/crosschain-agent.png";
 import mantleAgentImg from "./assets/agents/mantle-agent.png";
 import sonicAgentImg from "./assets/agents/sonic-agent.png";
-import bitcoinAgentImg from "./assets/agents/bitcoin-agent.png";
+import multichainAgentImg from "./assets/agents/multichain-agent.png";
 
 interface Agent {
     name: string;
@@ -244,12 +244,12 @@ const agentCategories: Record<string, AgentCategory> = {
                 imagePath: sonicAgentImg
             },
             {
-                name: "Bitcoin Agent",
-                description: "Bitcoin network operations and security specialist",
-                capabilities: ["Transaction management", "UTXO optimization", "Network monitoring", "Security validation", "Fee estimation"],
-                category: "Chain",
-                icon: Shield,
-                imagePath: bitcoinAgentImg
+                name: "MultiChain Agent",
+                description: "Multichain protocols operations and integration specialist",
+                capabilities: ["Protocol integration", "Yield optimization", "Multichain protocolslending", "DEX aggregation", "Strategy optimization"],
+                category: "Protocol",
+                icon: Network,
+                imagePath: multichainAgentImg
             }
         ]
     }
@@ -263,7 +263,7 @@ export default function Agents() {
                 <div className="text-center space-y-6">
                     <h1 className="text-5xl font-black title-gradient">HiveFi Agent Directory</h1>
                     <p className="text-xl text-muted-foreground/90 max-w-3xl mx-auto leading-relaxed">
-                        Explore our comprehensive suite of AI agents designed to revolutionize multichain DeFi operations across Mantle, Sonic, and Bitcoin networks.
+                        Explore our comprehensive suite of AI agents designed to revolutionize multichain DeFi operations across Mantle, Sonic, and MultiChain protocols.
                     </p>
                 </div>
 

@@ -223,7 +223,7 @@
     - [ ] Address generation
     - [ ] Balance checking
     - [ ] Transaction creation
-  - [ ] Create Bitcoin Agent
+  - [ ] Create Multichain Agent
     - [ ] Character file
     - [ ] Knowledge base
     - [ ] Basic capabilities

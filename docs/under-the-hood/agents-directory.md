@@ -258,29 +258,33 @@ The Sonic Agent manages Sonic chain operations.
 ##### Usage Example
 ```typescript
 // Trading
-await sonicAgent.execute('Trade on SwapX');
+await sonicAgent.execute('trade on SwapX');
 
 // Yield farming
-await sonicAgent.execute('Stake in Beefy vault');
+await sonicAgent.execute('stake in Beefy vault');
 ```
 
-#### Bitcoin Agent
+#### MultiChain Agent
 
-The Bitcoin Agent handles Bitcoin operations.
+The MultiChain Agent handles operations on protocols deployed across multiple EVM chains.
 
 ##### Capabilities
-- Wallet management
-- Transaction execution
-- Network monitoring
-- Security validation
+- Multichain protocol operations (Aave, Uniswap, 1inch, Beefy)
+- Protocol-specific analytics
+- Yield optimization across protocol deployments
+- Lending and borrowing on multichain protocols
+- DEX operations on multichain protocols
 
 ##### Usage Example
 ```typescript
-// Transaction
-await bitcoinAgent.execute('Send BTC to address');
+// Lending on Aave across chains
+await multiChainAgent.execute('Find best Aave lending rate for USDC');
 
-// Monitoring
-await bitcoinAgent.execute('Check transaction status');
+// Swap on Uniswap across deployments
+await multiChainAgent.execute('Swap ETH for USDC on Uniswap with best rate');
+
+// Yield farming on Beefy across chains
+await multiChainAgent.execute('Find highest yield Beefy vault for ETH-USDC');
 ```
 
 ### Cross Chain Agent

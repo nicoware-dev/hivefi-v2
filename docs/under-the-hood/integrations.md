@@ -151,28 +151,107 @@ const vaultConfig = {
 await sonicAgent.execute('deposit', vaultConfig);
 ```
 
-### Bitcoin
+### MultiChain Protocols
 
-#### Core Integration
-- **Network**: Bitcoin Mainnet
-- **Chain**: BTC
-- **RPC Endpoint**: `https://btc.getblock.io/mainnet/`
+#### Core Integrations
+- **Networks**: Multiple EVM chains (Ethereum, Arbitrum, Optimism, Polygon, Base, etc.)
+- **Protocols**: Aave, Uniswap, 1inch, Beefy, Compound, Curve
 
-#### Operations
+#### Supported Operations
+
+##### 1. Aave (Lending)
 ```typescript
-// Send Transaction
-const txConfig = {
-  to: 'bc1q...',
-  amount: '0.001',
-  feeRate: 'medium'
+// Supply Example
+const supplyConfig = {
+  chain: 'arbitrum',
+  market: '0x...',
+  token: 'USDC',
+  amount: '100',
+  enableCollateral: true
 };
 
-await bitcoinAgent.execute('send', txConfig);
+await multiChainAgent.execute('supply', supplyConfig);
 
-// Check Transaction
-const txStatus = await bitcoinAgent.execute('getTransaction', {
-  txid: '0x...'
-});
+// Find Best Rate Example
+const rateConfig = {
+  token: 'USDC',
+  operation: 'supply',
+  chains: ['ethereum', 'arbitrum', 'optimism', 'polygon']
+};
+
+const bestRate = await multiChainAgent.execute('findBestRate', rateConfig);
+```
+
+##### 2. Uniswap (DEX)
+```typescript
+// Swap Example
+const swapConfig = {
+  chain: 'optimism',
+  fromToken: 'ETH',
+  toToken: 'USDC',
+  amount: '1.0',
+  slippage: '0.5'
+};
+
+await multiChainAgent.execute('swap', swapConfig);
+
+// Find Best Price Example
+const priceConfig = {
+  fromToken: 'ETH',
+  toToken: 'USDC',
+  amount: '1.0',
+  chains: ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+};
+
+const bestPrice = await multiChainAgent.execute('findBestPrice', priceConfig);
+```
+
+##### 3. Beefy (Yield Farming)
+```typescript
+// Deposit Example
+const depositConfig = {
+  chain: 'polygon',
+  vault: '0x...',
+  token: 'USDC-ETH LP',
+  amount: '10'
+};
+
+await multiChainAgent.execute('deposit', depositConfig);
+
+// Find Best Yield Example
+const yieldConfig = {
+  token: 'USDC',
+  chains: ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+};
+
+const bestYield = await multiChainAgent.execute('findBestYield', yieldConfig);
+```
+
+##### 4. 1inch (DEX Aggregator)
+```typescript
+// Swap Example
+const swapConfig = {
+  chain: 'base',
+  fromToken: 'ETH',
+  toToken: 'USDC',
+  amount: '1.0',
+  slippage: '0.5'
+};
+
+await multiChainAgent.execute('aggregatorSwap', swapConfig);
+```
+
+##### 5. Compound (Lending)
+```typescript
+// Supply Example
+const supplyConfig = {
+  chain: 'ethereum',
+  market: '0x...',
+  token: 'USDC',
+  amount: '100'
+};
+
+await multiChainAgent.execute('compoundSupply', supplyConfig);
 ```
 
 ## Cross-Chain Bridges

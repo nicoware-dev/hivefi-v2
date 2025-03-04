@@ -12,7 +12,7 @@ This directory contains n8n workflow configurations for the HiveFi Coordinator A
 - `analytics-agent.json` - Analytics and reporting workflow
 - `sonic-agent.json` - Sonic chain operations workflow
 - `mantle-agent.json` - Mantle chain operations workflow
-- `bitcoin-agent.json` - Bitcoin operations workflow
+- `multichain-agent.json` - Multichain protocols operations workflow
 - `crosschain-agent.json` - Cross-chain operations workflow
 
 ## Coordinator Agent Architecture

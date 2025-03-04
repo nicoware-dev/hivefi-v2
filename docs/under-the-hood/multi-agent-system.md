@@ -133,7 +133,7 @@ Private agents are available only in custom deployments.
 - **Implementations**:
   - Mantle Agent
   - Sonic Agent
-  - Bitcoin Agent
+  - MultiChain Agent (for protocols deployed across multiple EVM chains)
 
 #### Support Agents
 - **Analytics Agent**

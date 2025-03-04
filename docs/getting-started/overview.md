@@ -13,7 +13,7 @@ HiveFi is a comprehensive multichain DeFi automation platform powered by AI agen
 
 At its core, HiveFi is built on three main pillars:
 1. **AI Agent Swarms**: Specialized AI agents working together to handle different aspects of DeFi operations
-2. **Cross-Chain Integration**: Seamless support for Mantle, Sonic, and Bitcoin networks
+2. **Cross-Chain Integration**: Seamless support for Mantle, Sonic, and MultiChain protocols
 3. **User-Centric Design**: Intuitive interfaces and natural language interaction
 
 ## Why Choose HiveFi?
@@ -45,7 +45,7 @@ HiveFi stands out from traditional DeFi tools for several reasons:
 ## Success Stories
 
 ### Cross-Chain DeFi Management
-Users have successfully automated their cross-chain DeFi strategies, managing assets across Mantle, Sonic, and Bitcoin networks with minimal effort.
+Users have successfully automated their cross-chain DeFi strategies, managing assets across Mantle, Sonic, and MultiChain protocols with minimal effort.
 
 ### Automated Trading
 Traders are using HiveFi's AI agents to execute complex trading strategies across multiple DEXes simultaneously.

@@ -1,6 +1,6 @@
 # HiveFi Plugin
 
-A comprehensive plugin for HiveFi that provides multichain DeFi functionality and data integration across Mantle, Sonic, and Bitcoin networks. This plugin serves as the core infrastructure for the HiveFi agent swarm, enabling seamless cross-chain operations and protocol interactions.
+A comprehensive plugin for HiveFi that provides multichain DeFi functionality and data integration across Mantle, Sonic, and MultiChain protocols. This plugin serves as the core infrastructure for the HiveFi agent swarm, enabling seamless cross-chain operations and protocol interactions.
 
 ## Architecture Overview
 
@@ -12,7 +12,7 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 │  └──────────────┬──────────────────┘  │  │
 │                 │                      │  │
 │  ┌─────────── Chain Modules ─────────┐   │
-│  │   Mantle   |   Sonic   |  Bitcoin │   │
+│  │   Mantle   |   Sonic   | MultiChain│   │
 │  └──────────────┬──────────────────┘     │
 │                 │                         │
 │  ┌─────────── Agent Modules ──────────┐  │
@@ -64,7 +64,7 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 - Token management
 - Protocol integrations
 
-#### Bitcoin Network
+#### MultiChain Network
 - Wallet operations
 - UTXO management
 - Transaction handling
@@ -128,7 +128,7 @@ plugin-hivefi/
 │   │   │   ├── aave/
 │   │   │   └── beefy/
 │   │   └── providers/
-│   ├── bitcoin/               # Bitcoin module
+│   ├── multichain/               # MultiChain module
 │   │   └── actions/
 │   │       └── transfer/
 │   ├── alpha/                # Alpha module
@@ -158,7 +158,7 @@ import { HiveFiPlugin } from '@elizaos/plugin-hivefi';
 const plugin = new HiveFiPlugin({
   mantleRpc: process.env.MANTLE_RPC_URL,
   sonicRpc: process.env.SONIC_RPC_URL,
-  bitcoinRpc: process.env.BTC_RPC_URL,
+  multichainRpc: process.env.MULTICHAIN_RPC_URL,
   apiKeys: {
     coingecko: process.env.COINGECKO_API_KEY,
     defillama: process.env.DEFILLAMA_API_KEY

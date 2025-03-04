@@ -214,7 +214,7 @@ function Home() {
                                         </span>
                                     </CardTitle>
                                     <CardDescription className="text-base leading-relaxed">
-                                        Native integration with Mantle, Sonic, and Bitcoin networks, providing seamless cross-chain operations.
+                                        Native integration with Mantle, Sonic, and MultiChain protocols, providing seamless cross-chain operations.
                                     </CardDescription>
                                 </CardHeader>
                             </Card>
@@ -260,7 +260,7 @@ function Home() {
                     <div className="container text-center space-y-4">
                         <h2 className="text-3xl font-bold title-gradient">Integrated Platforms & Protocols</h2>
                         <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                            Seamlessly connected with leading protocols across Mantle, Sonic, and Bitcoin networks
+                            Seamlessly connected with leading protocols across Mantle, Sonic, and MultiChain protocols
                         </p>
                     </div>
                     <LogoCarousel />

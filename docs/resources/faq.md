@@ -12,7 +12,7 @@ HiveFi uses a Multi-Agent System (MAS) where different AI agents specialize in s
 Currently, HiveFi supports:
 - Mantle Network
 - Sonic Chain
-- Bitcoin
+- MultiChain Protocols (Aave, Uniswap, 1inch, Beefy across multiple EVM chains)
 Additional chains will be added based on community demand and technical feasibility.
 
 ### What can I do with HiveFi?

@@ -39,7 +39,7 @@ HiveFi's architecture is designed for scalability, security, and extensibility a
           │           │          │
 ┌─────────┼───────────┼──────────┼───────────────┐
 │    ┌────┴─────┬─────┴────┬────┴─────┐         │
-│    │  Mantle  │  Sonic   │ Bitcoin  │         │
+│    │  Mantle  │  Sonic   │MultiChain│         │
 │    └──────────┴──────────┴──────────┘         │
 │           Blockchain Layer                     │
 └──────────────────────────────────────────────────┘
@@ -122,12 +122,14 @@ HiveFi's architecture is designed for scalability, security, and extensibility a
   - Yield optimization
   - Bridge operations
 
-#### Bitcoin
+#### MultiChain Protocols
 - **Features**:
-  - Wallet management
-  - Transaction handling
-  - Network monitoring
-  - Security features
+  - Operations on protocols deployed across multiple EVM chains
+  - Aave lending and borrowing across deployments
+  - Uniswap trading across deployments
+  - 1inch aggregation across chains
+  - Beefy yield farming across deployments
+  - Protocol analytics and comparison
 
 ## Data Flow
 

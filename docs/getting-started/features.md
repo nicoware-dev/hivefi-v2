@@ -41,12 +41,12 @@ Discover the powerful features that make HiveFi the ultimate platform for AI-pow
 - Yield optimization (Beefy)
 - Comprehensive token support
 
-### Bitcoin
-- Secure wallet management
-- Transaction monitoring
-- Balance tracking
-- Security features
-- Integration with bridges
+### MultiChain Protocols
+- Cross-chain protocol operations
+- Lending & borrowing on Aave
+- Trading on Uniswap and 1inch
+- Yield farming on Beefy
+- Protocol analytics and comparison
 
 ## AI Agent Capabilities
 
