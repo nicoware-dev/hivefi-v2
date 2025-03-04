@@ -404,8 +404,13 @@ class BeetsSwapAction {
 }
 
 export const swap: Action = {
-    name: "SWAP_TOKENS_BEETS",
-    description: "Swap tokens on Beets (Balancer V3 fork)",
+    name: "SWAP_BEETS_SONIC",
+    similes: [
+        "TRADE_BEETS_SONIC",
+        "EXCHANGE_BEETS_SONIC",
+        "SWAP_TOKENS_BEETS_SONIC"
+    ],
+    description: "Swap tokens using Beets DEX on Sonic Chain network",
     examples: [
         [
             {
@@ -490,9 +495,4 @@ export const swap: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like exchanging tokens through Beets on Sonic",
-        "like trading with Balancer-style pools on Sonic",
-        "like swapping digital assets through Beets"
-    ],
 };

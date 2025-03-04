@@ -326,7 +326,7 @@ BTC_RPC_URL=https://btc.getblock.io/mainnet/
 // Agent security configuration
 const agentConfig = {
   maxTransactionAmount: '1000',
-  allowedChains: ['mantle', 'sonic', 'bitcoin'],
+  allowedChains: ['mantle', 'sonic', 'multichain'],
   requiredApprovals: 1,
   timeoutSeconds: 30
 };

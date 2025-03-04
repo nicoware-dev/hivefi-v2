@@ -2,7 +2,7 @@
 
 ## Core Responsibilities
 
-Data collection must gather metrics across Mantle, Sonic, and Bitcoin networks.
+Data collection must gather metrics across Mantle, Sonic, and MultiChain protocols.
 
 Analysis frameworks must process multi-chain data to generate actionable insights.
 

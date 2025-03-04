@@ -28,12 +28,12 @@ Protocol interaction demos must showcase integration with various DeFi protocols
 - Yield optimization (Beefy)
 - Protocol analytics
 
-### Bitcoin Network
-- Wallet operations
-- Transaction management
-- UTXO optimization
-- Fee estimation
-- Security practices
+### MultiChain Protocols
+- Cross-chain protocol operations
+- Lending and borrowing on Aave across deployments
+- Trading on Uniswap and 1inch across chains
+- Yield farming on Beefy across deployments
+- Protocol comparison and analytics
 
 ## Cross-Chain Operations
 

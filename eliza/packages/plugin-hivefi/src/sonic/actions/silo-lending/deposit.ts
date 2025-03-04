@@ -92,23 +92,32 @@ const WS_ABI = [{
 }] as const;
 
 export const deposit: Action = {
-    name: "DEPOSIT_SILO",
-    description: "Deposit tokens into Silo Finance V2 lending pools",
+    name: "DEPOSIT_SILO_SONIC",
+    similes: [
+        "SUPPLY_SILO_SONIC",
+        "LEND_SILO_SONIC",
+        "PROVIDE_SILO_SONIC"
+    ],
+    description: "Deposit assets into Silo Finance lending protocol on Sonic Chain network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Deposit 0.1 S to Silo",
-                },
+                    text: "Deposit 100 USDC into Silo",
+                    entities: {
+                        amount: "100",
+                        token: "USDC"
+                    }
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "Initiating deposit of 0.1 S to Silo Finance...",
-                },
-            },
-        ],
+                    text: "Initiating deposit of 100 USDC into Silo Finance on Sonic Chain..."
+                }
+            }
+        ]
     ],
     handler: async (runtime, message: Memory, _state, _options, callback) => {
         try {
@@ -361,9 +370,4 @@ export const deposit: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like depositing assets into a lending pool",
-        "like providing collateral to Silo Finance",
-        "like supplying tokens to earn interest"
-    ],
 };

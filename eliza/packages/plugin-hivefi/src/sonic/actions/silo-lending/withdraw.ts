@@ -48,23 +48,32 @@ const VAULT_ABI = [{
 }] as const;
 
 export const withdraw: Action = {
-    name: "WITHDRAW_SILO",
-    description: "Withdraw tokens from Silo Finance V2 lending pools",
+    name: "WITHDRAW_SILO_SONIC",
+    similes: [
+        "REMOVE_SILO_SONIC",
+        "TAKE_OUT_SILO_SONIC",
+        "RETRIEVE_SILO_SONIC"
+    ],
+    description: "Withdraw deposited assets from Silo Finance lending protocol on Sonic Chain network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Withdraw 0.1 S from Silo",
-                },
+                    text: "Withdraw 50 USDC from Silo",
+                    entities: {
+                        amount: "50",
+                        token: "USDC"
+                    }
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "Initiating withdrawal of 0.1 S from Silo Finance...",
-                },
-            },
-        ],
+                    text: "Initiating withdrawal of 50 USDC from Silo Finance on Sonic Chain..."
+                }
+            }
+        ]
     ],
     handler: async (runtime, message: Memory, _state, _options, callback) => {
         try {
@@ -217,9 +226,4 @@ export const withdraw: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like withdrawing assets from Silo Finance",
-        "like removing liquidity from a lending pool",
-        "like taking out your deposited tokens on Sonic",
-    ],
 };

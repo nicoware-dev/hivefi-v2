@@ -8,7 +8,12 @@ import { TOKENS, getTokenBySymbol, isERC20Token, type TokenSymbol } from "../con
 
 export const erc20Transfer: Action = {
     name: "SEND_TOKEN_SONIC",
-    description: "Send ERC20 tokens on Sonic network",
+    similes: [
+        "TRANSFER_TOKEN_SONIC",
+        "MOVE_TOKEN_SONIC",
+        "SEND_ERC20_SONIC"
+    ],
+    description: "Send ERC20 tokens on Sonic Chain network",
     examples: [
         [
             {
@@ -160,9 +165,4 @@ export const erc20Transfer: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like sending tokens through the Sonic network",
-        "like making a token transfer in the Sonic ecosystem",
-        "like beaming tokens across Sonic",
-    ],
 };

@@ -67,23 +67,32 @@ const ERC20_ABI = [{
 }] as const;
 
 export const repay: Action = {
-    name: "REPAY_SILO",
-    description: "Repay borrowed tokens to Silo Finance V2 lending pools",
+    name: "REPAY_SILO_SONIC",
+    similes: [
+        "PAY_BACK_SILO_SONIC",
+        "RETURN_LOAN_SILO_SONIC",
+        "SETTLE_DEBT_SILO_SONIC"
+    ],
+    description: "Repay borrowed assets to Silo Finance lending protocol on Sonic Chain network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Repay 0.001 USDC to Silo Finance",
-                },
+                    text: "Repay 50 USDC to Silo",
+                    entities: {
+                        amount: "50",
+                        token: "USDC"
+                    }
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "Initiating repayment of 0.001 USDC to Silo Finance...",
-                },
-            },
-        ],
+                    text: "Initiating repayment of 50 USDC to Silo Finance on Sonic Chain..."
+                }
+            }
+        ]
     ],
     handler: async (runtime, message: Memory, _state, _options, callback) => {
         try {
@@ -238,9 +247,4 @@ export const repay: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like paying back your loan to Silo Finance",
-        "like settling your borrowed assets",
-        "like closing your debt position",
-    ],
 };

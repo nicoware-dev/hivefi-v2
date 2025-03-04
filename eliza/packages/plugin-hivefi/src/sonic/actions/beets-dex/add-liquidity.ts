@@ -40,27 +40,33 @@ const JOIN_POOL_ABI = {
 } as const;
 
 export const addLiquidity: Action = {
-    name: "ADD_LIQUIDITY_BEETS",
-    description: "Add liquidity to the wS-stS pool on Beets using S or wS",
+    name: "ADD_LIQUIDITY_BEETS_SONIC",
+    similes: [
+        "PROVIDE_LIQUIDITY_BEETS_SONIC",
+        "JOIN_POOL_BEETS_SONIC",
+        "DEPOSIT_LP_BEETS_SONIC"
+    ],
+    description: "Add liquidity to Beets DEX pools on Sonic Chain network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Add liquidity to Beets wS-stS pool with 0.1 S",
+                    text: "Add liquidity to S-USDC pool on Beets",
                     entities: {
-                        amount: "0.1",
-                        token: "S",
-                    },
-                },
+                        pool: "S-USDC",
+                        amount0: "0.1",
+                        amount1: "10"
+                    }
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "I'll help you add liquidity to the wS-stS pool. I'll first wrap your S tokens and then add them to the pool.",
-                },
-            },
-        ],
+                    text: "Initiating liquidity addition to S-USDC pool on Beets DEX on Sonic Chain..."
+                }
+            }
+        ]
     ],
     handler: async (runtime, message: Memory, state, options, callback) => {
         // Extract amount and token from message
@@ -247,9 +253,4 @@ export const addLiquidity: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like providing tokens to the Beets wS-stS pool",
-        "like depositing liquidity in Beets",
-        "like contributing to the wS-stS trading pair on Beets",
-    ],
 };

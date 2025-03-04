@@ -2,7 +2,7 @@
 
 ## Core Responsibilities
 
-Market analysis must cover opportunities across Mantle, Sonic, and Bitcoin networks while considering cross-chain interactions.
+Market analysis must cover opportunities across Mantle, Sonic, and MultiChain protocols while considering cross-chain interactions.
 
 Opportunity identification must evaluate potential returns against risks and implementation costs across different chains.
 
@@ -28,12 +28,12 @@ Market sentiment analysis must aggregate signals from various sources to identif
 - New protocol launches
 - Market dynamics
 
-### Bitcoin Network
-- UTXO optimization
-- Fee arbitrage
-- Network congestion
-- Lightning opportunities
-- Market movements
+### MultiChain Protocols
+- Cross-chain lending opportunities (Aave)
+- DEX trading strategies (Uniswap, 1inch)
+- Yield farming optimization (Beefy)
+- Protocol deployment comparisons
+- Cross-chain arbitrage opportunities
 
 ## Cross-Chain Opportunities
 

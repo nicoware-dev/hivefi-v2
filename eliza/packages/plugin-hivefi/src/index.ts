@@ -6,13 +6,16 @@ import { walletProvider } from "./mantle/providers/wallet";
 // Import all Mantle actions as a group
 import { MantleActions } from "./mantle/actions";
 
+// Import all Sonic actions as a group
+import { sonicActions } from "./sonic";
+
 export const hivefiPlugin: Plugin = {
     name: "hivefi",
     description: "HiveFi Plugin for Eliza - Multichain DeFAI Agent Swarm",
     actions: [
         ...MantleActions, // Spread all Mantle actions
-        // TODO: Add Sonic actions
-        // TODO: Add Bitcoin actions
+        ...sonicActions, // Spread all Sonic actions
+        // TODO: Add MultiChain actions
     ],
     evaluators: [],
     providers: [

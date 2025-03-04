@@ -30,7 +30,7 @@
     "knowledge": [
         { "path": "hivefi.md", "shared": true },
         { "path": "agents/multichain-agent.md", "shared": false },
-        { "path": "protocols/multichain.md", "shared": true }
+        { "path": "chains/multichain.md", "shared": true }
     ],
     "messageExamples": [
         [

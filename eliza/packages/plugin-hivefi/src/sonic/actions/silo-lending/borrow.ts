@@ -42,23 +42,32 @@ const VAULT_ABI = [{
 }] as const;
 
 export const borrow: Action = {
-    name: "BORROW_SILO",
-    description: "Borrow tokens from Silo Finance V2 lending pools using deposited collateral",
+    name: "BORROW_SILO_SONIC",
+    similes: [
+        "LOAN_SILO_SONIC",
+        "TAKE_LOAN_SILO_SONIC",
+        "GET_LOAN_SILO_SONIC"
+    ],
+    description: "Borrow assets from Silo Finance lending protocol on Sonic Chain network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Borrow 0.001 USDC from Silo Finance",
-                },
+                    text: "Borrow 50 USDC from Silo",
+                    entities: {
+                        amount: "50",
+                        token: "USDC"
+                    }
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "Initiating borrow of 0.001 USDC from Silo Finance using your deposited collateral...",
-                },
-            },
-        ],
+                    text: "Initiating borrow of 50 USDC from Silo Finance on Sonic Chain..."
+                }
+            }
+        ]
     ],
     handler: async (runtime, message: Memory, _state, _options, callback) => {
         try {
@@ -184,9 +193,4 @@ export const borrow: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like taking a loan using your deposited collateral",
-        "like borrowing assets from Silo Finance",
-        "like accessing liquidity against your deposits",
-    ],
 };

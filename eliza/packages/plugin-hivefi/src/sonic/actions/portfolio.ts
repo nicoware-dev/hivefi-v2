@@ -36,23 +36,28 @@ setInterval(() => {
 }, 60000);
 
 export const portfolio: Action = {
-    name: "SHOW_PORTFOLIO",
-    description: "Show your Sonic wallet portfolio with token balances and USD values",
+    name: "PORTFOLIO_SONIC",
+    similes: [
+        "BALANCE_SONIC",
+        "WALLET_SONIC",
+        "HOLDINGS_SONIC"
+    ],
+    description: "View wallet balances and portfolio on Sonic Chain network",
     examples: [
         [
             {
                 user: "user1",
                 content: {
-                    text: "Show my portfolio",
-                },
+                    text: "Show my Sonic wallet balance",
+                }
             },
             {
                 user: "assistant",
                 content: {
-                    text: "Fetching your current portfolio data from Sonic Network...",
-                },
-            },
-        ],
+                    text: "Fetching your wallet balances on Sonic Chain..."
+                }
+            }
+        ]
     ],
     suppressInitialMessage: true, // This prevents double responses in Telegram
     handler: async (runtime, message: Memory, state: State | undefined, options, callback) => {
@@ -182,9 +187,4 @@ export const portfolio: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like checking your digital wallet's contents",
-        "like getting a snapshot of your crypto holdings",
-        "like viewing your investment portfolio on Sonic",
-    ],
 };

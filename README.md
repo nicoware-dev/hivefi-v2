@@ -109,11 +109,10 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - 🌾 Yield farming on Beefy
 - 💧 Liquidity provision on Shadow Exchange
 
-#### MultiChain Protocols (Coming Soon)
+#### MultiChain Protocols
 - 💱 Swaps and Liquidity Provisioning via Uniswap, 1inch, and other Multichain DEXes
 - 💸 Lending & Borrowing on Aave and Compound
 - 🌾 Multi-chain yield farming on Beefy
-
 
 #### Cross-Chain Operations
 - 🌉 Bridge operations via Wormhole

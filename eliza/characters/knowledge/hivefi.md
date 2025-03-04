@@ -1,6 +1,6 @@
 # HiveFi Knowledge Base
 
-HiveFi is an open-source Multi-Agent System (MAS) designed for multichain DeFi operations, providing automated cross-chain operations through intelligent agent swarms. HiveFi combines AI technology with blockchain automation to offer efficient, secure, and scalable DeFi solutions across multiple networks including Mantle, Sonic, and Bitcoin.
+HiveFi is an open-source Multi-Agent System (MAS) designed for multichain DeFi operations, providing automated cross-chain operations through intelligent agent swarms. HiveFi combines AI technology with blockchain automation to offer efficient, secure, and scalable DeFi solutions across multiple networks including Mantle, Sonic, and MultiChain protocols.
 
 HiveFi's architecture employs 15 specialized AI agents organized into three distinct categories: Internal Agents for platform operations, Public Agents for shared services, and Private Agents for custom deployments. Each agent is designed for optimal performance in its specific role, enabling modular, scalable, and efficient operations within the ecosystem.
 
@@ -30,12 +30,13 @@ HiveFi offers a comprehensive set of active features including:
 - Yield optimization through Beefy
 - Protocol analytics and performance tracking
 
-### Bitcoin Network
-- Wallet management and Bitcoin transfers
-- UTXO optimization
-- Transaction monitoring and fee estimation
-- Network status tracking
-- Security-focused operations
+### MultiChain Protocols
+- Operations on protocols deployed across multiple EVM chains
+- Lending and borrowing on Aave across deployments
+- Trading on Uniswap and 1inch across chains
+- Yield farming on Beefy across deployments
+- Protocol analytics and comparison
+- Cross-chain performance optimization
 
 ## Cross-Chain Operations
 - Bridge operations via Wormhole

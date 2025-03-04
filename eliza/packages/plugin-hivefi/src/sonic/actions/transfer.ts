@@ -6,8 +6,13 @@ import { sonicChain } from "../config/chains";
 import { initWalletProvider } from "../providers/wallet";
 
 export const transfer: Action = {
-    name: "SEND_S",
-    description: "Send S on Sonic network",
+    name: "SEND_S_SONIC",
+    similes: [
+        "SEND_SONIC",
+        "SEND_S_SONIC_CHAIN",
+        "TRANSFER_S_SONIC"
+    ],
+    description: "Send S native token on Sonic Chain network",
     examples: [
         [
             {
@@ -110,9 +115,4 @@ export const transfer: Action = {
         }
     },
     validate: async () => true,
-    similes: [
-        "like sending digital cash through the Sonic network",
-        "like making an instant transfer in the Sonic ecosystem",
-        "like beaming S through the network",
-    ],
 };

@@ -2,7 +2,7 @@
 
 ## Core Responsibilities
 
-Bridge operations must coordinate secure asset transfers between Mantle, Sonic, and Bitcoin networks.
+Bridge operations must coordinate secure asset transfers between Mantle, Sonic, and MultiChain protocols.
 
 Transaction monitoring must track cross-chain operations from initiation through completion.
 

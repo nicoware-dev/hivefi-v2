@@ -31,7 +31,8 @@
     { "path": "hivefi.md", "shared": true },
     { "path": "chains/mantle.md", "shared": true },
     { "path": "chains/sonic.md", "shared": true },
-    { "path": "agents/demo-agent.md", "shared": false }
+    { "path": "agents/demo-agent.md", "shared": false },
+    { "path": "chains/multichain.md", "shared": true }
   ],
   "messageExamples": [
     [
