@@ -1,0 +1,16 @@
+.idea
+.vscode
+
+.DS_Store
+
+dist
+
+node_modules
+yarn-error.log
+
+docs
+
+.parcel-cache
+.turbo
+
+.env

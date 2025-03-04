@@ -1,0 +1,76 @@
+{
+    "folders": [
+        {
+            "name": "crossmint-sdk",
+            "path": "."
+        },
+        {
+            "name": "🌿 @crossmint/sdk",
+            "path": "packages/crossmint"
+        },
+        {
+            "name": "🕸️ @crossmint/server-sdk",
+            "path": "packages/server"
+        },
+        {
+            "name": "💻 @crossmint/client-sdk",
+            "path": "packages/client"
+        },
+        {
+            "name": "🧬 @crossmint/common-sdk-base",
+            "path": "packages/common/base"
+        },
+        {
+            "name": "🧬 @crossmint/common-sdk-auth",
+            "path": "packages/common/auth"
+        },
+        {
+            "name": "🧬 @crossmint/client-sdk-base",
+            "path": "packages/client/base"
+        },
+        {
+            "name": "⚛️ @crossmint/client-sdk-auth",
+            "path": "packages/client/auth"
+        },
+        {
+            "name": "⚛️ @crossmint/client-sdk-react-ui",
+            "path": "packages/client/ui/react-ui"
+        },
+        {
+            "name": "⚛️🔒 Smart Wallet SDK Playground",
+            "path": "apps/wallets/smart-wallet/react"
+        },
+        {
+            "name": "⚛️🔒 Smart Wallet + Auth Demo",
+            "path": "apps/wallets/smart-wallet/next"
+        },
+        {
+            "name": "⚪ @crossmint/client-sdk-vanilla-ui",
+            "path": "packages/client/ui/vanilla-ui"
+        },
+        {
+            "name": "🟢 @crossmint/client-sdk-vue-ui",
+            "path": "packages/client/ui/vue-ui"
+        },
+        {
+            "name": "✅ @crossmint/client-sdk-verifiable-credentials",
+            "path": "packages/client/verifiable-credentials"
+        },
+        {
+            "name": "🔒 @crossmint/client-sdk-smart-wallet",
+            "path": "packages/client/wallets/smart-wallet"
+        },
+        {
+            "name": "🪪 @crossmint/wallets-sdk",
+            "path": "packages/wallets"
+        },
+        {
+            "name": "🏁 Apps",
+            "path": "apps"
+        }
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "biomejs.biome"
+    }
+}
