@@ -1,5 +1,13 @@
 {
-    "buildCommand": "pnpm run build",
-    "installCommand": "pnpm install",
-    "framework": "vite"
+    "version": 2,
+    "buildCommand": "pnpm build",
+    "outputDirectory": "dist",
+    "framework": "vite",
+    "rewrites": [
+        { "source": "/api/zerion/portfolio/:address", "destination": "/api/zerion-portfolio.js?address=:address" },
+        { "source": "/api/zerion/positions/:address", "destination": "/api/zerion-positions.js?address=:address" }
+    ],
+    "env": {
+        "ZERION_API_KEY": "@zerion-api-key"
+    }
 } 

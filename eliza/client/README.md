@@ -1,164 +1,104 @@
-# AI Chat Client
+# HiveFi Client
 
-A modern, feature-rich chat interface for AI agents built with React, TypeScript, and the Next.js App Router.
+A multichain DeFi dashboard built with React, Vite, and Privy for wallet authentication.
 
 ## Features
 
-### Current Features
-
-#### Home Page
-- Landing Page
-- Agents Directory
-
-#### Chat Interface
-- Real-time messaging with AI agents
-- Markdown message rendering with code highlighting
-- Auto-scrolling chat window
-- Message timestamps
-- Copy message content
-- Loading states and typing indicators
-
-#### Navigation & Layout
-- Responsive sidebar navigation
-- Mobile-friendly design
-- Dark mode interface
-- Collapsible agent list
-- Breadcrumb navigation
-
-#### Analytics Dashboard (Mock-Up)
-- Real-time data visualization
-- Interactive charts and graphs
-- Key metrics display
-- Performance tracking
-- Custom date range selection
-
-#### Portfolio Management (Mock-Up)
-- Asset overview
-- Performance tracking
-- Distribution charts
-- Transaction history
-- Real-time value updates
-
-#### Settings Panel (Mock-Up)
-- Agent configuration
-- System preferences
-- API key management
-- Service integrations
-- Usage monitoring
-- Resource management
-
-### Technical Features
-- TypeScript for type safety
-- React Server Components
-- Tanstack Query for data fetching
-- Responsive Tailwind CSS design
-- Shadcn UI components
-- Error boundaries
-- Performance optimizations
-
-## Planned Improvements
-
-### Short Term
-- [ ] File attachments support (images)
-- [ ] Message history (Short Term - Last 50 messages)
-- [ ] Enhanced file upload preview
-- [ ] Toast notifications
-- [ ] Loading skeletons
-- [ ] Improved error handling
-
-### Medium Term
-- [ ] Wallet Connection Improvements
-- [ ] Portfolio Page Implementation
-- [ ] Analytics Page Implementation
-- [ ] Settings Page Implementation
-- [ ] Transactions Page Implementation
-- [ ] Token Gating
-- [ ] Keyboard shortcuts
-- [ ] Customizable themes (Dark Mode, Light Mode)
-- [ ] Export chat history
-
-### Long Term
-- [ ] Voice messages
-- [ ] One-Click Deploy Custom agent templates
-- [ ] Plugin system
-- [ ] Analytics export
-- [ ] Team collaboration features
-
-## Architecture
-
-The application follows a modular architecture with:
-- Component-based structure
-- Server/Client component separation
-- Type-safe data fetching
-- State management with React Query
-- Responsive design patterns
-
-## Pages
-
-### `/chat/[agentId]`
-Main chat interface with:
-- Message history
-- Input area
-- File attachments
-- Agent information
-
-### `/analytics`
-Analytics dashboard featuring:
-- Performance metrics
-- Usage statistics
-- Interactive charts
-- Data filtering
-
-### `/portfolio`
-Portfolio management with:
-- Asset overview
-- Performance tracking
-- Distribution charts
-- Transaction history
-
-### `/settings`
-Settings panel including:
-- Agent configuration
-- System preferences
-- Integration management
-- Usage monitoring
+- Wallet authentication with Privy
+- Portfolio tracking across multiple chains
+- Integration with Zerion API for real-time portfolio data
+- Responsive design for desktop and mobile
 
 ## Development
 
 ### Prerequisites
-- Node.js 18+
-- pnpm (recommended)
 
-### Setup
+- Node.js 16+
+- pnpm
+
+### Installation
+
 ```bash
 # Install dependencies
 pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
 ```
 
-### Technology Stack
-- React 18
-- TypeScript
-- Next.js 14
-- Tailwind CSS
-- Shadcn UI
-- Tanstack Query
-- Recharts
-- Radix UI
+### Environment Variables
 
-## Contributing
+Create a `.env` file in the root directory with the following variables:
 
-We welcome contributions! Please see our contributing guidelines for more details.
+```
+# Privy Configuration
+VITE_PRIVY_APP_ID=your_privy_app_id
+
+# Chain Configuration
+VITE_CHAIN_ID=146
+VITE_CHAIN_NAME=Sonic
+VITE_CHAIN_RPC_URL=https://rpc.soniclabs.com
+VITE_CHAIN_EXPLORER_URL=https://sonicscan.org/
+
+# Zerion API Configuration
+VITE_ZERION_API_KEY=your_zerion_api_key
+
+# Development Options
+# Set to 'true' to use mock data instead of making API calls
+VITE_USE_MOCK_DATA=true
+```
+
+### Running the Development Server
+
+```bash
+# Start the frontend development server with mock data
+pnpm dev
+```
+
+## Deployment to Vercel
+
+This project is configured for easy deployment to Vercel.
+
+### Setup
+
+1. Create a Vercel account if you don't have one
+2. Install the Vercel CLI: `npm i -g vercel`
+3. Login to Vercel: `vercel login`
+
+### Environment Variables
+
+Add the following environment variables in the Vercel dashboard:
+
+- `ZERION_API_KEY`: Your Zerion API key
+
+### Deploy
+
+```bash
+# Deploy to Vercel
+vercel
+
+# Or deploy to production
+vercel --prod
+```
+
+### Important Notes
+
+- The project uses Vercel Serverless Functions to proxy requests to the Zerion API
+- In development, it uses mock data by default (controlled by `VITE_USE_MOCK_DATA`)
+- In production, it uses the Vercel API routes to fetch real data
+
+## How It Works
+
+### Development Mode
+
+In development mode, the application can work in two ways:
+
+1. **Mock Data Mode** (default): Set `VITE_USE_MOCK_DATA=true` in your `.env` file to use mock data without making any API calls.
+
+2. **Real Data Mode**: Set `VITE_USE_MOCK_DATA=false` in your `.env` file to use the Vercel API routes to fetch real data.
+
+### Production Mode
+
+In production mode, the application always uses the Vercel API routes to fetch real data from the Zerion API. The API key is stored securely as an environment variable in Vercel.
 
 ## License
 
-MIT License - see LICENSE for details
+MIT
 
