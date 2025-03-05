@@ -170,22 +170,40 @@ export const transferAction: Action = {
       console.log('[Wormhole Transfer] Calling transferTokens with params:', params);
       
       // Call the API to transfer tokens
-      const txHash = await transferTokens(runtime, params);
-      console.log('[Wormhole Transfer] Transfer successful, transaction hash:', txHash);
+      const result = await transferTokens(runtime, params);
+      console.log('[Wormhole Transfer] Transfer initiated, transaction hash:', result.txHash);
       
       // Return success response
       const tokenDisplay = token && token !== 'NATIVE' ? ` ${token}` : '';
       
       return {
         type: 'text',
-        content: `Successfully initiated cross-chain transfer of ${amount}${tokenDisplay} from ${sourceChain} to ${destinationChain} via Wormhole.\n\nTransaction hash: ${txHash}\n\nThe transfer is being processed and should be completed shortly. You can redeem your tokens on the destination chain once the transfer is complete.`
+        content: `Successfully initiated cross-chain transfer of ${amount}${tokenDisplay} from ${sourceChain} to ${destinationChain} via Wormhole.\n\nTransaction hash: ${result.txHash}\nTransaction link: ${result.explorerLink}\n\nThe transfer is being processed and should be completed shortly. You can redeem your tokens on the destination chain once the transfer is complete by saying "Redeem my tokens on ${destinationChain} from transaction ${result.txHash}".`
       };
     } catch (error: any) {
       console.error('[Wormhole Transfer] Error during transfer:', error);
       
+      // Provide a more detailed error message based on the error type
+      let errorMessage = error.message || 'Unknown error';
+      let additionalInfo = '';
+      
+      if (errorMessage.includes('toUniversalAddress')) {
+        errorMessage = 'Error formatting addresses for the Wormhole SDK';
+        additionalInfo = 'This is likely an internal issue with the address format.';
+      } else if (errorMessage.includes('exceeded maximum retry limit')) {
+        errorMessage = 'Network connection issue with the blockchain RPC';
+        additionalInfo = 'The RPC endpoint may be experiencing high traffic or rate limiting.';
+      } else if (errorMessage.includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds for the transfer';
+        additionalInfo = 'Please make sure you have enough tokens and gas for the transfer.';
+      } else if (errorMessage.includes('not supported')) {
+        // Already a clear error message about chain or token support
+        additionalInfo = 'Please try a different chain or token combination.';
+      }
+      
       return {
         type: 'text',
-        content: `There was an error processing your Wormhole transfer: ${error.message || 'Unknown error'}`
+        content: `There was an error processing your Wormhole transfer: ${errorMessage}\n\n${additionalInfo}\n\nPlease try again later or with different parameters.`
       };
     }
   },

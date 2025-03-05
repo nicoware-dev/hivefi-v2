@@ -3,205 +3,383 @@ import { TransferParams } from '../types';
 import { getSigner } from '../utils/wallet';
 import { normalizeChainName } from '../utils/chain';
 import { getWormholeInstance } from './instance';
-import { Wormhole, TokenTransfer, CircleTransfer, amount } from '@wormhole-foundation/sdk';
+import { TokenId, amount, Chain, TokenTransfer, UniversalAddress } from '@wormhole-foundation/sdk';
+import { getTokenAddress, getTokenDecimals, getWormholeChain, isWormholeSupported } from '../config';
 
 const logger = elizaLogger.child({ module: 'WormholeTokenTransfer' });
 
+// Map of chain names to block explorers
+const BLOCK_EXPLORERS: Record<string, string> = {
+  'ethereum': 'https://etherscan.io/tx/',
+  'polygon': 'https://polygonscan.com/tx/',
+  'bsc': 'https://bscscan.com/tx/',
+  'avalanche': 'https://snowtrace.io/tx/',
+  'fantom': 'https://ftmscan.com/tx/',
+  'arbitrum': 'https://arbiscan.io/tx/',
+  'optimism': 'https://optimistic.etherscan.io/tx/',
+  'base': 'https://basescan.org/tx/',
+  'mantle': 'https://explorer.mantle.xyz/tx/'
+};
+
+// Store transfer receipts for tracking
+const transferReceipts: Record<string, any> = {};
+
 /**
- * Transfer tokens across chains using Wormhole
- * @param runtime The agent runtime
- * @param params Transfer parameters
- * @returns A promise that resolves to a transaction hash
+ * Get a block explorer link for a transaction
+ * @param chain The chain name
+ * @param txHash The transaction hash
+ * @returns The block explorer link
  */
-export async function transferTokens(runtime: IAgentRuntime, params: TransferParams): Promise<string> {
+function getExplorerLink(chain: string, txHash: string): string {
+  const normalizedChain = chain.toLowerCase();
+  const baseUrl = BLOCK_EXPLORERS[normalizedChain] || 'https://etherscan.io/tx/';
+  return `${baseUrl}${txHash}`;
+}
+
+// Add a helper function to safely serialize BigInt values
+function safeSerialize(obj: any): any {
+  return JSON.stringify(obj, (_, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+  );
+}
+
+/**
+ * Store a transfer receipt for tracking
+ * @param txHash The transaction hash
+ * @param receipt The transfer receipt
+ */
+function storeTransferReceipt(txHash: string, receipt: any): void {
+  // Convert any BigInt values to strings before storing
+  const safeReceipt = JSON.parse(safeSerialize(receipt));
+  transferReceipts[txHash] = safeReceipt;
+  logger.info(`Stored transfer receipt for transaction ${txHash}`);
+}
+
+/**
+ * Get a transfer receipt for tracking
+ * @param txHash The transaction hash
+ * @returns The transfer receipt
+ */
+export function getTransferReceipt(txHash: string): any {
+  return transferReceipts[txHash];
+}
+
+/**
+ * Create a proper chain address object for the Wormhole SDK
+ * @param chain The chain name
+ * @param address The address string
+ * @returns A properly formatted chain address object
+ */
+function createChainAddress(chain: Chain, address: string) {
+  const universalAddress = new UniversalAddress(address.startsWith('0x') ? address.slice(2) : address);
+  const chainAddress = {
+    chain,
+    address: universalAddress
+  };
+  return chainAddress;
+}
+
+/**
+ * Transfer tokens from one chain to another using Wormhole
+ * 
+ * @param runtime The agent runtime
+ * @param params The transfer parameters
+ * @returns The transaction hash and explorer link
+ */
+export async function transferTokens(runtime: IAgentRuntime, params: TransferParams): Promise<{txHash: string, explorerLink: string}> {
   const tokenName = params.token || 'tokens';
   logger.info(`Transferring ${params.amount} ${tokenName} from ${params.sourceChain} to ${params.destinationChain}`);
   
-  try {
-    // Store original chain names for reference
-    const originalSourceChain = params.sourceChain.toLowerCase();
-    const originalDestChain = params.destinationChain.toLowerCase();
-    
-    // Normalize chain names
-    const sourceChain = normalizeChainName(params.sourceChain);
-    const destinationChain = normalizeChainName(params.destinationChain);
-    
-    logger.info(`Normalized chains: ${sourceChain} -> ${destinationChain}`);
-    logger.info(`Original chains: ${originalSourceChain} -> ${originalDestChain}`);
-    
-    // Get signer for the source chain
-    const signer = await getSigner(runtime, sourceChain);
-    logger.info(`Got signer with address: ${signer.address}`);
-    
-    // Initialize Wormhole SDK
-    const wh = await getWormholeInstance();
-    logger.info('Initialized Wormhole SDK');
+  // Store original chain names for reference
+  const originalSourceChain = params.sourceChain.toLowerCase();
+  const originalDestChain = params.destinationChain.toLowerCase();
+  
+  // Normalize chain names
+  const sourceChain = normalizeChainName(params.sourceChain);
+  const destChain = normalizeChainName(params.destinationChain);
+  
+  logger.info(`Normalized chains: ${sourceChain} -> ${destChain}`);
+  logger.info(`Original chains: ${originalSourceChain} -> ${originalDestChain}`);
+  
+  // Get signer for source chain
+  const signer = await getSigner(runtime, sourceChain);
+  logger.info(`Got signer with address: ${signer.address()}`);
+  
+  // Initialize Wormhole SDK
+  const wh = await getWormholeInstance();
+  logger.info(`Initialized Wormhole SDK`);
+  
+  // Get token type
+  const tokenType = params.token?.toUpperCase() || 'NATIVE';
+  logger.info(`Token type: ${tokenType}`);
+  
+  // Get Wormhole chain names
+  const wormholeSourceChain = getWormholeChain(sourceChain);
+  const wormholeDestChain = getWormholeChain(destChain);
+  logger.info(`Wormhole chains: ${wormholeSourceChain} -> ${wormholeDestChain}`);
+  
+  // Check if both chains are supported by Wormhole
+  const sourceSupported = isWormholeSupported(sourceChain);
+  const destSupported = isWormholeSupported(destChain);
+  
+  if (!sourceSupported || !destSupported) {
+    throw new Error(`One or both chains not supported by Wormhole: ${sourceChain} (${sourceSupported}) -> ${destChain} (${destSupported})`);
+  }
+  
+  // Get token address
+  const tokenAddress = getTokenAddress(sourceChain, tokenType);
+  
+  if (!tokenAddress) {
+    throw new Error(`No token address found for ${tokenType} on ${sourceChain}`);
+  }
+  
+  logger.info(`Using token address: ${tokenAddress}`);
+  
+  // Get chain contexts
+  const srcChain = wh.getChain(wormholeSourceChain);
+  const dstChain = wh.getChain(wormholeDestChain);
+  logger.info(`Got chain contexts for ${wormholeSourceChain} and ${wormholeDestChain}`);
+  
+  // Create token ID
+  let tokenId: TokenId;
+  
+  if (tokenAddress === 'native') {
+    logger.info(`Using native token for ${sourceChain}`);
+    // For native tokens, we use a special format that the SDK understands
+    tokenId = { 
+      chain: wormholeSourceChain, 
+      address: 'native' 
+    } as TokenId;
+  } else {
+    logger.info(`Using token address ${tokenAddress} for ${tokenType} on ${sourceChain}`);
+    // For contract tokens, we need to ensure the address is properly formatted
+    // The SDK expects addresses in the format appropriate for the chain
+    tokenId = { 
+      chain: wormholeSourceChain, 
+      address: tokenAddress 
+    } as TokenId;
+  }
+  
+  // Get source and destination addresses
+  const signerAddress = signer.address();
+  logger.info(`Using signer address: ${signerAddress}`);
+  
+  // Create properly formatted chain addresses
+  const sourceAddress = createChainAddress(wormholeSourceChain, signerAddress);
+  const destAddress = createChainAddress(wormholeDestChain, signerAddress);
+  
+  // Update address logging to use safe serialization
+  logger.info(`Created source address: ${safeSerialize(sourceAddress)}`);
+  logger.info(`Created destination address: ${safeSerialize(destAddress)}`);
+  
+  // Parse amount to bigint with appropriate decimals
+  const tokenDecimals = getTokenDecimals(tokenType);
+  const amountBigInt = BigInt(Math.floor(parseFloat(params.amount) * (10 ** tokenDecimals)));
+  logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
+  
+  // Special handling for USDC
+  if (tokenType === 'USDC' && wh.circleTransfer) {
+    logger.info('Using Circle CCTP for USDC transfer');
     
     try {
-      // Get chain contexts
-      const sourceChainContext = wh.getChain(sourceChain);
-      const destChainContext = wh.getChain(destinationChain);
-      
-      logger.info(`Got chain contexts for ${sourceChain} and ${destinationChain}`);
-      
-      // Determine token type
-      const tokenType = params.token?.toUpperCase() || 'NATIVE';
-      logger.info(`Token type: ${tokenType}`);
-      
-      // Special handling for Mantle/BSC transfers with USDC or USDT
-      const isMantleBscTransfer = (
-        originalSourceChain === 'mantle' || originalDestChain === 'mantle' || 
-        originalSourceChain === 'bsc' || originalDestChain === 'bsc'
-      );
-      
-      const isStablecoin = tokenType === 'USDC' || tokenType === 'USDT';
-      
-      // For Mantle/BSC transfers with stablecoins, use mock implementation
-      if (isMantleBscTransfer && isStablecoin) {
-        logger.info(`Using mock implementation for ${tokenType} transfer between ${originalSourceChain} and ${originalDestChain}`);
-        
-        // In a real implementation, this would use an alternative bridge or method
-        // For now, we'll generate a mock transaction hash to simulate success
-        const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-        logger.info(`Generated mock transaction hash for ${tokenType} transfer: ${mockTxHash}`);
-        
-        return mockTxHash;
-      }
-      
-      // Create source and destination addresses in the format expected by the SDK
-      const sourceAddress = Wormhole.chainAddress(sourceChain, signer.address);
-      const destAddress = Wormhole.chainAddress(destinationChain, signer.address);
-      
-      // Parse the amount with appropriate decimals (default to 18 for most tokens)
-      const tokenDecimals = tokenType === 'USDC' || tokenType === 'USDT' ? 6 : 18;
-      const parsedAmount = amount.units(amount.parse(params.amount, tokenDecimals));
-      
-      // For USDC, use Circle CCTP
-      if (tokenType === 'USDC' && !isMantleBscTransfer) {
-        logger.info('Using Circle CCTP for USDC transfer');
-        
-        try {
-          // Create a CircleTransfer object
-          const xfer = await wh.circleTransfer(
-            parsedAmount,
-            sourceAddress,
-            destAddress,
-            false, // Not automatic for now
-            undefined, // No payload
-            0n // No native gas dropoff
-          );
-          
-          // Get a quote for the transfer
-          const quote = await CircleTransfer.quoteTransfer(
-            sourceChainContext,
-            destChainContext,
-            xfer.transfer
-          );
-          
-          logger.info(`USDC transfer quote: ${JSON.stringify(quote)}`);
-          
-          // Initiate the transfer
-          const srcTxids = await xfer.initiateTransfer(signer);
-          logger.info(`USDC transfer initiated with txids: ${JSON.stringify(srcTxids)}`);
-          
-          // Return the last transaction ID
-          return srcTxids[srcTxids.length - 1] || 'unknown';
-        } catch (error: any) {
-          // Check if this is the "Network and chain not supported" error
-          if (error.message && error.message.includes('Network and chain not supported')) {
-            logger.warn(`Circle CCTP not supported for ${originalSourceChain} to ${originalDestChain}. Using token bridge fallback.`);
-            // Fall through to token bridge implementation
-          } else {
-            // For other errors, rethrow
-            throw error;
-          }
-        }
-      }
-      
-      // For all other tokens and fallback cases, use token bridge
-      logger.info('Using token bridge for transfer');
-      
-      // Create token ID
-      let tokenId;
-      if (originalSourceChain === 'mantle') {
-        // For Mantle, we need to use the appropriate token
-        if (params.token?.toUpperCase() === 'MNT') {
-          // MNT is the native token of Mantle, use ETH on Ethereum as a proxy
-          tokenId = Wormhole.tokenId(sourceChainContext.chain, 'native');
-          logger.info(`Using native token for Mantle (MNT)`);
-        } else if (params.token?.toUpperCase() === 'NATIVE') {
-          // Native token on Mantle is MNT, use ETH on Ethereum as a proxy
-          tokenId = Wormhole.tokenId(sourceChainContext.chain, 'native');
-          logger.info(`Using native token for Mantle (MNT)`);
-        } else {
-          // For other tokens, use the specified token
-          tokenId = Wormhole.tokenId(sourceChainContext.chain, params.token || 'native');
-          logger.info(`Using token ${params.token || 'native'} for Mantle`);
-        }
-      } else if (originalSourceChain === 'bsc') {
-        // For BSC, we need to use the appropriate token
-        if (params.token?.toUpperCase() === 'BNB') {
-          // BNB is the native token of BSC
-          tokenId = Wormhole.tokenId(sourceChainContext.chain, 'native');
-          logger.info(`Using native token for BSC (BNB)`);
-        } else if (params.token?.toUpperCase() === 'NATIVE') {
-          // Native token on BSC is BNB
-          tokenId = Wormhole.tokenId(sourceChainContext.chain, 'native');
-          logger.info(`Using native token for BSC (BNB)`);
-        } else {
-          // For other tokens, use the specified token
-          tokenId = Wormhole.tokenId(sourceChainContext.chain, params.token || 'native');
-          logger.info(`Using token ${params.token || 'native'} for BSC`);
-        }
-      } else {
-        // For other chains, use the standard token ID
-        tokenId = params.token?.toUpperCase() === 'NATIVE' ? 
-          Wormhole.tokenId(sourceChainContext.chain, 'native') :
-          Wormhole.tokenId(sourceChainContext.chain, params.token || 'native');
-      }
-      
-      logger.info(`Using token ID: ${JSON.stringify(tokenId)}`);
-      
-      // Create a TokenTransfer object
-      const xfer = await wh.tokenTransfer(
-        tokenId,
-        parsedAmount,
+      // Create a Circle transfer
+      const xfer = await wh.circleTransfer(
+        amountBigInt,
         sourceAddress,
         destAddress,
         false, // Not automatic for now
         undefined, // No payload
-        0n // No native gas dropoff
+        undefined // No native gas dropoff
       );
       
-      // Get a quote for the transfer
+      logger.info('Created Circle transfer object');
+      
+      // Initiate the transfer with our signer
+      logger.info('Initiating Circle transfer...');
+      const srcTxids = await xfer.initiateTransfer(signer);
+      logger.info(`Circle transfer initiated with txids: ${JSON.stringify(srcTxids)}`);
+      
+      // Store the transfer receipt for tracking
+      const receipt = {
+        type: 'circle',
+        sourceChain: originalSourceChain,
+        destinationChain: originalDestChain,
+        token: tokenType,
+        amount: params.amount,
+        timestamp: Date.now(),
+        status: 'initiated',
+        txHash: srcTxids[0],
+        transfer: xfer
+      };
+      
+      storeTransferReceipt(srcTxids[0], receipt);
+      
+      // Return the first transaction ID and explorer link
+      const txHash = srcTxids[0];
+      const explorerLink = getExplorerLink(originalSourceChain, txHash);
+      return { txHash, explorerLink };
+    } catch (error: any) {
+      logger.error(`Error with Circle transfer: ${error.message}`);
+      logger.error(error);
+      throw error;
+    }
+  }
+  
+  // Create a token transfer
+  logger.info('Creating token transfer...');
+  
+  try {
+    const xfer = await wh.tokenTransfer(
+      tokenId,
+      amountBigInt,
+      sourceAddress,
+      destAddress,
+      false,
+      undefined,
+      undefined
+    );
+    
+    logger.info('Created token transfer object');
+    
+    // Update quote logging
+    try {
+      const transferDetails = {
+        token: tokenId,
+        amount: amountBigInt,
+        automatic: false
+      };
+      
       const quote = await TokenTransfer.quoteTransfer(
         wh,
-        sourceChainContext.chain,
-        destChainContext.chain,
-        xfer.transfer
+        srcChain,
+        dstChain,
+        transferDetails
       );
-      
-      logger.info(`Token transfer quote: ${JSON.stringify(quote)}`);
-      
-      // Initiate the transfer
-      const srcTxids = await xfer.initiateTransfer(signer);
-      logger.info(`Token transfer initiated with txids: ${JSON.stringify(srcTxids)}`);
-      
-      // Return the last transaction ID
-      return srcTxids[srcTxids.length - 1] || 'unknown';
+      logger.info(`Transfer quote: ${safeSerialize(quote)}`);
     } catch (error: any) {
-      logger.error(`Error with transfer: ${error.message}`);
-      logger.error(error.stack);
+      logger.warn(`Error getting transfer quote: ${error.message}`);
+      // Continue with transfer even if quote fails
+    }
+    
+    // Initiate the transfer with retries
+    const maxRetries = 3;
+    let lastError;
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        logger.info(`Initiating token transfer (attempt ${i + 1}/${maxRetries})...`);
+        const srcTxids = await xfer.initiateTransfer(signer);
+        logger.info(`Token transfer initiated with txids: ${safeSerialize(srcTxids)}`);
+        
+        // Store the transfer receipt
+        const receipt = {
+          type: 'token',
+          sourceChain: originalSourceChain,
+          destinationChain: originalDestChain,
+          token: tokenType,
+          amount: params.amount.toString(),
+          amountBigInt: amountBigInt.toString(),
+          timestamp: Date.now(),
+          status: 'initiated',
+          txHash: srcTxids[0],
+          transfer: {
+            ...xfer,
+            amount: amountBigInt.toString()
+          }
+        };
+        
+        storeTransferReceipt(srcTxids[0], receipt);
+        
+        const txHash = srcTxids[0];
+        const explorerLink = getExplorerLink(originalSourceChain, txHash);
+        return { txHash, explorerLink };
+      } catch (error: any) {
+        lastError = error;
+        if (error.message.includes('network') || error.message.includes('timeout')) {
+          logger.warn(`Network error on attempt ${i + 1}, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+          continue;
+        }
+        throw error; // Throw non-network errors immediately
+      }
+    }
+    
+    throw lastError; // Throw the last error if all retries failed
+  } catch (error: any) {
+    logger.error(`Error creating or initiating token transfer: ${error.message}`);
+    logger.error(error);
+    throw error;
+  }
+}
+
+/**
+ * Check the status of a transfer
+ * @param txHash The transaction hash
+ * @returns The transfer status
+ */
+export async function checkTransferStatus(txHash: string): Promise<{status: string, message: string}> {
+  const receipt = getTransferReceipt(txHash);
+  
+  if (!receipt) {
+    return { status: 'unknown', message: 'Transfer not found' };
+  }
+  
+  try {
+    const wh = await getWormholeInstance();
+    
+    if (receipt.type === 'circle') {
+      // For Circle transfers
+      const xfer = receipt.transfer;
       
-      // Generate a mock transaction hash as fallback
-      const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      logger.info(`Generated fallback transaction hash: ${mockTxHash}`);
+      // Check if the transfer is complete
+      const isComplete = await xfer.isComplete();
       
-      return mockTxHash;
+      if (isComplete) {
+        receipt.status = 'completed';
+        return { status: 'completed', message: 'Transfer completed successfully' };
+      } else {
+        // Check if the attestation is ready
+        try {
+          const attestIds = await xfer.fetchAttestation(5000); // 5 second timeout
+          if (attestIds && attestIds.length > 0) {
+            receipt.status = 'attested';
+            receipt.attestationIds = attestIds;
+            return { status: 'attested', message: 'Transfer attested, ready for redemption' };
+          }
+        } catch (error) {
+          // Attestation not ready yet
+        }
+        
+        return { status: 'pending', message: 'Transfer in progress' };
+      }
+    } else {
+      // For token transfers
+      const xfer = receipt.transfer;
+      
+      // Check if the transfer is complete
+      const isComplete = await xfer.isComplete();
+      
+      if (isComplete) {
+        receipt.status = 'completed';
+        return { status: 'completed', message: 'Transfer completed successfully' };
+      } else {
+        // Check if the attestation is ready
+        try {
+          const attestIds = await xfer.fetchAttestation(5000); // 5 second timeout
+          if (attestIds && attestIds.length > 0) {
+            receipt.status = 'attested';
+            receipt.attestationIds = attestIds;
+            return { status: 'attested', message: 'Transfer attested, ready for redemption' };
+          }
+        } catch (error) {
+          // Attestation not ready yet
+        }
+        
+        return { status: 'pending', message: 'Transfer in progress' };
+      }
     }
   } catch (error: any) {
-    logger.error(`Error transferring tokens: ${error.message}`);
-    logger.error(error.stack);
-    throw new Error(`Failed to transfer tokens: ${error.message}`);
+    logger.error(`Error checking transfer status: ${error.message}`);
+    return { status: 'error', message: `Error checking status: ${error.message}` };
   }
 } 

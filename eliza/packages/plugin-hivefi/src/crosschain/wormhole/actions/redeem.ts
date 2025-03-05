@@ -1,6 +1,6 @@
 import { Action, ActionExample } from '@elizaos/core';
 import { extractToken, extractTransactionId, isRedeemRequest } from '../utils';
-import { redeemTokens, isChainSupported, isTokenSupported } from '../api';
+import { redeemTokens, isChainSupported, isTokenSupported, checkRedeemStatus } from '../api';
 import { RedeemParams, WormholeChain } from '../types';
 
 /**
@@ -117,21 +117,21 @@ export const redeemAction: Action = {
       console.log('[Wormhole Redeem] All parameters validated, proceeding with redemption');
       console.log('[Wormhole Redeem] Calling redeemTokens with params:', params);
       
-      const txHash = await redeemTokens(runtime, params);
-      console.log('[Wormhole Redeem] Redemption successful, transaction hash:', txHash);
+      const result = await redeemTokens(runtime, params);
+      console.log('[Wormhole Redeem] Redemption initiated, transaction hash:', result.txHash);
       
       const tokenDisplay = token ? ` ${token}` : '';
       
       return {
         type: 'text',
-        content: `Successfully redeemed${tokenDisplay} tokens from Wormhole cross-chain transfer on ${chain}.\n\nTransaction hash: ${txHash}\n\nYour tokens should be available in your wallet shortly.`
+        content: `Successfully redeemed${tokenDisplay} tokens from Wormhole cross-chain transfer on ${chain}.\n\nTransaction hash: ${result.txHash}\nTransaction link: ${result.explorerLink}\n\nYour tokens should be available in your wallet shortly. You can check the status of your redemption by asking "What's the status of my Wormhole redemption with transaction hash ${result.txHash}?"`
       };
     } catch (error: any) {
       console.error('[Wormhole Redeem] Error during redemption:', error);
       
       return {
         type: 'text',
-        content: `There was an error processing your Wormhole redemption: ${error.message || 'Unknown error'}`
+          content: `There was an error processing your Wormhole redemption: ${error.message || 'Unknown error'}\n\nPlease make sure the transaction ID is correct and that the transfer is ready to be redeemed. Transfers typically need to be attested before they can be redeemed, which can take a few minutes.`
       };
     }
   },

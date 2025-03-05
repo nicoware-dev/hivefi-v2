@@ -1,136 +1,152 @@
 import { elizaLogger } from '@elizaos/core';
-import { Chain, Wormhole, wormhole } from '@wormhole-foundation/sdk';
-
-// Import chain-specific modules
+import { wormhole, Wormhole, Network, TokenId, Chain, ChainAddress } from '@wormhole-foundation/sdk';
 import evm from '@wormhole-foundation/sdk/evm';
-import solana from '@wormhole-foundation/sdk/solana';
-import aptos from '@wormhole-foundation/sdk/aptos';
-import sui from '@wormhole-foundation/sdk/sui';
-import algorand from '@wormhole-foundation/sdk/algorand';
-import cosmwasm from '@wormhole-foundation/sdk/cosmwasm';
+import { getChainConfig } from '../config';
 
 const logger = elizaLogger.child({ module: 'WormholeInstance' });
 
-// Initialize Wormhole SDK
-let wormholeInstance: any = null;
+// Store the Wormhole instance
+let wormholeInstance: Wormhole<Network> | null = null;
 
 /**
- * Get or create a Wormhole SDK instance
- * @returns A promise that resolves to a Wormhole SDK instance
+ * Get the Wormhole SDK instance
+ * @returns The Wormhole SDK instance
  */
-export async function getWormholeInstance(): Promise<any> {
-  if (!wormholeInstance) {
-    try {
-      logger.info('Initializing Wormhole SDK with Mainnet');
-      
-      // Define custom RPC endpoints for better reliability
-      const customRpcs = {
-        chains: {
-          // Add custom RPCs for better reliability
-          Ethereum: { rpc: 'https://rpc.ankr.com/eth' },
-          Bsc: { rpc: 'https://bsc-dataseed.binance.org' },
-          Polygon: { rpc: 'https://polygon-rpc.com' },
-          Avalanche: { rpc: 'https://api.avax.network/ext/bc/C/rpc' },
-          Solana: { rpc: 'https://api.mainnet-beta.solana.com' },
-          // Add Mantle RPC (using Ethereum as a proxy since Mantle isn't directly supported)
-          // In a real implementation, you would use the actual Mantle RPC
-          Mantle: { rpc: 'https://rpc.mantle.xyz' }
-        }
-      };
-      
-      // Initialize with mainnet for production
-      wormholeInstance = await wormhole('Mainnet', [
-        evm,
-        solana,
-        aptos,
-        sui,
-        algorand,
-        cosmwasm
-      ], customRpcs);
-      
-      logger.info('SDK initialized successfully');
-      
-      // Add special handling for Mantle and BSC
-      const originalWormholeGetChain = wormholeInstance.getChain.bind(wormholeInstance);
-      wormholeInstance.getChain = (chain: Chain) => {
-        logger.info(`Getting chain context for: ${chain}`);
-        
-        // Special handling for Mantle (mapped to Ethereum)
-        if (chain === 'Ethereum') {
-          logger.info('Applying special configuration for Ethereum/Mantle');
-          const context = originalWormholeGetChain(chain);
-          // Add any Mantle-specific overrides here if needed
-          return context;
-        }
-        
-        // Special handling for BSC
-        if (chain === 'Bsc') {
-          logger.info('Applying special configuration for BSC');
-          const context = originalWormholeGetChain(chain);
-          // Add any BSC-specific overrides here if needed
-          return context;
-        }
-        
-        // Default handling for other chains
-        return originalWormholeGetChain(chain);
-      };
-      
-    } catch (error) {
-      logger.error('Error initializing SDK:', error);
-      logger.info('Falling back to mock instance');
-      // Fallback to mock instance if SDK initialization fails
-      wormholeInstance = {
-        getChain: (chain: string) => ({
-          chain,
-          config: { nativeTokenDecimals: 18 },
-          getNativeWrappedTokenId: async () => ({ address: '0x0000000000000000000000000000000000000000' }),
-          getTokenBridge: async () => ({
-            getWrappedAsset: async () => ({}),
-            transfer: () => ({})
-          }),
-          parseVaa: async () => ({}),
-          parseTransaction: async () => ([])
-        }),
-        resolver: () => ({
-          supportedSourceTokens: async () => [],
-          supportedDestinationTokens: async () => [],
-          findRoutes: async () => []
-        }),
-        tokenTransfer: async (
-          amount: bigint, 
-          sourceAddress: { chain: string, address: string }, 
-          destAddress: { chain: string, address: string }, 
-          automatic: boolean = false, 
-          payload?: Uint8Array, 
-          nativeGas?: bigint
-        ) => {
-          logger.info(`Mock tokenTransfer: ${amount} from ${sourceAddress.chain}:${sourceAddress.address} to ${destAddress.chain}:${destAddress.address}`);
-          return {
-            transfer: { amount, sourceAddress, destAddress, automatic, payload, nativeGas },
-            initiateTransfer: async () => ['0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')],
-            fetchAttestation: async () => ['0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')],
-            completeTransfer: async () => ['0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')]
-          };
-        },
-        circleTransfer: async (
-          amount: bigint, 
-          sourceAddress: { chain: string, address: string }, 
-          destAddress: { chain: string, address: string }, 
-          automatic: boolean = false, 
-          payload?: Uint8Array, 
-          nativeGas?: bigint
-        ) => {
-          logger.info(`Mock circleTransfer: ${amount} from ${sourceAddress.chain}:${sourceAddress.address} to ${destAddress.chain}:${destAddress.address}`);
-          return {
-            transfer: { amount, sourceAddress, destAddress, automatic, payload, nativeGas },
-            initiateTransfer: async () => ['0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')],
-            fetchAttestation: async () => ['0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')],
-            completeTransfer: async () => ['0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')]
-          };
-        },
-        getVaa: async () => ({})
-      };
-    }
+export async function getWormholeInstance(): Promise<Wormhole<Network>> {
+  if (wormholeInstance) {
+    return wormholeInstance;
   }
-  return wormholeInstance;
+  
+  try {
+    logger.info('Initializing Wormhole SDK');
+    
+    // Get chain configuration
+    const chainConfig = getChainConfig();
+    logger.info(`Using chain configuration: ${JSON.stringify(chainConfig)}`);
+    
+    // Initialize the Wormhole SDK with EVM platform support
+    wormholeInstance = await wormhole('Mainnet', [evm], {
+      chains: chainConfig
+    });
+    
+    logger.info('Wormhole SDK initialized successfully');
+    return wormholeInstance;
+  } catch (error: any) {
+    logger.error(`Error initializing Wormhole SDK: ${error.message}`);
+    logger.error(error);
+    throw new Error(`Failed to initialize Wormhole SDK: ${error.message}`);
+  }
+}
+
+/**
+ * Mock implementation of token transfer
+ * This is used as a fallback when the real implementation fails
+ * 
+ * @param token The token to transfer
+ * @param amount The amount to transfer
+ * @param sourceAddress The source address
+ * @param destAddress The destination address
+ * @param automatic Whether to automatically complete the transfer
+ * @param payload Optional payload
+ * @param nativeGas Optional native gas dropoff
+ * @returns A mock transfer object
+ */
+export function tokenTransfer(
+  token: TokenId,
+  amount: bigint,
+  sourceAddress: ChainAddress<Chain>,
+  destAddress: ChainAddress<Chain>,
+  automatic: boolean = false,
+  payload?: Uint8Array,
+  nativeGas?: bigint
+): any {
+  logger.info(`Mock token transfer: ${amount} of token ${JSON.stringify(token)}`);
+  logger.info(`From: ${JSON.stringify(sourceAddress)} to ${JSON.stringify(destAddress)}`);
+  logger.info(`Automatic: ${automatic}, Native gas: ${nativeGas || 0n}`);
+  
+  if (payload) {
+    logger.info(`With payload of length ${payload.length}`);
+  }
+  
+  // Return a mock transfer object
+  return {
+    transfer: {
+      token,
+      amount,
+      from: sourceAddress,
+      to: destAddress,
+      automatic,
+      payload,
+      nativeGas: nativeGas || 0n,
+    },
+    initiateTransfer: async () => {
+      logger.info('Mock initiateTransfer called');
+      // Generate a mock transaction hash
+      const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      logger.info(`Generated mock transaction hash: ${txHash}`);
+      return [txHash];
+    },
+    completeTransfer: async () => {
+      logger.info('Mock completeTransfer called');
+      // Generate a mock transaction hash
+      const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      logger.info(`Generated mock transaction hash: ${txHash}`);
+      return [txHash];
+    },
+  };
+}
+
+/**
+ * Mock implementation of Circle USDC transfer
+ * This is used as a fallback when the real implementation fails
+ * 
+ * @param amount The amount to transfer
+ * @param sourceAddress The source address
+ * @param destAddress The destination address
+ * @param automatic Whether to automatically complete the transfer
+ * @param payload Optional payload
+ * @param nativeGas Optional native gas dropoff
+ * @returns A mock transfer object
+ */
+export function circleTransfer(
+  amount: bigint,
+  sourceAddress: ChainAddress<Chain>,
+  destAddress: ChainAddress<Chain>,
+  automatic: boolean = false,
+  payload?: Uint8Array,
+  nativeGas?: bigint
+): any {
+  logger.info(`Mock Circle transfer: ${amount} USDC`);
+  logger.info(`From: ${JSON.stringify(sourceAddress)} to ${JSON.stringify(destAddress)}`);
+  logger.info(`Automatic: ${automatic}, Native gas: ${nativeGas || 0n}`);
+  
+  if (payload) {
+    logger.info(`With payload of length ${payload.length}`);
+  }
+  
+  // Return a mock transfer object
+  return {
+    transfer: {
+      amount,
+      from: sourceAddress,
+      to: destAddress,
+      automatic,
+      payload,
+      nativeGas: nativeGas || 0n,
+    },
+    initiateTransfer: async () => {
+      logger.info('Mock initiateTransfer called');
+      // Generate a mock transaction hash
+      const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      logger.info(`Generated mock transaction hash: ${txHash}`);
+      return [txHash];
+    },
+    completeTransfer: async () => {
+      logger.info('Mock completeTransfer called');
+      // Generate a mock transaction hash
+      const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      logger.info(`Generated mock transaction hash: ${txHash}`);
+      return [txHash];
+    },
+  };
 } 

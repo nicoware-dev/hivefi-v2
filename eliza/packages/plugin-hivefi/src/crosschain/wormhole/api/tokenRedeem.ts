@@ -3,125 +3,184 @@ import { RedeemParams } from '../types';
 import { getSigner } from '../utils/wallet';
 import { normalizeChainName } from '../utils/chain';
 import { getWormholeInstance } from './instance';
-import { Wormhole, TokenTransfer, CircleTransfer } from '@wormhole-foundation/sdk';
+import { TokenTransfer, Chain } from '@wormhole-foundation/sdk';
+import { getWormholeChain, isWormholeSupported } from '../config';
+import { getTransferReceipt } from './tokenTransfer';
 
 const logger = elizaLogger.child({ module: 'WormholeTokenRedeem' });
 
+// Map of chain names to block explorers
+const BLOCK_EXPLORERS: Record<string, string> = {
+  'ethereum': 'https://etherscan.io/tx/',
+  'polygon': 'https://polygonscan.com/tx/',
+  'bsc': 'https://bscscan.com/tx/',
+  'avalanche': 'https://snowtrace.io/tx/',
+  'fantom': 'https://ftmscan.com/tx/',
+  'arbitrum': 'https://arbiscan.io/tx/',
+  'optimism': 'https://optimistic.etherscan.io/tx/',
+  'base': 'https://basescan.org/tx/',
+  'mantle': 'https://explorer.mantle.xyz/tx/'
+};
+
+// Store redeem receipts for tracking
+const redeemReceipts: Record<string, any> = {};
+
 /**
- * Redeem tokens on the destination chain
- * @param runtime The agent runtime
- * @param params Redeem parameters
- * @returns A promise that resolves to a transaction hash
+ * Get a block explorer link for a transaction
+ * @param chain The chain name
+ * @param txHash The transaction hash
+ * @returns The block explorer link
  */
-export async function redeemTokens(runtime: IAgentRuntime, params: RedeemParams): Promise<string> {
-  logger.info(`Redeeming tokens on ${params.chain}${params.transactionId ? ` with transaction ID ${params.transactionId}` : ''}`);
+function getExplorerLink(chain: string, txHash: string): string {
+  const normalizedChain = chain.toLowerCase();
+  const baseUrl = BLOCK_EXPLORERS[normalizedChain] || 'https://etherscan.io/tx/';
+  return `${baseUrl}${txHash}`;
+}
+
+/**
+ * Store a redeem receipt for tracking
+ * @param txHash The transaction hash
+ * @param receipt The redeem receipt
+ */
+function storeRedeemReceipt(txHash: string, receipt: any): void {
+  redeemReceipts[txHash] = receipt;
+  logger.info(`Stored redeem receipt for transaction ${txHash}`);
+}
+
+/**
+ * Get a redeem receipt for tracking
+ * @param txHash The transaction hash
+ * @returns The redeem receipt
+ */
+export function getRedeemReceipt(txHash: string): any {
+  return redeemReceipts[txHash];
+}
+
+/**
+ * Redeem tokens that were transferred from another chain using Wormhole
+ * 
+ * @param runtime The agent runtime
+ * @param params The redeem parameters
+ * @returns The transaction hash and explorer link
+ */
+export async function redeemTokens(runtime: IAgentRuntime, params: RedeemParams): Promise<{txHash: string, explorerLink: string}> {
+  const tokenName = params.token || 'tokens';
+  logger.info(`Redeeming ${tokenName} on ${params.chain}${params.transactionId ? ` with transaction ID ${params.transactionId}` : ''}`);
   
-  try {
-    // Normalize chain name
-    const chain = normalizeChainName(params.chain);
-    const originalChain = params.chain.toLowerCase();
-    
-    logger.info(`Normalized chain: ${chain} (original: ${originalChain})`);
-    
-    // Get signer for the chain
-    const signer = await getSigner(runtime, chain);
-    logger.info(`Got signer with address: ${signer.address}`);
-    
-    // Initialize Wormhole SDK
-    const wh = await getWormholeInstance();
-    logger.info('Initialized Wormhole SDK');
-    
-    try {
-      // Get chain context
-      const chainContext = wh.getChain(chain);
-      logger.info(`Got chain context for ${chain}`);
-      
-      // Special handling for Mantle/BSC redemptions
-      const isMantleOrBsc = originalChain === 'mantle' || originalChain === 'bsc';
-      
-      if (isMantleOrBsc) {
-        logger.info(`Using special handling for ${originalChain} redemption`);
-        
-        // In a real implementation, this would use an alternative bridge or method
-        // For now, we'll generate a mock transaction hash to simulate success
-        const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-        logger.info(`Generated mock transaction hash for ${originalChain} redemption: ${mockTxHash}`);
-        
-        return mockTxHash;
-      }
-      
-      // If we have a transaction ID, try to recover the transfer
-      if (params.transactionId) {
-        logger.info(`Attempting to recover transfer from transaction ID: ${params.transactionId}`);
-        
-        try {
-          // Determine if this is likely a USDC transfer (Circle CCTP) or a regular token transfer
-          const isUSDC = params.token?.toUpperCase() === 'USDC';
-          
-          if (isUSDC) {
-            // Try to recover a Circle CCTP transfer
-            logger.info('Attempting to recover Circle CCTP transfer');
-            const xfer = await CircleTransfer.from(wh, {
-              chain: chain,
-              txid: params.transactionId
-            });
-            
-            // Complete the transfer
-            logger.info('Completing Circle CCTP transfer');
-            const dstTxids = await xfer.completeTransfer(signer);
-            logger.info(`Completed Circle CCTP transfer with txids: ${JSON.stringify(dstTxids)}`);
-            
-            // Return the last transaction ID
-            return dstTxids[dstTxids.length - 1] || 'unknown';
-          } else {
-            // Try to recover a regular token transfer
-            logger.info('Attempting to recover token transfer');
-            const xfer = await TokenTransfer.from(wh, {
-              chain: chain,
-              txid: params.transactionId
-            });
-            
-            // Complete the transfer
-            logger.info('Completing token transfer');
-            const dstTxids = await xfer.completeTransfer(signer);
-            logger.info(`Completed token transfer with txids: ${JSON.stringify(dstTxids)}`);
-            
-            // Return the last transaction ID
-            return dstTxids[dstTxids.length - 1] || 'unknown';
-          }
-        } catch (error: any) {
-          logger.error(`Error recovering transfer: ${error.message}`);
-          logger.error(error.stack);
-          
-          // Generate a mock transaction hash as fallback
-          const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-          logger.info(`Generated fallback transaction hash: ${mockTxHash}`);
-          
-          return mockTxHash;
-        }
-      } else {
-        // Without a transaction ID, we can't do much
-        logger.warn('No transaction ID provided for redemption');
-        
-        // Generate a mock transaction hash
-        const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-        logger.info(`Generated mock transaction hash: ${mockTxHash}`);
-        
-        return mockTxHash;
-      }
-    } catch (error: any) {
-      logger.error(`Error with redemption: ${error.message}`);
-      logger.error(error.stack);
-      
-      // Generate a mock transaction hash as fallback
-      const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      logger.info(`Generated fallback transaction hash: ${mockTxHash}`);
-      
-      return mockTxHash;
-    }
-  } catch (error: any) {
-    logger.error(`Error redeeming tokens: ${error.message}`);
-    logger.error(error.stack);
-    throw new Error(`Failed to redeem tokens: ${error.message}`);
+  // Store original chain name for reference
+  const originalChain = params.chain.toLowerCase();
+  
+  // Normalize chain name
+  const destChain = normalizeChainName(params.chain);
+  logger.info(`Normalized destination chain: ${destChain}`);
+  logger.info(`Original destination chain: ${originalChain}`);
+  
+  // Get signer for destination chain
+  const signer = await getSigner(runtime, destChain);
+  logger.info(`Got signer with address: ${signer.address()}`);
+  
+  // Initialize Wormhole SDK
+  const wh = await getWormholeInstance();
+  logger.info(`Initialized Wormhole SDK`);
+  
+  // Get token type
+  const tokenType = params.token?.toUpperCase() || 'UNKNOWN';
+  logger.info(`Token type: ${tokenType}`);
+  
+  // Get Wormhole chain name
+  const wormholeChain = getWormholeChain(destChain);
+  logger.info(`Wormhole chain: ${wormholeChain}`);
+  
+  // Check if the chain is supported by Wormhole
+  const isSupported = isWormholeSupported(destChain);
+  
+  if (!isSupported) {
+    throw new Error(`Chain not supported by Wormhole: ${destChain}`);
+  }
+  
+  if (!params.transactionId) {
+    throw new Error('No transaction ID provided for redemption');
+  }
+  
+  // Get the chain context
+  const chainContext = wh.getChain(wormholeChain);
+  logger.info(`Got chain context for ${wormholeChain}`);
+  
+  // Check if we have a stored transfer receipt
+  const transferReceipt = getTransferReceipt(params.transactionId);
+  
+  // Get the transfer from the transaction hash
+  logger.info(`Recovering transfer from transaction hash: ${params.transactionId}`);
+  
+  // Recover the transfer from the transaction hash
+  const xfer = await TokenTransfer.from(wh, {
+    chain: wormholeChain,
+    txid: params.transactionId
+  });
+  
+  logger.info(`Recovered transfer: ${JSON.stringify(xfer)}`);
+  
+  // Wait for the attestation
+  logger.info('Waiting for attestation...');
+  const attestIds = await xfer.fetchAttestation(60_000); // 60 second timeout
+  logger.info(`Got attestation: ${JSON.stringify(attestIds)}`);
+  
+  // Complete the transfer
+  logger.info('Completing transfer...');
+  
+  // Complete the transfer with our signer
+  const destTxids = await xfer.completeTransfer(signer);
+  logger.info(`Transfer completed with txids: ${JSON.stringify(destTxids)}`);
+  
+  // Store the redeem receipt for tracking
+  const receipt = {
+    type: 'redeem',
+    sourceTransactionId: params.transactionId,
+    chain: originalChain,
+    token: tokenType,
+    timestamp: Date.now(),
+    status: 'completed',
+    txHash: destTxids[0],
+    attestationIds: attestIds
+  };
+  
+  storeRedeemReceipt(destTxids[0], receipt);
+  
+  // If we have a transfer receipt, update its status
+  if (transferReceipt) {
+    transferReceipt.status = 'redeemed';
+    transferReceipt.redeemTxHash = destTxids[0];
+  }
+  
+  // Return the first transaction ID and explorer link
+  const txHash = destTxids[0];
+  const explorerLink = getExplorerLink(originalChain, txHash);
+  return { txHash, explorerLink };
+}
+
+/**
+ * Check the status of a redeem
+ * @param txHash The transaction hash
+ * @returns The redeem status
+ */
+export async function checkRedeemStatus(txHash: string): Promise<{status: string, message: string}> {
+  const receipt = getRedeemReceipt(txHash);
+  
+  if (!receipt) {
+    return { status: 'unknown', message: 'Redeem not found' };
+  }
+  
+  // For simplicity, we'll just use the stored status
+  // In a real implementation, you would check the transaction status on-chain
+  
+  switch (receipt.status) {
+    case 'completed':
+      return { status: 'completed', message: 'Redeem completed successfully' };
+    case 'confirmed':
+      return { status: 'confirmed', message: 'Redeem confirmed on-chain' };
+    case 'failed':
+      return { status: 'failed', message: 'Redeem failed' };
+    default:
+      return { status: 'pending', message: 'Redeem in progress' };
   }
 } 
