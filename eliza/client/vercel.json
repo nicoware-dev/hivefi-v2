@@ -1,6 +1,7 @@
 {
     "version": 2,
-    "buildCommand": "pnpm build",
+    "buildCommand": "chmod +x vercel-build.sh && ./vercel-build.sh",
+    "installCommand": "pnpm install --no-frozen-lockfile --ignore-workspace-root-check",
     "outputDirectory": "dist",
     "framework": "vite",
     "rewrites": [
