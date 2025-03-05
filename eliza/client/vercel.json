@@ -6,8 +6,5 @@
     "rewrites": [
         { "source": "/api/zerion/portfolio/:address", "destination": "/api/zerion-portfolio.js?address=:address" },
         { "source": "/api/zerion/positions/:address", "destination": "/api/zerion-positions.js?address=:address" }
-    ],
-    "env": {
-        "ZERION_API_KEY": "@zerion-api-key"
-    }
+    ]
 } 
