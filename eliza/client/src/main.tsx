@@ -5,8 +5,11 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import { WalletProvider } from "./components/providers/wallet-provider";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+// Keep imports but don't use Crossmint for now
 import { CrossmintProviders } from "./components/providers/crossmint-provider";
 import { CrossmintWalletProvider } from "./components/providers/crossmint-wallet-provider";
+import { PrivyProvider } from "./components/providers/privy-provider";
+import { PrivyWalletProvider } from "./components/providers/privy-wallet-provider";
 
 // Simple Error Boundary Component
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
@@ -66,28 +69,22 @@ const queryClient = new QueryClient({
     },
 });
 
-// Determine whether to use Crossmint or the original wallet provider
-// You can toggle this based on a feature flag or environment variable
-const USE_CROSSMINT = true;
+// Only use Privy for now, keep Crossmint code for future use
+const USE_PRIVY = true;
+const USE_CROSSMINT = false;
 
-console.log("Using Crossmint:", USE_CROSSMINT);
-console.log("Crossmint API Key:", import.meta.env.VITE_CROSSMINT_CLIENT_KEY ? "Present" : "Missing");
+console.log("Using Privy:", USE_PRIVY);
+console.log("Privy App ID:", import.meta.env.VITE_PRIVY_APP_ID ? "Present" : "Missing");
 
 root.render(
     <StrictMode>
         <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
-                {USE_CROSSMINT ? (
-                    <CrossmintProviders>
-                        <CrossmintWalletProvider>
-                            <RouterProvider router={router} />
-                        </CrossmintWalletProvider>
-                    </CrossmintProviders>
-                ) : (
-                    <WalletProvider>
+                <PrivyProvider>
+                    <PrivyWalletProvider>
                         <RouterProvider router={router} />
-                    </WalletProvider>
-                )}
+                    </PrivyWalletProvider>
+                </PrivyProvider>
             </QueryClientProvider>
         </ErrorBoundary>
     </StrictMode>

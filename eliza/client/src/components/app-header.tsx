@@ -1,14 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { ConnectWallet } from "./connect-wallet";
 import { CrossmintConnectWallet } from "./crossmint-connect-wallet";
+import { PrivyConnectWallet } from "./privy-connect-wallet";
 import { Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import logo from "../assets/icon.svg";
 
-// Determine whether to use Crossmint or the original wallet component
-// This should match the setting in main.tsx
-const USE_CROSSMINT = true;
+// Only use Privy for now, keep other imports for future use
+const USE_PRIVY = true;
 
 export function AppHeader() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -67,7 +67,7 @@ export function AppHeader() {
 
                 {/* Connect Wallet / Sign In Button - Always Visible */}
                 <div>
-                    {USE_CROSSMINT ? <CrossmintConnectWallet /> : <ConnectWallet />}
+                    <PrivyConnectWallet />
                 </div>
 
                 {/* Mobile Menu Overlay */}
