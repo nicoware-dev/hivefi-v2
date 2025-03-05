@@ -148,7 +148,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
     // Create a custom signer that matches what the Wormhole SDK expects
     const wormholeSigner = {
       // Required method that returns the chain identifier
-      chain: chainName,
+      chain: () => chainName,
       
       // Required method that returns the wallet address
       address: () => address,
@@ -256,16 +256,27 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
  * @returns The balance as a string
  */
 export async function getBalance(runtime: IAgentRuntime, chain: any, address: string, tokenAddress?: string): Promise<string> {
-  logger.info(`Getting balance for address ${address} on chain ${chain.chain}`);
+  logger.info(`Getting balance for address ${address} on chain ${typeof chain === 'string' ? chain : (chain?.chain || 'unknown')}`);
   
   try {
     const chainName = typeof chain === 'string' ? chain : (chain?.chain || 'Ethereum');
-    const signer = await getSigner(runtime, chainName);
-    const wallet = signer.unwrap();
     
-    if (!wallet || !wallet.provider) {
-      throw new Error('Wallet or provider not available');
-    }
+    // Create a provider directly instead of using signer.unwrap()
+    const providerMap: Record<string, string> = {
+      'Ethereum': 'https://rpc.ankr.com/eth',
+      'Polygon': 'https://rpc.ankr.com/polygon',
+      'Bsc': 'https://bscrpc.com',
+      'Avalanche': 'https://rpc.ankr.com/avalanche',
+      'Fantom': 'https://rpcapi.fantom.network',
+      'Arbitrum': 'https://arb1.arbitrum.io/rpc',
+      'Optimism': 'https://mainnet.optimism.io',
+      'Base': 'https://mainnet.base.org',
+      'Mantle': 'https://rpc.mantle.xyz'
+    };
+    
+    // Get provider URL for the chain
+    const providerUrl = providerMap[chainName] || providerMap[chainName.toLowerCase()] || 'https://rpc.ankr.com/eth';
+    const provider = new ethers.JsonRpcProvider(providerUrl);
     
     if (tokenAddress && tokenAddress !== 'native') {
       // For ERC20 tokens
@@ -273,7 +284,7 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
         'function balanceOf(address owner) view returns (uint256)',
         'function decimals() view returns (uint8)'
       ];
-      const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, wallet.provider);
+      const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, provider);
       const balance = await tokenContract.balanceOf(address);
       const decimals = await tokenContract.decimals();
       
@@ -283,13 +294,13 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
       return formattedBalance;
     } else {
       // For native tokens
-      const balance = await wallet.provider.getBalance(address);
+      const balance = await provider.getBalance(address);
       const formattedBalance = ethers.formatEther(balance);
       logger.info(`Native balance: ${formattedBalance}`);
       return formattedBalance;
     }
   } catch (error: any) {
-    logger.error(`Error getting balance for ${address} on ${chain.chain}:`, error);
+    logger.error(`Error getting balance for ${address} on ${typeof chain === 'string' ? chain : (chain?.chain || 'unknown')}:`, error);
     throw new Error(`Failed to get balance: ${error.message}`);
   }
 }

@@ -277,6 +277,10 @@ export async function transferTokens(runtime: IAgentRuntime, params: TransferPar
       } catch (error: any) {
         logger.warn(`Error getting transfer quote: ${error.message}`);
         // Continue with transfer even if quote fails
+        // This is expected for non-wrapped assets
+        if (error.message.includes('not a wrapped asset')) {
+          logger.info('Token is not a wrapped asset, continuing with transfer anyway');
+        }
       }
       
       // Initiate the transfer
@@ -310,6 +314,12 @@ export async function transferTokens(runtime: IAgentRuntime, params: TransferPar
     } catch (error: any) {
       logger.error(`Error with token transfer: ${error.message}`);
       logger.error(error);
+      
+      // Check if the error is related to non-wrapped assets
+      if (error.message.includes('not a wrapped asset')) {
+        logger.warn(`Token ${tokenType} on ${sourceChain} is not a wrapped asset: ${error.message}`);
+        throw new Error(`Token ${tokenType} cannot be transferred from ${originalSourceChain} to ${originalDestChain} via Wormhole. It may not be a wrapped asset or may not be supported for this route.`);
+      }
       
       // Check for specific errors and provide more helpful messages
       if (error.message.includes('insufficient funds')) {

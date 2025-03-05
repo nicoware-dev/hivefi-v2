@@ -1,14 +1,15 @@
 # Wormhole Cross-Chain Module
 
-This module enables cross-chain token transfers using the Wormhole protocol, allowing users to seamlessly move tokens between different blockchain networks.
+This module enables cross-chain token transfers using the Wormhole protocol and Circle Bridge, allowing users to seamlessly move tokens between different blockchain networks.
 
 ## Implementation Status
 
 ✅ **Production Ready**
 
-The Wormhole module is now fully implemented with the actual Wormhole SDK and is ready for production use. It includes:
+The module is now fully implemented with the actual Wormhole SDK and Circle Bridge integration, and is ready for production use. It includes:
 
 - Real Wormhole SDK integration
+- Circle Bridge USDC transfers
 - Mainnet configuration
 - Wallet integration using runtime settings
 - Comprehensive error handling
@@ -17,6 +18,7 @@ The Wormhole module is now fully implemented with the actual Wormhole SDK and is
 ## Features
 
 - Cross-chain token transfers via Wormhole bridge
+- Native USDC transfers via Circle Bridge
 - Token redemption on destination chains
 - Support for multiple blockchain networks
 - Support for multiple token types
@@ -38,7 +40,7 @@ WALLET_PRIVATE_KEY=your_private_key
 
 ## Usage Examples
 
-### Transfer Tokens
+### Wormhole Token Transfers
 
 ```
 Transfer 0.01 ETH from Ethereum to Polygon using Wormhole
@@ -46,6 +48,16 @@ Send 0.001 USDC from Ethereum to Solana via Wormhole bridge
 Bridge 0.005 WETH from Ethereum to Arbitrum through Wormhole
 Transfer 0.01 USDT from Mantle to BSC via Wormhole
 Bridge 0.005 BNB from BSC to Mantle using Wormhole
+```
+
+### Circle USDC Transfers
+
+```
+Transfer 0.001 USDC from Ethereum to Polygon via Circle
+Send 0.01 USDC from Arbitrum to Base using Circle Bridge
+Bridge 0.005 USDC from Optimism to Ethereum with CCTP
+Move 0.001 USDC from Ethereum to Avalanche with Circle
+Transfer 0.01 USDC from Polygon to Arbitrum via Circle Bridge
 ```
 
 ### Redeem Tokens
@@ -60,20 +72,24 @@ Redeem my ETH on Mantle from Wormhole bridge
 
 ## Actions
 
-The module provides two main actions:
+The module provides three main actions:
 
-1. **WORMHOLE_CROSS_CHAIN_TRANSFER** - Transfers tokens from one blockchain to another
-2. **WORMHOLE_CROSS_CHAIN_REDEEM** - Redeems tokens on the destination chain
+1. **WORMHOLE_CROSS_CHAIN_TRANSFER** - Transfers tokens from one blockchain to another using Wormhole
+2. **CIRCLE_USDC_TRANSFER** - Transfers USDC from one blockchain to another using Circle Bridge
+3. **WORMHOLE_CROSS_CHAIN_REDEEM** - Redeems tokens on the destination chain
 
 ## Providers
 
-The module includes a provider that detects Wormhole-related requests and routes them to the appropriate action:
+The module includes providers that detect cross-chain transfer requests and route them to the appropriate action:
 
 - **WormholeProvider** - Detects transfer and redeem requests related to Wormhole
+- **CircleProvider** - Detects USDC transfer requests related to Circle Bridge
 
 ## Supported Chains
 
-The module supports transfers between the following blockchain networks:
+### Wormhole Supported Chains
+
+The Wormhole integration supports transfers between the following blockchain networks:
 
 - Ethereum
 - Solana
@@ -92,9 +108,25 @@ The module supports transfers between the following blockchain networks:
 
 Note: Special support has been added for Mantle and BSC chains.
 
+### Circle Bridge Supported Chains
+
+The Circle Bridge integration supports USDC transfers between the following blockchain networks:
+
+- Ethereum
+- Avalanche
+- Optimism
+- Arbitrum
+- Solana
+- Base
+- Polygon
+- Sui
+- Aptos
+
 ## Supported Tokens
 
-The module supports the following token types:
+### Wormhole Supported Tokens
+
+The Wormhole integration supports the following token types:
 
 - NATIVE (native token of the chain)
 - ETH (Ethereum)
@@ -120,6 +152,24 @@ The module supports the following token types:
 Note: For Mantle, the supported tokens are USDT, USDC, ETH, MNT, and WETH.
 Note: For BSC, the supported tokens are USDT, USDC, BNB, ETH, BUSD, and WETH.
 
+### Circle Bridge Supported Tokens
+
+The Circle Bridge integration supports only USDC transfers.
+
+## When to Use Circle Bridge vs. Wormhole
+
+- **Use Circle Bridge when**:
+  - You specifically want to transfer USDC
+  - You want the native USDC token on the destination chain
+  - You're transferring between supported chains
+  - You want the official Circle-backed transfer method
+
+- **Use Wormhole when**:
+  - You want to transfer tokens other than USDC
+  - You need to transfer to/from chains not supported by Circle (e.g., Mantle, BSC)
+  - You're comfortable with wrapped token representations
+  - You need more flexibility in token types and chain options
+
 ## Debugging
 
 The module includes detailed logging to help with debugging. Look for console logs that show:
@@ -134,9 +184,9 @@ The module includes detailed logging to help with debugging. Look for console lo
 ## Known Limitations
 
 - Gas fees are not automatically calculated or displayed to the user
-- Some token-chain combinations may not be supported by Wormhole
+- Some token-chain combinations may not be supported
 - Cross-chain transfers can take time to complete depending on network conditions
-- In testing mode, the module will fall back to mock implementations when encountering errors
+- Circle Bridge only supports USDC transfers
 
 ## Future Enhancements
 
@@ -150,19 +200,16 @@ The module includes detailed logging to help with debugging. Look for console lo
 
 For more detailed documentation, see the following:
 - [Wormhole Cross-Chain Module Documentation](./docs/wormhole.md)
+- [Circle Bridge USDC Transfer Documentation](./docs/circle.md)
 - [Mantle and BSC Transfer Examples](./docs/mantle_bsc_examples.md)
 
-# Wormhole Integration
-
-This module provides integration with the Wormhole protocol for cross-chain token transfers.
+# Implementation Details
 
 ## Overview
 
-The Wormhole integration allows for transferring tokens between different blockchain networks using the Wormhole protocol. It supports both regular token transfers and Circle USDC transfers (CCTP).
+The implementation allows for transferring tokens between different blockchain networks using both the Wormhole protocol and Circle Bridge. It supports regular token transfers via Wormhole and native USDC transfers via Circle Bridge.
 
-## Implementation Details
-
-### Architecture
+## Architecture
 
 The implementation follows a layered approach:
 
@@ -170,9 +217,10 @@ The implementation follows a layered approach:
 2. **Configuration Layer**: Manages chain and token configurations.
 3. **Utility Layer**: Provides helper functions for chain and token operations.
 
-### Key Components
+## Key Components
 
-- **TokenTransfer**: Handles token transfers between chains.
+- **TokenTransfer**: Handles token transfers between chains using Wormhole.
+- **CircleTransfer**: Handles USDC transfers between chains using Circle Bridge.
 - **TokenRedeem**: Handles token redemptions on destination chains.
 - **Instance**: Manages the Wormhole SDK instance.
 - **Config**: Provides configuration for chains, tokens, and RPC endpoints.
@@ -189,9 +237,9 @@ const wormholeInstance = await wormhole('Mainnet', [evm], {
 });
 ```
 
-### Token Transfers
+### Token Transfers via Wormhole
 
-To perform a token transfer:
+To perform a token transfer using Wormhole:
 
 1. Create a token ID:
    ```typescript
@@ -214,118 +262,28 @@ To perform a token transfer:
    );
    ```
 
-3. Get a transfer quote:
+3. Initiate the transfer:
    ```typescript
-   const transferDetails = {
-     token: tokenId,
-     amount: amountBigInt,
-     automatic: false
-   };
-   
-   const quote = await TokenTransfer.quoteTransfer(
-     wh,
-     srcChain,
-     dstChain,
-     transferDetails
+   const srcTxids = await xfer.initiateTransfer(signer);
+   ```
+
+### USDC Transfers via Circle Bridge
+
+To perform a USDC transfer using Circle Bridge:
+
+1. Create a Circle transfer:
+   ```typescript
+   const xfer = await wh.circleTransfer(
+     amountBigInt,
+     sourceAddress,
+     destAddress,
+     false, // Not automatic
+     undefined, // No payload
+     undefined // No native gas dropoff
    );
    ```
 
-4. Initiate the transfer:
+2. Initiate the transfer:
    ```typescript
-   // Create a custom signer object that matches what the SDK expects
-   const customSigner = {
-     address: () => signerAddress,
-     chain: wormholeSourceChain,
-     signTransaction: async (tx: any) => {
-       return await signer.signTransaction(tx);
-     },
-     signAndSend: async (tx: any) => {
-       const signedTx = await signer.signTransaction(tx);
-       const txHash = await signer.sendTransaction(signedTx);
-       return [txHash];
-     }
-   };
-   
-   const srcTxids = await xfer.initiateTransfer(customSigner);
+   const srcTxids = await xfer.initiateTransfer(signer);
    ```
-
-### Circle USDC Transfers
-
-For Circle USDC transfers:
-
-```typescript
-const xfer = await wh.circleTransfer(
-  amountBigInt,
-  { chain: wormholeSourceChain, address: signerAddress },
-  { chain: wormholeDestChain, address: signerAddress },
-  false, // Not automatic
-  undefined, // No payload
-  undefined // No native gas dropoff
-);
-
-const srcTxids = await xfer.initiateTransfer(customSigner);
-```
-
-### Token Redemptions
-
-To redeem tokens on the destination chain:
-
-1. Recover the transfer from a transaction hash:
-   ```typescript
-   const xfer = await TokenTransfer.from(wh, {
-     txid: transactionId
-   });
-   ```
-
-2. Wait for the attestation:
-   ```typescript
-   const attestIds = await xfer.fetchAttestation(60_000); // 60 second timeout
-   ```
-
-3. Complete the transfer:
-   ```typescript
-   const destTxids = await xfer.completeTransfer(customSigner);
-   ```
-
-## Implementation Notes
-
-### Signer Implementation
-
-The Wormhole SDK expects a signer object with specific methods. Here's an example of a custom signer implementation:
-
-```typescript
-const customSigner = {
-  address: () => signerAddress,
-  chain: wormholeChain,
-  signTransaction: async (tx: any) => {
-    return await signer.signTransaction(tx);
-  },
-  signAndSend: async (tx: any) => {
-    const signedTx = await signer.signTransaction(tx);
-    const txHash = await signer.sendTransaction(signedTx);
-    return [txHash];
-  }
-};
-```
-
-### Mock Implementations
-
-For testing or when real transactions are not possible, mock implementations are provided:
-
-```typescript
-const mockXfer = mockTokenTransfer(
-  tokenId,
-  amountBigInt,
-  { chain: wormholeSourceChain, address: signerAddress },
-  { chain: wormholeDestChain, address: signerAddress },
-  false
-);
-
-const mockTxids = await mockXfer.initiateTransfer();
-```
-
-## References
-
-- [Wormhole SDK Documentation](https://docs.wormhole.com/wormhole/sdk)
-- [TokenBridge Protocol](https://docs.wormhole.com/wormhole/explore-wormhole/token-bridge)
-- [CircleBridge Protocol](https://docs.wormhole.com/wormhole/explore-wormhole/cctp)

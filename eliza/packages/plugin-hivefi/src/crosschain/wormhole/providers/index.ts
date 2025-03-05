@@ -1,12 +1,12 @@
-import { Provider, IAgentRuntime, Memory, State } from '@elizaos/core';
-import { WormholeChain } from '../types';
+import { IAgentRuntime } from '@elizaos/core';
 import { isTransferRequest, isRedeemRequest } from '../utils';
+import { circleProvider } from './circleProvider';
 
 /**
  * Wormhole provider for cross-chain token transfers
  */
-export const wormholeProvider: Provider = {
-  get: async (runtime: IAgentRuntime, message: Memory, state?: State) => {
+export const wormholeProvider = {
+  get: async (runtime: IAgentRuntime, message: { content: { text?: string } }) => {
     const text = message.content.text?.toLowerCase() || '';
     
     // Check if this is a transfer or redeem request
@@ -14,15 +14,17 @@ export const wormholeProvider: Provider = {
     const isRedeem = isRedeemRequest(text);
     
     // Check if this is specifically a Wormhole request
-    const isWormholeRequest = text.toLowerCase().includes('wormhole') || 
-                             text.toLowerCase().includes('cross-chain') || 
-                             text.toLowerCase().includes('bridge');
+    const isWormholeRequest = text.includes('wormhole') || 
+                             text.includes('cross-chain') || 
+                             text.includes('bridge');
     
     if (isTransfer && isWormholeRequest) {
       return {
         action: 'WORMHOLE_CROSS_CHAIN_TRANSFER',
         confidence: 0.9,
-        params: {}
+        params: {
+          text: message.content.text
+        }
       };
     }
     
@@ -30,7 +32,9 @@ export const wormholeProvider: Provider = {
       return {
         action: 'WORMHOLE_CROSS_CHAIN_REDEEM',
         confidence: 0.9,
-        params: {}
+        params: {
+          text: message.content.text
+        }
       };
     }
     
@@ -40,7 +44,9 @@ export const wormholeProvider: Provider = {
       return {
         action: 'WORMHOLE_CROSS_CHAIN_TRANSFER',
         confidence: 0.6,
-        params: {}
+        params: {
+          text: message.content.text
+        }
       };
     }
     
@@ -48,7 +54,9 @@ export const wormholeProvider: Provider = {
       return {
         action: 'WORMHOLE_CROSS_CHAIN_REDEEM',
         confidence: 0.6,
-        params: {}
+        params: {
+          text: message.content.text
+        }
       };
     }
     
@@ -59,8 +67,9 @@ export const wormholeProvider: Provider = {
 /**
  * Export all Wormhole providers
  */
-export const providers = [
-  wormholeProvider
+const providers = [
+  wormholeProvider,
+  circleProvider
 ];
 
 export default providers; 

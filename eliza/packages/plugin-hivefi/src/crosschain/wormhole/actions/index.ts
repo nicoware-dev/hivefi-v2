@@ -1,6 +1,6 @@
 import { transferAction } from './transfer';
 import { redeemAction } from './redeem';
-import { statusAction } from './status';
+import { circleTransferAction } from './circleTransfer';
 
 /**
  * Export all Wormhole actions
@@ -8,7 +8,7 @@ import { statusAction } from './status';
 const actions = [
   transferAction,
   redeemAction,
-  statusAction
+  circleTransferAction
 ];
 
 export default actions; 
