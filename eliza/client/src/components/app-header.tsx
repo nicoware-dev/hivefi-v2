@@ -1,9 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { ConnectWallet } from "./connect-wallet";
+import { CrossmintConnectWallet } from "./crossmint-connect-wallet";
 import { Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import logo from "../assets/icon.svg";
+
+// Determine whether to use Crossmint or the original wallet component
+// This should match the setting in main.tsx
+const USE_CROSSMINT = true;
 
 export function AppHeader() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,9 +65,9 @@ export function AppHeader() {
                     ))}
                 </nav>
 
-                {/* Connect Wallet - Always Visible */}
+                {/* Connect Wallet / Sign In Button - Always Visible */}
                 <div>
-                    <ConnectWallet />
+                    {USE_CROSSMINT ? <CrossmintConnectWallet /> : <ConnectWallet />}
                 </div>
 
                 {/* Mobile Menu Overlay */}

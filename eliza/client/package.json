@@ -43,7 +43,8 @@
         "viem": "^2.21.54",
         "vite-plugin-top-level-await": "1.4.4",
         "vite-plugin-wasm": "3.3.0",
-        "wagmi": "^2.14.4"
+        "wagmi": "^2.14.4",
+        "@crossmint/client-sdk-react-ui": "^1.1.0"
     },
     "devDependencies": {
         "@eslint/js": "8.56.0",
