@@ -1,3 +1,0 @@
-# @crossmint/sdk
-
-TODO

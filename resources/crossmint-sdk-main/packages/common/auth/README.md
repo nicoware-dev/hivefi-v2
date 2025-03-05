@@ -1,2 +1,0 @@
-# @crossmint/common-sdk-auth
-

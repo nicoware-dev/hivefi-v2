@@ -3,6 +3,7 @@ import { mantleActions } from "./mantle";
 import { sonicActions } from "./sonic";
 import { analyticsActions } from "./analytics";
 import { multichainActions } from "./multichain";
+import { crosschainActions, crosschainProviders } from "./crosschain";
 
 /**
  * HiveFi plugin for Eliza
@@ -14,8 +15,12 @@ const plugin: Plugin = {
     ...mantleActions,
     ...sonicActions,
     ...analyticsActions,
-    ...multichainActions
+    ...multichainActions,
+    ...crosschainActions
   ],
+  providers: [
+    ...crosschainProviders
+  ]
 };
 
 export default plugin;
