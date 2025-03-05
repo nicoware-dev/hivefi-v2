@@ -95,11 +95,9 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <PrivyAuthProvider
+        // @ts-ignore
+        apiUrl="https://auth.privy.io"
         appId={privyAppId}
-        // @ts-ignore - redirectUrl is supported by Privy but not in the types
-        redirectUrl={import.meta.env.PROD 
-          ? "https://hivefi.vercel.app" 
-          : "http://localhost:5173"}
         config={{
           // Use Sonic as the default chain
           defaultChain: sonicChain,
