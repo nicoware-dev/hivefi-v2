@@ -3,6 +3,7 @@ import { elizaLogger } from "@elizaos/core";
 import { getAllProtocols } from "../../api/client";
 import { extractChainName, extractLimit } from "../../utils/extract";
 import { formatCurrency } from "../../utils/format";
+import { CHAIN_TO_DEFILLAMA_SLUG } from "../../config/mappings";
 
 const DEFAULT_LIMIT = 10;
 
@@ -10,18 +11,38 @@ interface ProtocolChainData {
   name: string;
   tvl: number;
   formattedTVL: string;
+  category?: string;
+  change_1d?: number;
+  change_7d?: number;
+  dominance?: number;
 }
 
 const handler: Handler = async (runtime, message, state, _options, callback) => {
   try {
     // Extract chain name and limit from message
     const messageText = message.content?.text || "";
-    const chain = extractChainName(messageText);
+    const chainSlug = extractChainName(messageText);
     const limit = extractLimit(messageText) || DEFAULT_LIMIT;
 
-    if (!chain) {
+    if (!chainSlug) {
+      const supportedChains = Object.keys(CHAIN_TO_DEFILLAMA_SLUG)
+        .filter(key => key.length > 2)
+        .sort()
+        .join(", ");
+      
       callback?.({
-        text: "Please specify a chain name. For example: 'Show top protocols on Arbitrum' or 'What are the biggest protocols on Optimism?'"
+        text: "Please specify a chain name. For example:\n" +
+             "'Show top protocols on Arbitrum' or 'List top 5 protocols on Optimism'\n\n" +
+             `Supported chains include: ${supportedChains}`
+      });
+      return false;
+    }
+
+    // Get the chain name as it appears in the DefiLlama API
+    const chainName = CHAIN_TO_DEFILLAMA_SLUG[chainSlug.toLowerCase()];
+    if (!chainName) {
+      callback?.({
+        text: `Chain '${chainSlug}' not recognized. Please use a supported chain name.`
       });
       return false;
     }
@@ -35,43 +56,70 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
       return false;
     }
 
-    // Find protocols with TVL on the specified chain
-    const protocolsOnChain: ProtocolChainData[] = result.result
-      .filter((p: any) => p.chainTvls?.[chain] !== undefined)
-      .map((p: any) => ({
-        name: p.name,
-        tvl: p.chainTvls[chain],
-        formattedTVL: formatCurrency(p.chainTvls[chain])
-      }))
-      .sort((a: ProtocolChainData, b: ProtocolChainData) => b.tvl - a.tvl)
-      .slice(0, limit);
+    // Find protocols deployed on the specified chain
+    const protocolsOnChain: ProtocolChainData[] = [];
+    
+    for (const protocol of result.result) {
+      const chainTvl = protocol.chainTvls?.[chainName];
+      if (chainTvl && chainTvl > 0) {
+        protocolsOnChain.push({
+          name: protocol.name,
+          tvl: chainTvl,
+          formattedTVL: formatCurrency(chainTvl),
+          category: protocol.category,
+          change_1d: protocol.change_1d,
+          change_7d: protocol.change_7d
+        });
+      }
+    }
 
-    if (protocolsOnChain.length === 0) {
+    // Sort by TVL and get top protocols
+    protocolsOnChain.sort((a, b) => b.tvl - a.tvl);
+    const topProtocols = protocolsOnChain.slice(0, limit);
+
+    if (topProtocols.length === 0) {
       callback?.({
-        text: `No protocols found on ${chain}. Please check the chain name and try again.`
+        text: `No protocols found on ${chainName}. This could mean either:\n` +
+             `1. No protocols are currently tracked on this chain\n` +
+             `2. There is an issue with the data feed\n\n` +
+             `Please check the chain name and try again.`
       });
       return false;
     }
 
-    // Calculate total chain TVL
-    const totalTVL = protocolsOnChain.reduce((sum: number, p: ProtocolChainData) => sum + p.tvl, 0);
-
-    // Format response
-    let response = `Top Protocols on ${chain}:\n\n`;
-    protocolsOnChain.forEach((protocol: ProtocolChainData, index: number) => {
-      const percentage = (protocol.tvl / totalTVL * 100).toFixed(2);
-      response += `${index + 1}. ${protocol.name}: ${protocol.formattedTVL} (${percentage}% of chain TVL)\n\n`;
+    // Calculate total chain TVL and dominance
+    const totalChainTVL = protocolsOnChain.reduce((sum, p) => sum + p.tvl, 0);
+    topProtocols.forEach(p => {
+      p.dominance = (p.tvl / totalChainTVL * 100);
     });
 
-    response += `Total Chain TVL: ${formatCurrency(totalTVL)}`;
+    // Format response
+    let response = `Top ${topProtocols.length} Protocols on ${chainName}:\n\n`;
+    
+    topProtocols.forEach((protocol, index) => {
+      response += `${index + 1}. ${protocol.name}: ${protocol.formattedTVL} (${protocol.dominance?.toFixed(2)}% of chain TVL)`;
+      
+      if (protocol.category) {
+        response += `\n   Category: ${protocol.category}`;
+      }
+      if (protocol.change_1d !== undefined) {
+        response += `\n   24h Change: ${protocol.change_1d > 0 ? '+' : ''}${protocol.change_1d.toFixed(2)}%`;
+      }
+      if (protocol.change_7d !== undefined) {
+        response += `\n   7d Change: ${protocol.change_7d > 0 ? '+' : ''}${protocol.change_7d.toFixed(2)}%`;
+      }
+      response += '\n\n';
+    });
+
+    response += `Total Chain TVL: ${formatCurrency(totalChainTVL)}`;
 
     callback?.({
       text: response,
       content: {
-        chain,
-        protocols: protocolsOnChain,
-        totalTVL,
-        formattedTotalTVL: formatCurrency(totalTVL)
+        chain: chainName,
+        protocols: topProtocols,
+        totalChainTVL,
+        formattedTotalTVL: formatCurrency(totalChainTVL)
       }
     });
 
@@ -79,21 +127,27 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
   } catch (error) {
     elizaLogger.error('Error in TOP_PROTOCOLS_CHAIN handler:', error);
     callback?.({
-      text: "Sorry, I encountered an error while fetching the protocol data."
+      text: "Sorry, I encountered an error while fetching the protocol data. " +
+           "Please try again in a moment."
     });
     return false;
   }
 };
 
 export const topProtocolsByChainAction: Action = {
-  name: 'TOP_PROTOCOLS_CHAIN',
-  description: 'Get top protocols by TVL for a specific chain',
+  name: "TOP_PROTOCOLS_CHAIN",
+  description: "Get top protocols by TVL on a specific chain",
   similes: [
     'TOP_PROTOCOLS',
     'BIGGEST_PROTOCOLS',
     'CHAIN_TOP_PROTOCOLS',
     'PROTOCOL_RANKINGS',
-    'CHAIN_PROTOCOL_RANKINGS'
+    'CHAIN_PROTOCOL_RANKINGS',
+    'LARGEST_PROTOCOLS',
+    'CHAIN_PROTOCOLS',
+    'PROTOCOLS_BY_SIZE',
+    'TOP_DEFI_PROTOCOLS',
+    'CHAIN_TVL_LEADERS'
   ],
   handler,
   validate: async () => true,
@@ -104,7 +158,7 @@ export const topProtocolsByChainAction: Action = {
     },
     {
       user: 'assistant',
-      content: { text: 'Top Protocols on Arbitrum:\n\n1. GMX: $920.5M (19.18% of chain TVL)\n\n2. Aave: $820.3M (17.09% of chain TVL)\n\n3. Uniswap: $750.2M (15.63% of chain TVL)\n\n4. Curve: $580.1M (12.09% of chain TVL)\n\n5. Balancer: $320.5M (6.68% of chain TVL)\n\nTotal Chain TVL: $4.8B' }
+      content: { text: 'Top Protocols on Arbitrum:\n\n1. GMX: $920.5M (19.18% of chain TVL)\n   Category: Derivatives\n   24h Change: +1.2%\n   7d Change: +3.5%\n\n2. Aave: $820.3M (17.09% of chain TVL)\n   Category: Lending\n   24h Change: +0.8%\n   7d Change: +2.1%\n\nTotal Chain TVL: $4.8B' }
     }
   ]]
 }; 
