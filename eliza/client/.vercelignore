@@ -1,0 +1,11 @@
+# Ignore everything outside the client directory
+../agent/
+../packages/
+../docs/
+../characters/
+../scripts/
+../node_modules/
+
+# Ignore large files in the client directory
+node_modules/
+.git/ 
