@@ -1,34 +1,22 @@
 import type { Plugin } from "@elizaos/core";
-import { coinGeckoProvider } from "./mantle/providers/coingecko";
-import { defiLlamaProvider } from "./mantle/providers/defillama";
-import { walletProvider } from "./mantle/providers/wallet";
-
-// Import all Mantle actions as a group
-import { MantleActions } from "./mantle/actions";
-
-// Import all Sonic actions as a group
+import { mantleActions } from "./mantle";
 import { sonicActions } from "./sonic";
-
-// Import all Analytics actions as a group
 import { analyticsActions } from "./analytics";
+import { multichainActions } from "./multichain";
 
-// Import all DefiLlama actions as a group
-import { actions as defiLlamaActions } from "./analytics/defillama";
-
-export const hivefiPlugin: Plugin = {
-    name: "hivefi",
-    description: "HiveFi Plugin for Eliza - Multichain DeFAI Agent Swarm",
-    actions: [
-        ...MantleActions,
-        ...sonicActions,
-        ...analyticsActions,
-        ...defiLlamaActions
-    ],
-    evaluators: [],
-    providers: [
-        walletProvider
-    ]
+/**
+ * HiveFi plugin for Eliza
+ */
+const plugin: Plugin = {
+  name: "plugin-hivefi",
+  description: "HiveFi Plugin for Eliza - Multichain DeFi Agent",
+  actions: [
+    ...mantleActions,
+    ...sonicActions,
+    ...analyticsActions,
+    ...multichainActions
+  ],
 };
 
-export default hivefiPlugin;
+export default plugin;
 
