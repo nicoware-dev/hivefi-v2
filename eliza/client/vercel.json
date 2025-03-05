@@ -8,6 +8,7 @@
         { "source": "/api/zerion/portfolio/:address", "destination": "/api/zerion-portfolio.js?address=:address" },
         { "source": "/api/zerion/positions/:address", "destination": "/api/zerion-positions.js?address=:address" },
         { "source": "/api/defillama/tvl", "destination": "/api/defillama-tvl.js" },
-        { "source": "/api/defillama/protocols", "destination": "/api/defillama-protocols.js" }
+        { "source": "/api/defillama/protocols", "destination": "/api/defillama-protocols.js" },
+        { "source": "/api/privy/analytics", "destination": "/api/privy-analytics.js" }
     ]
 } 

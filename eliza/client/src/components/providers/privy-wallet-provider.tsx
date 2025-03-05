@@ -36,6 +36,7 @@ export function PrivyWalletProvider({ children }: { children: React.ReactNode })
   
   const [isConnecting, setIsConnecting] = useState(false);
   const [sessionRestored, setSessionRestored] = useState(false);
+  const [restorationAttempted, setRestorationAttempted] = useState(false);
   
   // Get the first wallet's address
   const wallet = wallets?.[0];
@@ -74,9 +75,9 @@ export function PrivyWalletProvider({ children }: { children: React.ReactNode })
     }
   }, [wallet, isConnected, address, sessionRestored]);
 
-  // Attempt to restore session on mount
+  // Attempt to restore session on mount - only once
   useEffect(() => {
-    if (!isConnected && !isConnecting && !sessionRestored && ready) {
+    if (!isConnected && !isConnecting && !sessionRestored && ready && !restorationAttempted) {
       const storedSession = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
       
       if (storedSession) {
@@ -87,6 +88,7 @@ export function PrivyWalletProvider({ children }: { children: React.ReactNode })
           // Only restore sessions less than 24 hours old
           if (sessionAge < 24 * 60 * 60 * 1000) {
             console.log("Attempting to restore Privy session...");
+            setRestorationAttempted(true);
             
             // Add a small delay to ensure everything is loaded
             setTimeout(() => {
@@ -102,14 +104,18 @@ export function PrivyWalletProvider({ children }: { children: React.ReactNode })
           } else {
             console.log("Privy session expired, clearing...");
             clearSession();
+            setRestorationAttempted(true);
           }
         } catch (error) {
           console.error("Error parsing stored Privy session:", error);
           clearSession();
+          setRestorationAttempted(true);
         }
+      } else {
+        setRestorationAttempted(true);
       }
     }
-  }, [isConnected, isConnecting, sessionRestored, ready, login]);
+  }, [isConnected, isConnecting, sessionRestored, ready, login, restorationAttempted]);
 
   // Clear session data from storage
   const clearSession = useCallback(() => {

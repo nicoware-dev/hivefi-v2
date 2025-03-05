@@ -55,6 +55,39 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
     }
   }, [privyAppId]);
 
+  // Patch window.fetch to handle Privy analytics requests
+  useEffect(() => {
+    // Only patch in development mode
+    if (import.meta.env.DEV) {
+      const originalFetch = window.fetch;
+      
+      window.fetch = async function(input, init) {
+        const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+        
+        // Check if this is a Privy analytics request
+        if (url.includes('auth.privy.io/api/v1/analytics_events')) {
+          console.log('Intercepting Privy analytics request');
+          
+          // Use no-cors mode for Privy analytics requests
+          const newInit = {
+            ...init,
+            mode: 'no-cors' as RequestMode
+          };
+          
+          return originalFetch(input, newInit);
+        }
+        
+        // Otherwise, use the original fetch
+        return originalFetch(input, init);
+      };
+      
+      return () => {
+        // Restore original fetch when component unmounts
+        window.fetch = originalFetch;
+      };
+    }
+  }, []);
+
   if (!isInitialized) {
     return null;
   }
@@ -75,7 +108,7 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
             noPromptOnSignature: false,
           },
           // Support multiple login methods
-          loginMethods: ["sms", "google", "discord", "twitter", "github", "spotify", "instagram", "tiktok", "linkedin", "apple", "email", "farcaster", "telegram", "wallet"  ],
+          loginMethods: ["wallet", "email", "sms", "google", "discord", "twitter", "github"],
           appearance: {
             showWalletLoginFirst: true,
             theme: "dark",
