@@ -5,7 +5,10 @@
 ../characters/
 ../scripts/
 ../node_modules/
+../.git/
+../pnpm-lock.yaml
 
 # Ignore large files in the client directory
 node_modules/
-.git/ 
+.git/
+pnpm-lock.yaml 
