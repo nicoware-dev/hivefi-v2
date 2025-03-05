@@ -32,12 +32,16 @@ export function formatPoolStats(pool: Pool): PoolStats {
 }
 
 export function formatPoolInfo(pool: Pool): PoolInfo {
+    // Check for undefined or 'undefined' string values
+    const baseTokenName = pool.attributes.base_token_name;
+    const quoteTokenName = pool.attributes.quote_token_name;
+    
     return {
         ...formatPoolStats(pool),
         name: pool.attributes.name || 'Unknown Pool',
         address: pool.attributes.address,
-        baseTokenName: pool.attributes.base_token_name || 'Unknown Token',
-        quoteTokenName: pool.attributes.quote_token_name || 'Unknown Token',
+        baseTokenName: (baseTokenName && baseTokenName !== 'undefined') ? baseTokenName : 'Base Token',
+        quoteTokenName: (quoteTokenName && quoteTokenName !== 'undefined') ? quoteTokenName : 'Quote Token',
         baseTokenAddress: pool.attributes.base_token_address,
         quoteTokenAddress: pool.attributes.quote_token_address
     };
@@ -79,14 +83,27 @@ export function formatTokenInfo(token: Token): string {
 }
 
 export function formatMarkdown(poolInfo: PoolInfo): string {
-    return `## ${poolInfo.name}
+    // Format the main pool information
+    let markdown = `## ${poolInfo.name}
 - Address: \`${poolInfo.address}\`
 - TVL: ${formatUSD(poolInfo.tvl)}
 - 24h Volume: ${formatUSD(poolInfo.volume24h)}
 - 24h Fees Generated: ${formatUSD(poolInfo.fees24h)}
 - 24h Price Change: ${poolInfo.priceChange24h || 'N/A'}
-- 24h Transactions: ${poolInfo.transactions24h || 'N/A'}
+- 24h Transactions: ${poolInfo.transactions24h || 'N/A'}`;
+
+    // Only add token prices section if we have valid token names
+    if (poolInfo.baseTokenName && poolInfo.quoteTokenName && 
+        poolInfo.baseTokenName !== 'undefined' && poolInfo.quoteTokenName !== 'undefined') {
+        
+        const baseTokenName = poolInfo.baseTokenName === 'undefined' ? 'Base Token' : poolInfo.baseTokenName;
+        const quoteTokenName = poolInfo.quoteTokenName === 'undefined' ? 'Quote Token' : poolInfo.quoteTokenName;
+        
+        markdown += `
 - Token Prices:
-  * ${poolInfo.baseTokenName}: ${formatUSD(poolInfo.baseTokenPrice)}
-  * ${poolInfo.quoteTokenName}: ${formatUSD(poolInfo.quoteTokenPrice)}`;
+  * ${baseTokenName}: ${formatUSD(poolInfo.baseTokenPrice)}
+  * ${quoteTokenName}: ${formatUSD(poolInfo.quoteTokenPrice)}`;
+    }
+    
+    return markdown;
 } 

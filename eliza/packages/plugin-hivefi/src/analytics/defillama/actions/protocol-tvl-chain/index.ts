@@ -147,8 +147,13 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
 
 export const protocolTVLByChainAction: Action = {
   name: "GET_PROTOCOL_TVL_BY_CHAIN",
-  description: "Get the TVL of a specific protocol on a specific chain",
+  description: "Get the TVL of a specific protocol on a specific chain only",
   similes: [
+    // Chain-specific patterns
+    'PROTOCOL_TVL_ON_SPECIFIC_CHAIN',
+    'CHAIN_SPECIFIC_PROTOCOL_TVL',
+    'PROTOCOL_TVL_FOR_SPECIFIC_CHAIN',
+    'SPECIFIC_CHAIN_PROTOCOL_TVL',
     // Direct matches
     'SHOW_ME_PROTOCOL_TVL_ON_CHAIN',
     'WHATS_PROTOCOL_TVL_ON_CHAIN',
@@ -184,6 +189,15 @@ export const protocolTVLByChainAction: Action = {
     {
       user: 'assistant',
       content: { text: 'Uniswap Protocol TVL on Arbitrum: $820.5M (15.2% of total TVL)\n24h Change: +1.2%\n7d Change: +3.5%\n\nTotal Protocol TVL (all chains): $5.4B\n\nTop Chains by TVL:\nEthereum: $4.1B (75.9%)\nArbitrum: $820.5M (15.2%)\nOptimism: $480M (8.9%)' }
+    }
+  ], [
+    {
+      user: 'user1',
+      content: { text: "Show me Aave's TVL on Optimism" }
+    },
+    {
+      user: 'assistant',
+      content: { text: 'Aave Protocol TVL on Optimism: $480M (3.9% of total TVL)\n24h Change: +0.8%\n7d Change: +2.1%\n\nTotal Protocol TVL (all chains): $12.3B\n\nTop Chains by TVL:\nEthereum: $8.2B (66.7%)\nArbitrum: $2.5B (20.3%)\nOptimism: $480M (3.9%)' }
     }
   ]]
 }; 

@@ -1,7 +1,7 @@
 import type { Action, Handler } from "@elizaos/core";
 import { elizaLogger } from "@elizaos/core";
 import { getTrendingPools } from "../../api/client";
-import { formatMarkdown } from "../../utils/format";
+import { formatMarkdown, formatPoolInfo } from "../../utils/format";
 import { SUPPORTED_NETWORKS } from "../../config/networks";
 import { Pool } from "../../types";
 
@@ -37,23 +37,7 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
             markdown += "_No trending pools found at the moment._";
         } else {
             const pools = Array.isArray(result.result) ? result.result : [result.result];
-            markdown += pools.map((pool: Pool) => formatMarkdown({
-                name: pool.attributes.name,
-                address: pool.attributes.address,
-                tvl: parseFloat(pool.attributes.reserve_in_usd),
-                volume24h: parseFloat(pool.attributes.volume_usd.h24),
-                fees24h: parseFloat(pool.attributes.volume_usd.h24) * 0.003,
-                priceChange24h: pool.attributes.price_change_percentage?.h24 
-                    ? `${parseFloat(pool.attributes.price_change_percentage.h24) >= 0 ? '+' : ''}${parseFloat(pool.attributes.price_change_percentage.h24).toFixed(2)}%`
-                    : undefined,
-                transactions24h: pool.attributes.transactions_24h,
-                baseTokenName: pool.attributes.base_token_name,
-                quoteTokenName: pool.attributes.quote_token_name,
-                baseTokenPrice: parseFloat(pool.attributes.base_token_price_usd || '0'),
-                quoteTokenPrice: parseFloat(pool.attributes.quote_token_price_usd || '0'),
-                baseTokenAddress: pool.attributes.base_token_address,
-                quoteTokenAddress: pool.attributes.quote_token_address
-            })).join("\n\n");
+            markdown += pools.map((pool: Pool) => formatMarkdown(formatPoolInfo(pool))).join("\n\n");
         }
 
         callback?.({
