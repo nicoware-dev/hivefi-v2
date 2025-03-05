@@ -96,6 +96,10 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <PrivyAuthProvider
         appId={privyAppId}
+        // @ts-ignore - redirectUrl is supported by Privy but not in the types
+        redirectUrl={import.meta.env.PROD 
+          ? "https://hivefi.vercel.app" 
+          : "http://localhost:5173"}
         config={{
           // Use Sonic as the default chain
           defaultChain: sonicChain,
@@ -107,8 +111,16 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
             requireUserPasswordOnCreate: false,
             noPromptOnSignature: false,
           },
-          // Support multiple login methods
-          loginMethods: ["wallet", "email", "sms", "google", "discord", "twitter", "github"],
+          // Support multiple login methods with proper configuration
+          loginMethods: [
+            "wallet",
+            "email",
+            "sms",
+            "google",
+            "discord",
+            "twitter",
+            "github"
+          ],
           appearance: {
             showWalletLoginFirst: true,
             theme: "dark",
