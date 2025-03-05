@@ -19,8 +19,7 @@ export const CHAIN_MAPPING: Record<string, string> = {
   'base': 'Base',
   'solana': 'Solana',
   'sui': 'Sui',
-  // Mantle is not directly supported by Wormhole SDK
-  'mantle': 'Ethereum', // Map to Ethereum for now
+  'mantle': 'Mantle', 
 };
 
 /**
@@ -48,10 +47,10 @@ export function getWormholeChain(chain: string): Chain {
 export function isWormholeSupported(chain: string): boolean {
   const normalizedChain = chain.toLowerCase();
   
-  // Mantle is not directly supported
+/*   // Mantle is not directly supported
   if (normalizedChain === 'mantle') {
     return false;
-  }
+  } */
   
   const wormholeChain = CHAIN_MAPPING[normalizedChain];
   return !!wormholeChain && isChain(wormholeChain);

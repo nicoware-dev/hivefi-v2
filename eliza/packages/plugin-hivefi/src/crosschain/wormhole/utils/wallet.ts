@@ -5,6 +5,17 @@ import { Chain } from '@wormhole-foundation/sdk';
 const logger = elizaLogger.child({ module: 'WormholeWallet' });
 
 /**
+ * Helper function to safely serialize objects with BigInt values
+ * @param obj The object to serialize
+ * @returns A JSON string with BigInt values converted to strings
+ */
+function safeSerialize(obj: any): string {
+  return JSON.stringify(obj, (_, value) => 
+    typeof value === 'bigint' ? value.toString() : value
+  );
+}
+
+/**
  * Get a wallet for the specified chain
  * This is a placeholder implementation that would need to be replaced with actual wallet integration
  * @param chainId The chain ID to get a wallet for
@@ -104,7 +115,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       logger.info(`Created BSC wallet with address: ${address}`);
       
       // Connect to BSC mainnet RPC
-      provider = new ethers.JsonRpcProvider('https://bsc-dataseed.binance.org');
+      provider = new ethers.JsonRpcProvider('https://bscrpc.com');
       wallet = wallet.connect(provider);
       
       logger.info('Connected wallet to BSC provider');
@@ -117,18 +128,18 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       
       // Map chain names to provider URLs - using production mainnet RPCs
       const providerMap: Record<string, string> = {
-        'Ethereum': 'https://eth-mainnet.g.alchemy.com/v2/demo',
-        'Polygon': 'https://polygon-rpc.com',
-        'Bsc': 'https://bsc-dataseed.binance.org',
-        'Avalanche': 'https://api.avax.network/ext/bc/C/rpc',
-        'Fantom': 'https://rpc.ftm.tools',
+        'Ethereum': 'https://rpc.ankr.com/eth',
+        'Polygon': 'https://rpc.ankr.com/polygon',
+        'Bsc': 'https://bscrpc.com',
+        'Avalanche': 'https://rpc.ankr.com/avalanche',
+        'Fantom': 'https://rpcapi.fantom.network',
         'Arbitrum': 'https://arb1.arbitrum.io/rpc',
         'Optimism': 'https://mainnet.optimism.io',
         'Base': 'https://mainnet.base.org'
       };
       
       // Get provider URL for the chain
-      const providerUrl = providerMap[chainName] || 'https://eth-mainnet.g.alchemy.com/v2/demo';
+      const providerUrl = providerMap[chainName] || 'https://rpc.ankr.com/eth';
       
       logger.info(`Using provider URL: ${providerUrl} for chain ${chainName}`);
       provider = new ethers.JsonRpcProvider(providerUrl);
@@ -151,17 +162,16 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       logger.info(`Created default wallet with address: ${address} for chain ${chainName}`);
       
       // Connect to a default provider
-      provider = new ethers.JsonRpcProvider('https://eth-mainnet.g.alchemy.com/v2/demo');
+      provider = new ethers.JsonRpcProvider('https://rpc.ankr.com/eth');
       wallet = wallet.connect(provider);
       
       logger.info(`Connected default wallet to provider for ${chainName}`);
     }
     
-    // Create a Wormhole SDK compatible signer
-    // This implements the SignAndSendSigner interface
-    return {
+    // Create a custom signer that matches what the Wormhole SDK expects
+    const wormholeSigner = {
       // Required method that returns the chain identifier
-      chain: () => chainName as Chain,
+      chain: chainName as Chain,
       
       // Required method that returns the wallet address
       address: () => address,
@@ -175,20 +185,26 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
         
         for (const tx of txs) {
           try {
-            logger.info(`Preparing to sign transaction: ${JSON.stringify(tx)}`);
+            // Use safe serialization for logging
+            logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
             
             // For EVM chains, handle the transaction appropriately
             if (evmChains.includes(chainName) || chainName === 'Mantle' || chainName.toLowerCase() === 'bsc') {
+              // Extract transaction details from the Wormhole transaction format
+              const transaction = tx.transaction || tx;
+              
               // Convert the transaction to a format ethers can understand
+              // Handle BigInt values properly
               const ethersTransaction = {
-                to: tx.to,
-                data: tx.data,
-                value: tx.value ? ethers.parseEther(tx.value.toString()) : 0,
-                gasLimit: tx.gasLimit || 3000000,
-                chainId: provider ? (await provider.getNetwork()).chainId : 1
+                to: transaction.to,
+                data: transaction.data,
+                value: transaction.value ? (typeof transaction.value === 'bigint' ? transaction.value : BigInt(transaction.value.toString())) : BigInt(0),
+                gasLimit: transaction.gasLimit || BigInt(3000000),
+                chainId: transaction.chainId || (provider ? (await provider.getNetwork()).chainId : 1)
               };
               
-              logger.info(`Signing EVM transaction: ${JSON.stringify(ethersTransaction)}`);
+              // Use safe serialization for logging
+              logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
               
               // Sign and send the transaction
               const txResponse = await wallet.sendTransaction(ethersTransaction);
@@ -218,20 +234,26 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
         
         for (const tx of txs) {
           try {
-            logger.info(`Preparing to sign transaction: ${JSON.stringify(tx)}`);
+            // Use safe serialization for logging
+            logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
             
             // For EVM chains, handle the transaction appropriately
             if (evmChains.includes(chainName) || chainName === 'Mantle' || chainName.toLowerCase() === 'bsc') {
+              // Extract transaction details from the Wormhole transaction format
+              const transaction = tx.transaction || tx;
+              
               // Convert the transaction to a format ethers can understand
+              // Handle BigInt values properly
               const ethersTransaction = {
-                to: tx.to,
-                data: tx.data,
-                value: tx.value ? ethers.parseEther(tx.value.toString()) : 0,
-                gasLimit: tx.gasLimit || 3000000,
-                chainId: provider ? (await provider.getNetwork()).chainId : 1
+                to: transaction.to,
+                data: transaction.data,
+                value: transaction.value ? (typeof transaction.value === 'bigint' ? transaction.value : BigInt(transaction.value.toString())) : BigInt(0),
+                gasLimit: transaction.gasLimit || BigInt(3000000),
+                chainId: transaction.chainId || (provider ? (await provider.getNetwork()).chainId : 1)
               };
               
-              logger.info(`Signing EVM transaction: ${JSON.stringify(ethersTransaction)}`);
+              // Use safe serialization for logging
+              logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
               
               // Sign the transaction
               const signedTx = await wallet.signTransaction(ethersTransaction);
@@ -255,6 +277,8 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       // Provide access to the underlying wallet for platform-specific operations
       unwrap: () => wallet
     };
+    
+    return wormholeSigner;
   } catch (error: any) {
     logger.error(`Error creating signer for ${typeof chain === 'string' ? chain : chain?.chain || 'unknown'}:`, error);
     

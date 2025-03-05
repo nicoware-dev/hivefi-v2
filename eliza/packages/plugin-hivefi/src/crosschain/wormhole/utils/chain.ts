@@ -32,6 +32,7 @@ export function normalizeChainName(chainName: string): Chain {
     'ftm': 'Fantom',
     'celo': 'Celo',
     'moonbeam': 'Moonbeam',
+    'mantle': 'Mantle',
     'glmr': 'Moonbeam',
     'arbitrum': 'Arbitrum',
     'arb': 'Arbitrum',
@@ -43,11 +44,11 @@ export function normalizeChainName(chainName: string): Chain {
     'base': 'Base'
   };
   
-  // Special case for Mantle - map to Ethereum for compatibility
+/*   // Special case for Mantle - map to Ethereum for compatibility
   if (normalized === 'mantle' || normalized === 'mnt') {
     logger.info('Normalizing Mantle chain to Ethereum for SDK compatibility');
     return 'Ethereum';
-  }
+  } */
   
   // Special case for BSC - ensure it's properly mapped
   if (normalized === 'bsc' || normalized === 'binance' || normalized === 'binancesmartchain') {
