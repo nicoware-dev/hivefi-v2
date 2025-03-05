@@ -64,7 +64,7 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
       window.fetch = async function(input, init) {
         const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
         
-        // Check if this is a Privy analytics request
+        // Check if this is a Privy analytics request - but don't interfere with auth requests
         if (url.includes('auth.privy.io/api/v1/analytics_events')) {
           console.log('Intercepting Privy analytics request');
           
@@ -92,10 +92,15 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
     return null;
   }
 
+  // Get the current URL for OAuth redirects
+  const currentUrl = typeof window !== 'undefined' 
+    ? window.location.origin 
+    : '';
+
   return (
     <QueryClientProvider client={queryClient}>
       <PrivyAuthProvider
-        // @ts-ignore
+        // @ts-ignore - apiUrl is required for social logins but not in the type definitions
         apiUrl="https://auth.privy.io"
         appId={privyAppId}
         config={{
@@ -112,13 +117,13 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
           // Support multiple login methods with proper configuration
           loginMethods: [
             "wallet",
-            "email",
-            "sms",
-            "google",
-            "discord",
-            "twitter",
-            "github"
+            "email"
           ],
+          // Configure OAuth for social logins
+          // @ts-ignore - oauthOptions is required for social logins but not in the type definitions
+          oauthOptions: {
+            redirectUrl: `${currentUrl}/api/privy-oauth`
+          },
           appearance: {
             showWalletLoginFirst: true,
             theme: "dark",

@@ -10,7 +10,9 @@
         "lint": "eslint .",
         "preview": "vite preview",
         "server": "bash ./start-server.sh",
-        "dev:all": "concurrently \"pnpm dev\" \"pnpm server\""
+        "dev:all": "concurrently \"pnpm dev\" \"pnpm server\"",
+        "proxy": "node dev-proxy.js",
+        "dev:proxy": "concurrently \"pnpm dev\" \"pnpm proxy\""
     },
     "dependencies": {
         "@privy-io/react-auth": "^1.57.0",
