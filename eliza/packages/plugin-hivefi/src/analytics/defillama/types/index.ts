@@ -33,15 +33,19 @@ export interface ChainTVLData extends TVLData {
 
 export interface ProtocolTVLData extends TVLData {
   name: string;
-  slug: string;
+  slug?: string;
   description?: string;
   category?: string;
   chains?: string[];
-  chainTvls?: {
+  chainTvls?: Record<string, number> | {
     chain: string;
     tvl: number;
     formattedTVL: string;
   }[];
+  chainMetrics?: Record<string, {
+    change_1d?: number;
+    change_7d?: number;
+  }>;
   url?: string;
   twitter?: string;
 }
@@ -72,18 +76,18 @@ export interface DefiLlamaChainResponse {
 
 export interface DefiLlamaProtocolResponse {
   name: string;
-  slug: string;
-  description: string;
+  slug?: string;
+  description?: string;
   tvl: number;
-  change_1d: number;
-  change_7d: number;
+  change_1d?: number;
+  change_7d?: number;
   change_1m?: number;
   mcaptvl?: number;
-  category: string;
-  chains: string[];
-  chainTvls: Record<string, number>;
-  url: string;
-  twitter: string;
+  category?: string;
+  chains?: string[];
+  chainTvls?: Record<string, number>;
+  url?: string;
+  twitter?: string;
 }
 
 // Function parameter types

@@ -138,16 +138,43 @@ export const topProtocolsByChainAction: Action = {
   name: "TOP_PROTOCOLS_CHAIN",
   description: "Get top protocols by TVL on a specific chain",
   similes: [
+    // Direct matches
     'TOP_PROTOCOLS',
     'BIGGEST_PROTOCOLS',
+    'LARGEST_PROTOCOLS',
+    'TOP_PROTOCOLS_BY_CHAIN',
+    'TOP_PROTOCOLS_ON_CHAIN',
+    'LARGEST_PROTOCOLS_ON_CHAIN',
+    'BIGGEST_PROTOCOLS_ON_CHAIN',
+    // Chain-specific patterns
     'CHAIN_TOP_PROTOCOLS',
+    'CHAIN_LARGEST_PROTOCOLS',
+    'CHAIN_BIGGEST_PROTOCOLS',
+    'TOP_PROTOCOLS_FOR_CHAIN',
+    // Ranking patterns
     'PROTOCOL_RANKINGS',
     'CHAIN_PROTOCOL_RANKINGS',
-    'LARGEST_PROTOCOLS',
-    'CHAIN_PROTOCOLS',
     'PROTOCOLS_BY_SIZE',
+    'PROTOCOLS_BY_TVL',
+    'PROTOCOLS_RANKED_BY_TVL',
+    // Question patterns
+    'WHAT_ARE_TOP_PROTOCOLS_ON_CHAIN',
+    'WHICH_PROTOCOLS_HAVE_HIGHEST_TVL_ON_CHAIN',
+    'WHAT_PROTOCOLS_DOMINATE_CHAIN',
+    // List patterns
+    'LIST_TOP_PROTOCOLS_ON_CHAIN',
+    'SHOW_TOP_PROTOCOLS_ON_CHAIN',
+    'DISPLAY_TOP_PROTOCOLS_ON_CHAIN',
+    // Common variations
     'TOP_DEFI_PROTOCOLS',
-    'CHAIN_TVL_LEADERS'
+    'CHAIN_TVL_LEADERS',
+    'CHAIN_PROTOCOLS',
+    'PROTOCOLS_ON_CHAIN',
+    // Specific examples
+    'TOP_PROTOCOLS_ON_ARBITRUM',
+    'TOP_PROTOCOLS_ON_OPTIMISM',
+    'TOP_PROTOCOLS_ON_ETHEREUM',
+    'TOP_PROTOCOLS_ON_SONIC'
   ],
   handler,
   validate: async () => true,

@@ -236,7 +236,31 @@ export async function getAllProtocols(): Promise<StandardResponse> {
       return createErrorResponse('Invalid protocols data format received', 'DATA_FORMAT_ERROR');
     }
     
-    return createSuccessResponse(response.data);
+    // Log basic info about the response
+    elizaLogger.info(`Received ${response.data.length} protocols from DeFiLlama API`);
+    
+    // Validate and clean the data without excessive logging
+    const cleanedData = response.data.map((protocol: any) => {
+      // Ensure required fields exist
+      if (!protocol.name) {
+        // Silently fix without logging
+        protocol.name = protocol.slug || 'Unknown Protocol';
+      }
+      
+      if (!protocol.slug) {
+        // Silently fix without logging
+        protocol.slug = protocol.name.toLowerCase().replace(/\s+/g, '-');
+      }
+      
+      // Ensure TVL is a number without logging warnings
+      if (typeof protocol.tvl !== 'number') {
+        protocol.tvl = 0;
+      }
+      
+      return protocol;
+    });
+    
+    return createSuccessResponse(cleanedData);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     elizaLogger.error('Error fetching protocols data:', {

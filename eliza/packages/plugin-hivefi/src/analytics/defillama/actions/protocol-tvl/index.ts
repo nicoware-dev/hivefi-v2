@@ -9,13 +9,18 @@ import type { ProtocolTVLData } from "../../types";
 const handler: Handler = async (runtime, message, state, _options, callback) => {
   try {
     // Extract protocol name from message
-    const protocol = extractProtocolName(message.content?.text || "");
+    const messageText = message.content?.text || "";
+    elizaLogger.info(`Processing message for protocol TVL: "${messageText}"`);
+    
+    const protocol = extractProtocolName(messageText);
     if (!protocol) {
       callback?.({
         text: "Please specify a protocol name. For example: 'What's the total TVL of Uniswap across all chains?' or 'Show me Aave's total TVL'"
       });
       return false;
     }
+
+    elizaLogger.info(`Extracted protocol: ${protocol}`);
 
     // Check cache first
     const cacheKey = `protocol-tvl-${protocol}`;
@@ -30,6 +35,7 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
     }
 
     // Fetch fresh data
+    elizaLogger.info(`Fetching data for protocol: ${protocol}`);
     const result = await getProtocolData(protocol);
     if (!result.success) {
       callback?.({
@@ -39,6 +45,7 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
     }
 
     const protocolData = result.result;
+    elizaLogger.info(`Found protocol: ${protocolData.name} with TVL: ${protocolData.tvl}`);
 
     // Format the data
     const formattedData: ProtocolTVLData = {
@@ -86,6 +93,9 @@ const handler: Handler = async (runtime, message, state, _options, callback) => 
       });
     }
 
+    // Add note about chain-specific TVL
+    response += "\n\nNote: This shows the total TVL across all chains. To see TVL on a specific chain, try: 'What's Uniswap's TVL on Arbitrum?'";
+
     // Send response
     callback?.({
       text: response,
@@ -113,18 +123,29 @@ export const protocolTVLAction: Action = {
     'PROTOCOL_TVL_ACROSS_CHAINS',
     'TOTAL_PROTOCOL_TVL',
     'ALL_CHAINS_PROTOCOL_TVL',
+    'PROTOCOL_GLOBAL_TVL',
+    'PROTOCOL_OVERALL_TVL',
     // Direct matches
     'GET_PROTOCOL_TVL',
     'PROTOCOL_TVL',
     'SHOW_PROTOCOL_TVL',
+    'DISPLAY_PROTOCOL_TVL',
     // Question patterns
     'WHATS_PROTOCOL_TVL',
     'HOW_MUCH_TVL_PROTOCOL',
     'WHAT_IS_TVL_OF_PROTOCOL',
+    'HOW_MUCH_TVL_DOES_PROTOCOL_HAVE',
+    'WHAT_IS_TOTAL_TVL_OF_PROTOCOL',
     // Common variations
     'TVL_OF_PROTOCOL',
     'PROTOCOL_VALUE_LOCKED',
-    'PROTOCOL_LOCKED_VALUE'
+    'PROTOCOL_LOCKED_VALUE',
+    'PROTOCOL_TVL_TOTAL',
+    // Specific examples
+    'UNISWAP_TVL',
+    'AAVE_TVL',
+    'CURVE_TVL',
+    'GMX_TVL'
   ],
   handler,
   validate: async () => true,

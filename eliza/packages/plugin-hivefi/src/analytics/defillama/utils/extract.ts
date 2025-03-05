@@ -157,19 +157,90 @@ export function extractMultipleProtocolNames(messageText: string): string[] {
   const protocols = new Set<string>();
   const text = messageText.toLowerCase();
   
-  // Split by common separators and 'and'
-  const parts = text
-    .replace(/\s+and\s+/g, ', ')
-    .split(/[,\s]+/);
+  elizaLogger.info(`Extracting protocols from: "${text}"`);
   
+  // First try to match multi-word protocol names
+  for (const [key, value] of Object.entries(PROTOCOL_TO_DEFILLAMA_SLUG)) {
+    if (key.includes(' ') && text.includes(key.toLowerCase())) {
+      protocols.add(value);
+      elizaLogger.info(`Found multi-word protocol: ${key} -> ${value}`);
+    }
+  }
+  
+  // Handle common protocol name formats
+  const cleanText = text
+    .replace(/\s+and\s+/g, ', ')
+    .replace(/\s*,\s*/g, ', ')
+    .replace(/\s+of\s+/g, ' of ')
+    .replace(/\s+for\s+/g, ' for ')
+    .replace(/what'?s\s+the\s+tvl\s+of\s+/g, '')
+    .replace(/show\s+(?:me\s+)?(?:the\s+)?tvl\s+(?:of|for)\s+/g, '')
+    .replace(/compare\s+(?:the\s+)?tvl\s+(?:of|for)\s+/g, '');
+  
+  // Detailed logging commented out to reduce log volume
+  // elizaLogger.info(`Cleaned text: "${cleanText}"`);
+  
+  // Split by common separators
+  const parts = cleanText.split(/[,\s]+/);
+  // elizaLogger.info(`Split parts: ${parts.join(', ')}`);
+  
+  // Then try to match single-word protocol names
   for (const part of parts) {
     const cleanPart = part.replace(/['"]/g, '').toLowerCase();
     if (PROTOCOL_TO_DEFILLAMA_SLUG[cleanPart]) {
       protocols.add(PROTOCOL_TO_DEFILLAMA_SLUG[cleanPart]);
-      elizaLogger.debug(`Found protocol in multiple extraction: ${cleanPart} -> ${PROTOCOL_TO_DEFILLAMA_SLUG[cleanPart]}`);
+      elizaLogger.info(`Found protocol in multiple extraction: ${cleanPart} -> ${PROTOCOL_TO_DEFILLAMA_SLUG[cleanPart]}`);
     }
   }
   
+  // If no protocols found, try more aggressive pattern matching
+  if (protocols.size === 0) {
+    // Look for protocols mentioned in various contexts
+    const protocolPatterns = [
+      /(?:of|for|in|at|compare)\s+([a-z0-9\s]+?)(?:\s+protocol|\s+defi|\s+dex|\s+exchange)?/gi,
+      /(?:what's|whats|show|display|get|fetch)\s+([a-z0-9\s]+?)(?:'s|\s+protocol|\s+defi|\s+dex)?\s+tvl/gi,
+      /tvl\s+(?:of|for)\s+([a-z0-9\s]+?)(?:\s+protocol|\s+defi|\s+dex|\s+exchange)?/gi,
+      /([a-z0-9\s]+?)(?:'s|\s+protocol|\s+defi|\s+dex)?\s+tvl/gi
+    ];
+    
+    for (const pattern of protocolPatterns) {
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const potentialProtocol = match[1].toLowerCase().trim();
+        // elizaLogger.info(`Found potential protocol via pattern: ${potentialProtocol}`);
+        
+        // Check if the potential protocol exists in our mapping
+        for (const [key, value] of Object.entries(PROTOCOL_TO_DEFILLAMA_SLUG)) {
+          if (potentialProtocol.includes(key.toLowerCase())) {
+            protocols.add(value);
+            elizaLogger.info(`Found protocol via pattern: ${key} -> ${value}`);
+            break;
+          }
+        }
+      }
+    }
+  }
+  
+  // If still no protocols found, check for direct mentions of protocol names
+  if (protocols.size === 0) {
+    for (const [key, value] of Object.entries(PROTOCOL_TO_DEFILLAMA_SLUG)) {
+      if (text.includes(key.toLowerCase())) {
+        protocols.add(value);
+        elizaLogger.info(`Found protocol via direct mention: ${key} -> ${value}`);
+      }
+    }
+  }
+  
+  // Special case handling for common protocols that might be missed
+  const commonProtocols = ['uniswap', 'aave', 'curve', 'compound', 'sushi'];
+  for (const proto of commonProtocols) {
+    if (text.includes(proto) && PROTOCOL_TO_DEFILLAMA_SLUG[proto]) {
+      protocols.add(PROTOCOL_TO_DEFILLAMA_SLUG[proto]);
+      elizaLogger.info(`Added common protocol: ${proto} -> ${PROTOCOL_TO_DEFILLAMA_SLUG[proto]}`);
+    }
+  }
+  
+  elizaLogger.info(`Extracted protocols: ${Array.from(protocols).join(', ')}`);
   return Array.from(protocols);
 }
 

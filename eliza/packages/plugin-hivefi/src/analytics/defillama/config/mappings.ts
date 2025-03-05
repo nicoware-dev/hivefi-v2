@@ -1,3 +1,5 @@
+import { prependListener } from "process";
+
 // Map of chain names to DefiLlama slugs
 export const CHAIN_TO_DEFILLAMA_SLUG: Record<string, string> = {
   // Major chains
@@ -64,21 +66,66 @@ export const CHAIN_TO_DEFILLAMA_SLUG: Record<string, string> = {
 export const PROTOCOL_TO_DEFILLAMA_SLUG: Record<string, string> = {
   // Major DEXes
   'uniswap': 'uniswap',
-  'uniswap v3': 'uniswap-v3',
-  'uniswap v2': 'uniswap-v2',
   'sushiswap': 'sushi',
   'sushi': 'sushi',
   'pancakeswap': 'pancakeswap',
   'cake': 'pancakeswap',
   'curve': 'curve',
   
-  // Major Lending
+  // Major Protocols
   'aave': 'aave',
-  'aave v3': 'aave-v3',
-  'aave v2': 'aave-v2',
   'compound': 'compound',
-  'compound v3': 'compound-v3',
-  'compound v2': 'compound-v2',
+  'beefy': 'beefy',
+  'eigenlayer': 'eigenlayer',
+  'lido': 'lido',
+  'pendle': 'pendle',
+  'stargate': 'stargate',
+  'across': 'across',
+  'spark': 'spark',
+  'morpho': 'morpho',
+  'radiant': 'radiant',
+  'benqi': 'benqi',
+  'makerdao': 'makerdao',
+  'maker': 'makerdao',
+  'maker dao': 'makerdao',
+  
+  // Common protocols with variations
+  'uniswap v2': 'uniswap',
+  'uniswap v3': 'uniswap',
+  'uni': 'uniswap',
+  
+  'aave v2': 'aave',
+  'aave v3': 'aave',
+  
+  'curve finance': 'curve',
+  
+  'compound finance': 'compound',
+  
+  'balancer v2': 'balancer',
+  
+  'yearn': 'yearn-finance',
+  'yearn finance': 'yearn-finance',
+  
+  'convex': 'convex-finance',
+  'convex finance': 'convex-finance',
+  
+  'lido finance': 'lido',
+  
+  'pancake': 'pancakeswap',
+  
+  'frax': 'frax-finance',
+  'frax finance': 'frax-finance',
+  
+  'beefy finance': 'beefy',
+  
+  // Stablecoins
+  'usdc': 'usdc',
+  'usdt': 'tether',
+  'dai': 'makerdao',
+  
+  // Yield aggregators
+  'yield yak': 'yield-yak',
+  'yak': 'yield-yak',
   
   // Mantle Protocols
   'agni': 'agni-finance',
@@ -87,10 +134,16 @@ export const PROTOCOL_TO_DEFILLAMA_SLUG: Record<string, string> = {
   'lendle': 'lendle',
   'izumi': 'izumi-finance',
   'izumi finance': 'izumi-finance',
+  'merchant moe': 'merchant-moe',
   
-  // Injective/Sonic Protocols
-  'helix': 'helix',
-  'astroport': 'astroport-injective',
-  'frontrunner': 'frontrunner-injective',
-  'silo': 'silo-finance'
+  // Sonic Protocols
+  'beets': 'beets',
+  'silo': 'silo-finance',
+  'silo finance': 'silo-finance',
+  'shadow-exchange': 'shadow-exchange',
+  'shadow exchange': 'shadow-exchange',
+  'swapx': 'swapx',
+  'swapx algebra': 'swapx',
+  'origin-sonic': 'origin-sonic',
+  'origin sonic': 'origin-sonic'
 } as const; 

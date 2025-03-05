@@ -9,6 +9,8 @@ The DefiLlama module provides comprehensive DeFi analytics by integrating with t
 - Multi-chain TVL comparison
 - Protocol TVL by chain analysis
 - Global DeFi statistics
+- Extensive protocol name mappings
+- Smart chain matching
 
 ## Actions
 
@@ -46,6 +48,8 @@ What's the total value locked in MakerDAO?
 **Example Response:**
 ```
 Uniswap Protocol TVL: $4.1B
+24h Change: +1.2%
+7d Change: +3.5%
 ```
 
 ### 3. Multiple Chain TVL (`GET_MULTIPLE_CHAIN_TVL`)
@@ -64,24 +68,24 @@ What's the TVL of all Layer 2s?
 ```
 Chain TVL Comparison:
 
-1. Ethereum: $50.67B
-   24h Change: +2.5%
-   7d Change: -1.2%
+Ethereum: $50.67B
+24h Change: +2.5%
+7d Change: -1.2%
 
-2. Arbitrum: $15.5B
-   24h Change: +3.2%
-   7d Change: +5.6%
+Arbitrum: $15.5B
+24h Change: +3.2%
+7d Change: +5.6%
 
-3. Optimism: $14.4B
-   24h Change: +1.8%
-   7d Change: +2.3%
+Optimism: $14.4B
+24h Change: +1.8%
+7d Change: +2.3%
 
-Total TVL: $80.57B
+Total Combined TVL: $80.57B
 ```
 
 ### 4. Multiple Protocol TVL (`GET_MULTIPLE_PROTOCOL_TVL`)
 
-Gets TVL data for multiple protocols in a single request.
+Gets TVL data for multiple protocols in a single request. Now supports an expanded list of protocols with alternative names and variations.
 
 **Test Prompts:**
 ```
@@ -89,27 +93,31 @@ Show TVL for Uniswap, Aave, and Curve
 Compare TVL of major DEXes
 What's the TVL of lending protocols?
 Get TVL for Mantle protocols
+What's the TVL of Beefy and SwapX?
 ```
 
 **Example Response:**
 ```
 Protocol TVL Comparison:
 
-1. Aave: $12.3B
-   Chains: Ethereum, Arbitrum, Optimism
-   
-2. Uniswap: $4.1B
-   Chains: Ethereum, Arbitrum, Optimism, Polygon
+Aave: $12.3B (24h: +0.8%) (7d: +2.1%)
+Category: Lending
+Top chains: Ethereum $8.2B (66.7%), Arbitrum $2.5B (20.3%)
 
-3. Curve: $3.8B
-   Chains: Ethereum, Arbitrum, Optimism
+Uniswap: $4.1B (24h: +1.2%) (7d: +3.5%)
+Category: DEX
+Top chains: Ethereum $3.1B (75.6%), Arbitrum $820.5M (20.0%)
 
-Total TVL: $20.2B
+Curve: $3.8B (24h: -0.5%) (7d: +1.2%)
+Category: DEX
+Top chains: Ethereum $3.2B (84.2%), Arbitrum $320M (8.4%)
+
+Total Combined TVL: $20.2B
 ```
 
 ### 5. Protocol TVL by Chain (`GET_PROTOCOL_TVL_CHAIN`)
 
-Gets TVL data for a specific protocol on a specific chain.
+Gets TVL data for a specific protocol on a specific chain. Now with improved chain matching to handle special cases and non-chain entries.
 
 **Test Prompts:**
 ```
@@ -117,11 +125,16 @@ What's Uniswap's TVL on Arbitrum?
 Show me Aave's TVL on Optimism
 Get Curve's TVL on Ethereum
 How much TVL does Uniswap have on Polygon?
+What's the TVL of Beefy on Polygon?
 ```
 
 **Example Response:**
 ```
-Uniswap TVL on Arbitrum: $820.5M
+Uniswap Protocol TVL on Arbitrum: $820.5M (20.0% of total TVL)
+24h Change: +1.2%
+7d Change: +3.5%
+
+Total Protocol TVL (all chains): $4.1B
 ```
 
 ### 6. Top Protocols by Chain (`TOP_PROTOCOLS_CHAIN`)
@@ -194,9 +207,30 @@ Top 5 Chains by TVL:
 ## Usage Tips
 
 1. **Chain Names**: Use common chain names or abbreviations (e.g., "Ethereum", "ETH", "Arbitrum", "ARB")
-2. **Protocol Names**: Use official protocol names (e.g., "Uniswap", "Aave", "Curve")
+2. **Protocol Names**: Use official protocol names or common variations (e.g., "Uniswap", "Uni", "Aave", "Aave v3")
 3. **Multiple Items**: When requesting multiple chains/protocols, separate them with commas or "and" (e.g., "Ethereum, Arbitrum and Optimism")
 4. **Limits**: You can specify the number of results (e.g., "Show top 10 protocols")
+
+## Supported Protocols
+
+The module now supports an expanded list of protocols, including:
+
+- **Major DEXes**: Uniswap, SushiSwap, PancakeSwap, Curve, Balancer
+- **Lending Protocols**: Aave, Compound, Spark, Morpho, Radiant
+- **Yield Aggregators**: Beefy, Yearn Finance, Yield Yak
+- **Staking Protocols**: Lido, Eigenlayer
+- **Stablecoins**: USDC, USDT, DAI
+- **Chain-Specific Protocols**:
+  - **Mantle**: Agni Finance, FusionX, Lendle, Izumi Finance, Merchant Moe
+  - **Sonic**: Beets, Silo Finance, Shadow Exchange, SwapX, Origin Sonic
+
+## Recent Improvements
+
+- **Enhanced Protocol Mappings**: Added support for many more protocols with their correct DeFiLlama slugs
+- **Alternative Names**: Added support for protocol variations (e.g., "Uniswap v3", "Aave v2")
+- **Improved Chain Matching**: Better handling of chain names and special cases
+- **Optimized Performance**: Reduced excessive logging for smoother operation
+- **Better Response Formatting**: Cleaner and more focused responses
 
 ## Error Handling
 
@@ -217,8 +251,9 @@ Data is cached for 5 minutes to:
 ## Future Enhancements
 
 Planned features include:
-- Protocol comparison
+- Protocol comparison with historical trends
 - Yield data integration
 - Stablecoin statistics
 - Volume metrics
 - Fee analysis
+- Additional chain-specific protocol support
