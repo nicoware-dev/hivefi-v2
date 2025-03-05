@@ -75,7 +75,7 @@ export function PrivyProvider({ children }: { children: ReactNode }) {
             noPromptOnSignature: false,
           },
           // Support multiple login methods
-          loginMethods: ["wallet", "email", "google"],
+          loginMethods: ["sms", "google", "discord", "twitter", "github", "spotify", "instagram", "tiktok", "linkedin", "apple", "email", "farcaster", "telegram", "wallet"  ],
           appearance: {
             showWalletLoginFirst: true,
             theme: "dark",

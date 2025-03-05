@@ -1,20 +1,7 @@
 /**
  * DefiLlama API client for fetching DeFi analytics data
  */
-
-// Base URL for DefiLlama API
-const DEFILLAMA_API_URL = 'https://api.llama.fi';
-
-// API endpoints
-const ENDPOINTS = {
-  PROTOCOLS: '/protocols',
-  PROTOCOL: '/protocol',
-  PROTOCOL_TVL: '/tvl',
-  PROTOCOL_HISTORICAL: '/chart',
-  CHAINS: '/chains',
-  CHAIN_HISTORICAL: '/charts',
-  GLOBAL_TVL: '/charts/tvl',
-};
+import { API_CONFIG } from '../utils/api-config';
 
 // Types for DefiLlama API responses
 export interface ChainTVLData {
@@ -127,7 +114,7 @@ export const defiLlamaApi = {
         return MOCK_CHAINS_DATA;
       }
 
-      const response = await fetch(`${DEFILLAMA_API_URL}${ENDPOINTS.CHAINS}`);
+      const response = await fetch(`${import.meta.env.PROD ? '' : 'https://api.llama.fi'}/chains`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch chains: ${response.statusText}`);
@@ -162,7 +149,9 @@ export const defiLlamaApi = {
         return MOCK_PROTOCOLS_DATA;
       }
 
-      const response = await fetch(`${DEFILLAMA_API_URL}${ENDPOINTS.PROTOCOLS}`);
+      // Use our API proxy in production
+      const endpoint = import.meta.env.PROD ? API_CONFIG.defillama.protocols : 'https://api.llama.fi/protocols';
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch protocols: ${response.statusText}`);
@@ -233,7 +222,9 @@ export const defiLlamaApi = {
         return MOCK_HISTORICAL_DATA;
       }
 
-      const response = await fetch(`${DEFILLAMA_API_URL}${ENDPOINTS.GLOBAL_TVL}`);
+      // Use our API proxy in production
+      const endpoint = import.meta.env.PROD ? API_CONFIG.defillama.tvl : 'https://api.llama.fi/charts/tvl';
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch historical TVL: ${response.statusText}`);
@@ -253,7 +244,7 @@ export const defiLlamaApi = {
   },
   
   /**
-   * Get global TVL data
+   * Get global TVL data including total value and changes
    */
   getGlobalTVL: async (): Promise<GlobalTVLData> => {
     try {
@@ -263,21 +254,18 @@ export const defiLlamaApi = {
         return MOCK_GLOBAL_DATA;
       }
 
-      // Get the latest TVL from historical data
+      // Get historical data to calculate current TVL
       const historicalData = await defiLlamaApi.getHistoricalTVL();
       const latestData = historicalData[historicalData.length - 1];
-      const previousDayData = historicalData[historicalData.length - 2];
-      const previousWeekData = historicalData[historicalData.length - 8];
-      
-      // Calculate changes
-      const change_1d = previousDayData ? 
-        ((latestData.tvl - previousDayData.tvl) / previousDayData.tvl) * 100 : 0;
-      
-      const change_7d = previousWeekData ? 
-        ((latestData.tvl - previousWeekData.tvl) / previousWeekData.tvl) * 100 : 0;
+      const oneDayAgo = historicalData[historicalData.length - 2];
+      const sevenDaysAgo = historicalData[historicalData.length - 8];
       
       // Get protocols count
       const protocols = await defiLlamaApi.getProtocols();
+      
+      // Calculate changes
+      const change_1d = ((latestData.tvl - oneDayAgo.tvl) / oneDayAgo.tvl) * 100;
+      const change_7d = ((latestData.tvl - sevenDaysAgo.tvl) / sevenDaysAgo.tvl) * 100;
       
       return {
         totalLiquidityUSD: latestData.tvl,
@@ -287,7 +275,7 @@ export const defiLlamaApi = {
         formattedTVL: formatTVL(latestData.tvl)
       };
     } catch (error) {
-      console.error("Error fetching global TVL from DefiLlama:", error);
+      console.error("Error fetching global TVL data:", error);
       return MOCK_GLOBAL_DATA;
     }
   },

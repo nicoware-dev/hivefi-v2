@@ -1,6 +1,7 @@
 /**
  * Zerion API client for fetching wallet portfolio data
  */
+import { API_CONFIG } from '../utils/api-config';
 
 // Types for Zerion API responses
 export interface TokenBalance {
@@ -108,17 +109,6 @@ const MOCK_POSITION_DATA: PositionData = {
   totalValue: 4578.32
 };
 
-// Get the base URL for API calls
-const getApiBaseUrl = () => {
-  // In development, use mock data if specified
-  if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA === 'true') {
-    return null; // Signal to use mock data
-  }
-  
-  // Always use direct Zerion API calls
-  return 'https://api.zerion.io/v1/wallets';
-};
-
 /**
  * Get API headers for Zerion requests
  */
@@ -150,7 +140,7 @@ export const zerionApi = {
   getPortfolio: async (address: string): Promise<PortfolioData> => {
     try {
       // Check if we should use mock data
-      if (getApiBaseUrl() === null) {
+      if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA === 'true') {
         console.log("Using mock portfolio data for development");
         return MOCK_PORTFOLIO_DATA;
       }
@@ -159,19 +149,20 @@ export const zerionApi = {
         throw new Error("Invalid Ethereum address format");
       }
 
-      const headers = getHeaders();
-      if (!headers) {
+      // Get the API endpoint from our configuration
+      const endpoint = API_CONFIG.zerion.portfolio(address);
+      
+      // For production (using our API proxy), we don't need auth headers
+      const headers = import.meta.env.PROD ? {} : getHeaders();
+      if (!import.meta.env.PROD && !headers) {
         throw new Error("Zerion API key not configured");
       }
 
-      // Make request to Zerion API
-      const response = await fetch(
-        `${getApiBaseUrl()}/${encodeURIComponent(address)}/portfolio`,
-        { 
-          method: 'GET',
-          headers: headers as HeadersInit
-        }
-      );
+      // Make request to API
+      const response = await fetch(endpoint, { 
+        method: 'GET',
+        headers: headers as HeadersInit
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -179,8 +170,14 @@ export const zerionApi = {
       }
 
       const data = await response.json();
+      
+      // If we're using our API proxy, the data is already formatted
+      if (import.meta.env.PROD) {
+        return data;
+      }
+      
+      // Otherwise, format the raw Zerion API response
       const { attributes } = data.data;
-
       return {
         totalValue: attributes.total.positions,
         chainDistribution: attributes.positions_distribution_by_chain,
@@ -207,7 +204,7 @@ export const zerionApi = {
   getPositions: async (address: string): Promise<PositionData> => {
     try {
       // Check if we should use mock data
-      if (getApiBaseUrl() === null) {
+      if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA === 'true') {
         console.log("Using mock position data for development");
         return MOCK_POSITION_DATA;
       }
@@ -216,27 +213,20 @@ export const zerionApi = {
         throw new Error("Invalid Ethereum address format");
       }
 
-      const headers = getHeaders();
-      if (!headers) {
+      // Get the API endpoint from our configuration
+      const endpoint = API_CONFIG.zerion.positions(address);
+      
+      // For production (using our API proxy), we don't need auth headers
+      const headers = import.meta.env.PROD ? {} : getHeaders();
+      if (!import.meta.env.PROD && !headers) {
         throw new Error("Zerion API key not configured");
       }
 
-      // Construct URL with properly encoded query parameters
-      const params = new URLSearchParams({
-        'filter[positions]': 'only_simple',
-        'currency': 'usd',
-        'filter[trash]': 'only_non_trash',
-        'sort': 'value'
+      // Make request to API
+      const response = await fetch(endpoint, { 
+        method: 'GET',
+        headers: headers as HeadersInit
       });
-
-      // Make request to Zerion API
-      const response = await fetch(
-        `${getApiBaseUrl()}/${encodeURIComponent(address)}/positions?${params.toString()}`,
-        { 
-          method: 'GET',
-          headers: headers as HeadersInit
-        }
-      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -245,6 +235,12 @@ export const zerionApi = {
 
       const data = await response.json();
       
+      // If we're using our API proxy, the data is already formatted
+      if (import.meta.env.PROD) {
+        return data;
+      }
+      
+      // Otherwise, format the raw Zerion API response
       let totalValue = 0;
       const positions = data.data.map((position: ZerionPosition) => {
         const value = position.attributes.value || 0;
@@ -261,7 +257,7 @@ export const zerionApi = {
           verified: position.attributes.fungible_info.flags.verified
         };
       });
-
+      
       return {
         positions,
         totalValue
