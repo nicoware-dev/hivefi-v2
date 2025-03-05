@@ -12,19 +12,20 @@ import { sonicActions } from "./sonic";
 // Import all Analytics actions as a group
 import { analyticsActions } from "./analytics";
 
+// Import all DefiLlama actions as a group
+import { actions as defiLlamaActions } from "./analytics/defillama";
+
 export const hivefiPlugin: Plugin = {
     name: "hivefi",
     description: "HiveFi Plugin for Eliza - Multichain DeFAI Agent Swarm",
     actions: [
-        ...MantleActions, // Spread all Mantle actions
-        ...sonicActions, // Spread all Sonic actions
-        ...analyticsActions, // Spread all Analytics actions
-        // TODO: Add MultiChain actions
+        ...MantleActions,
+        ...sonicActions,
+        ...analyticsActions,
+        ...defiLlamaActions
     ],
     evaluators: [],
     providers: [
-        coinGeckoProvider,
-        defiLlamaProvider,
         walletProvider
     ]
 };

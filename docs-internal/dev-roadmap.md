@@ -252,6 +252,15 @@
 
 ## Phase 5: Finalization and Polish
 
+### Plugin Improvements
+
+- [ ] **DefiLlama Plugin**
+  - [ ] Add missing actions (stablecoins, yields, volume, fees,etc.)
+  - [ ] Improve error handling
+  - [ ] Add more examples
+  - [ ] Update documentation
+
+
 ### Web Application Enhancements
 
 - [ ] **Transactions History Page**

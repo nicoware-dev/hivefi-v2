@@ -116,7 +116,7 @@ Compare prices for USDC, USDT, and DAI
 Show me the current prices of Mantle, Sonic, and Ethereum
 ```
 ```
-Get the prices for Bitcoin, Ethereum, and Mantle
+Get the prices for Bitcoin, Ethereum, Sonic and Mantle
 ```
 
 ### Natural Language Processing
