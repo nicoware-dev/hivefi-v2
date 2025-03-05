@@ -83,8 +83,6 @@ export async function redeemTokens(runtime: IAgentRuntime, params: RedeemParams)
   // Store original chain name for reference
   const originalChain = params.chain.toLowerCase();
   const tokenType = params.token?.toUpperCase() || 'UNKNOWN';
-  // Ensure transactionId is always a string
-  const safeTransactionId = params.transactionId || 'unknown';
   
   try {
     // Normalize chain name
@@ -111,158 +109,74 @@ export async function redeemTokens(runtime: IAgentRuntime, params: RedeemParams)
     const isSupported = isWormholeSupported(destChain);
     
     if (!isSupported) {
-      logger.warn(`Chain not supported by Wormhole: ${destChain}`);
-      logger.info(`Falling back to mock implementation`);
-      return useMockRedeem(originalChain, safeTransactionId, tokenType);
+      logger.error(`Chain not supported by Wormhole: ${destChain}`);
+      throw new Error(`Unsupported chain: ${destChain}`);
     }
     
     if (!params.transactionId) {
-      logger.warn('No transaction ID provided for redemption');
-      logger.info(`Falling back to mock implementation`);
-      return useMockRedeem(originalChain, 'unknown', tokenType);
+      logger.error('No transaction ID provided for redemption');
+      throw new Error('Transaction ID is required for redemption');
     }
     
-    try {
-      // Get the chain context
-      const chainContext = wh.getChain(wormholeChain);
-      logger.info(`Got chain context for ${wormholeChain}`);
-      
-      // Check if we have a stored transfer receipt
-      const transferReceipt = getTransferReceipt(params.transactionId);
-      
-      // Get the transfer from the transaction hash
-      logger.info(`Recovering transfer from transaction hash: ${params.transactionId}`);
-      
-      // Recover the transfer from the transaction hash
-      const xfer = await TokenTransfer.from(wh, {
-        chain: wormholeChain,
-        txid: params.transactionId
-      });
-      
-      logger.info(`Recovered transfer: ${safeSerialize(xfer)}`);
-      
-      try {
-        // Wait for the attestation
-        logger.info('Waiting for attestation...');
-        const attestIds = await xfer.fetchAttestation(60_000); // 60 second timeout
-        logger.info(`Got attestation: ${safeSerialize(attestIds)}`);
-        
-        try {
-          // Complete the transfer
-          logger.info('Completing transfer...');
-          
-          // Complete the transfer with our signer
-          const destTxids = await xfer.completeTransfer(signer);
-          logger.info(`Transfer completed with txids: ${safeSerialize(destTxids)}`);
-          
-          // Store the redeem receipt for tracking
-          const receipt = {
-            type: 'redeem',
-            sourceTransactionId: params.transactionId,
-            chain: originalChain,
-            token: tokenType,
-            timestamp: Date.now(),
-            status: 'completed',
-            txHash: destTxids[0],
-            attestationIds: attestIds
-          };
-          
-          storeRedeemReceipt(destTxids[0], receipt);
-          
-          // If we have a transfer receipt, update its status
-          if (transferReceipt) {
-            transferReceipt.status = 'redeemed';
-            transferReceipt.redeemTxHash = destTxids[0];
-          }
-          
-          // Return the first transaction ID and explorer link
-          const txHash = destTxids[0];
-          const explorerLink = getExplorerLink(originalChain, txHash);
-          return { txHash, explorerLink };
-        } catch (error: any) {
-          logger.error(`Error completing transfer: ${error.message}`);
-          logger.error(error);
-          
-          // Check for specific errors that indicate we should fall back to mock implementation
-          if (error.code === 'INSUFFICIENT_FUNDS' || 
-              error.message.includes('insufficient funds') ||
-              error.message.includes('rate limit') ||
-              error.message.includes('Too Many Requests') ||
-              error.message.includes('exceeded maximum retry limit')) {
-            
-            logger.warn(`Detected ${error.code || 'error'}, falling back to mock implementation`);
-            logger.info(`Error details: ${error.message}`);
-            
-            // Fall back to mock implementation
-            return useMockRedeem(originalChain, safeTransactionId, tokenType);
-          }
-          
-          throw error;
-        }
-      } catch (error: any) {
-        logger.error(`Error fetching attestation: ${error.message}`);
-        logger.error(error);
-        
-        // Fall back to mock implementation
-        logger.info(`Falling back to mock implementation due to error: ${error.message}`);
-        return useMockRedeem(originalChain, safeTransactionId, tokenType);
-      }
-    } catch (error: any) {
-      logger.error(`Error recovering transfer: ${error.message}`);
-      logger.error(error);
-      
-      // Fall back to mock implementation
-      logger.info(`Falling back to mock implementation due to error: ${error.message}`);
-      return useMockRedeem(originalChain, safeTransactionId, tokenType);
+    // Get the chain context
+    const chainContext = wh.getChain(wormholeChain);
+    logger.info(`Got chain context for ${wormholeChain}`);
+    
+    // Check if we have a stored transfer receipt
+    const transferReceipt = getTransferReceipt(params.transactionId);
+    
+    // Get the transfer from the transaction hash
+    logger.info(`Recovering transfer from transaction hash: ${params.transactionId}`);
+    
+    // Recover the transfer from the transaction hash
+    const xfer = await TokenTransfer.from(wh, {
+      chain: wormholeChain,
+      txid: params.transactionId
+    });
+    
+    logger.info(`Recovered transfer: ${safeSerialize(xfer)}`);
+    
+    // Wait for the attestation
+    logger.info('Waiting for attestation...');
+    const attestIds = await xfer.fetchAttestation(60_000); // 60 second timeout
+    logger.info(`Got attestation: ${safeSerialize(attestIds)}`);
+    
+    // Complete the transfer
+    logger.info('Completing transfer...');
+    
+    // Complete the transfer with our signer
+    const destTxids = await xfer.completeTransfer(signer);
+    logger.info(`Transfer completed with txids: ${safeSerialize(destTxids)}`);
+    
+    // Store the redeem receipt for tracking
+    const receipt = {
+      type: 'redeem',
+      sourceTransactionId: params.transactionId,
+      chain: originalChain,
+      token: tokenType,
+      timestamp: Date.now(),
+      status: 'completed',
+      txHash: destTxids[0],
+      attestationIds: attestIds
+    };
+    
+    storeRedeemReceipt(destTxids[0], receipt);
+    
+    // If we have a transfer receipt, update its status
+    if (transferReceipt) {
+      transferReceipt.status = 'redeemed';
+      transferReceipt.redeemTxHash = destTxids[0];
     }
+    
+    // Return the first transaction ID and explorer link
+    const txHash = destTxids[0];
+    const explorerLink = getExplorerLink(originalChain, txHash);
+    return { txHash, explorerLink };
   } catch (error: any) {
-    logger.error(`Unexpected error in redeemTokens: ${error.message}`);
+    logger.error(`Error in redeemTokens: ${error.message}`);
     logger.error(error);
-    
-    // Fall back to mock implementation for any unexpected errors
-    logger.info(`Falling back to mock implementation due to unexpected error`);
-    return useMockRedeem(originalChain, safeTransactionId, tokenType);
+    throw error;
   }
-}
-
-/**
- * Use a mock redeem implementation
- * This is used when the real implementation fails or is not available
- * @param chain The chain to redeem on
- * @param transactionId The transaction ID to redeem
- * @param tokenType The token type
- * @returns The transaction hash and explorer link
- */
-function useMockRedeem(chain: string, transactionId: string, tokenType: string): Promise<{txHash: string, explorerLink: string}> {
-  logger.info(`Using mock implementation for ${tokenType} redeem on ${chain} with transaction ID ${transactionId}`);
-  
-  // Generate a mock transaction hash
-  const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-  logger.info(`Generated mock transaction hash: ${txHash}`);
-  
-  // Store a mock receipt
-  const receipt = {
-    type: 'mock-redeem',
-    sourceTransactionId: transactionId,
-    chain,
-    token: tokenType,
-    timestamp: Date.now(),
-    status: 'completed',
-    txHash
-  };
-  
-  storeRedeemReceipt(txHash, receipt);
-  
-  // If we have a transfer receipt, update its status
-  const transferReceipt = getTransferReceipt(transactionId);
-  if (transferReceipt) {
-    transferReceipt.status = 'redeemed';
-    transferReceipt.redeemTxHash = txHash;
-  }
-  
-  // Return the mock transaction hash and explorer link
-  const explorerLink = getExplorerLink(chain, txHash);
-  return Promise.resolve({ txHash, explorerLink });
 }
 
 /**

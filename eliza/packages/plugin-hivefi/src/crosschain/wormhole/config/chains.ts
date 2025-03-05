@@ -19,7 +19,7 @@ export const CHAIN_MAPPING: Record<string, string> = {
   'base': 'Base',
   'solana': 'Solana',
   'sui': 'Sui',
-  'mantle': 'Mantle', 
+  'mantle': 'Mantle',
 };
 
 /**
@@ -36,6 +36,7 @@ export function getWormholeChain(chain: string): Chain {
     return 'Ethereum' as Chain;
   }
   
+  logger.info(`Mapped chain ${normalizedChain} to ${wormholeChain}`);
   return wormholeChain as Chain;
 }
 
@@ -46,12 +47,6 @@ export function getWormholeChain(chain: string): Chain {
  */
 export function isWormholeSupported(chain: string): boolean {
   const normalizedChain = chain.toLowerCase();
-  
-/*   // Mantle is not directly supported
-  if (normalizedChain === 'mantle') {
-    return false;
-  } */
-  
   const wormholeChain = CHAIN_MAPPING[normalizedChain];
   return !!wormholeChain && isChain(wormholeChain);
 }
@@ -70,6 +65,8 @@ export function getChainId(chain: string): number {
     case 'ethereum-sepolia':
       return 11155111;
     case 'bsc':
+    case 'binance':
+    case 'binancesmartchain':
       return 56;
     case 'polygon':
       return 137;
@@ -86,9 +83,9 @@ export function getChainId(chain: string): number {
     case 'base':
       return 8453;
     case 'mantle':
-      return 5000;
+      return 5000; // Mantle mainnet chain ID
     default:
-      logger.warn(`No chain ID configured for ${chain}, using Ethereum as fallback`);
-      return 1; // Fallback to Ethereum
+      logger.warn(`Unknown chain ID for ${chain}, defaulting to Ethereum (1)`);
+      return 1;
   }
 } 

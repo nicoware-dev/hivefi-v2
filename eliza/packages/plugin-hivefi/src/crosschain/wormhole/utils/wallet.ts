@@ -90,38 +90,14 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
     // For EVM-compatible chains, create an ethers wallet
     const evmChains = [
       'Ethereum', 'Polygon', 'Bsc', 'Avalanche', 'Fantom', 
-      'Celo', 'Moonbeam', 'Arbitrum', 'Optimism', 'Base'
+      'Celo', 'Moonbeam', 'Arbitrum', 'Optimism', 'Base', 'Mantle'
     ];
     
-    // Special handling for Mantle - use Ethereum wallet
-    if (chainName === 'Mantle' || chainName.toLowerCase() === 'mantle') {
-      logger.info('Creating Ethereum wallet for Mantle chain');
-      wallet = new ethers.Wallet(privateKey);
-      address = wallet.address;
-      logger.info(`Created Ethereum wallet for Mantle with address: ${address}`);
+    // For EVM chains
+    if (evmChains.includes(chainName) || chainName.toLowerCase() === 'bsc' || 
+        chainName.toLowerCase() === 'mantle' || chainName.toLowerCase() === 'binance' || 
+        chainName.toLowerCase() === 'binancesmartchain') {
       
-      // Connect to Mantle mainnet RPC
-      provider = new ethers.JsonRpcProvider('https://rpc.mantle.xyz');
-      wallet = wallet.connect(provider);
-      
-      logger.info('Connected wallet to Mantle provider');
-    } 
-    // Special handling for BSC - ensure it's properly handled
-    else if (chainName === 'Bsc' || chainName.toLowerCase() === 'bsc' || 
-        chainName.toLowerCase() === 'binance' || chainName.toLowerCase() === 'binancesmartchain') {
-      logger.info('Creating wallet for BSC chain');
-      wallet = new ethers.Wallet(privateKey);
-      address = wallet.address;
-      logger.info(`Created BSC wallet with address: ${address}`);
-      
-      // Connect to BSC mainnet RPC
-      provider = new ethers.JsonRpcProvider('https://bscrpc.com');
-      wallet = wallet.connect(provider);
-      
-      logger.info('Connected wallet to BSC provider');
-    }
-    // For other EVM chains
-    else if (evmChains.includes(chainName)) {
       wallet = new ethers.Wallet(privateKey);
       address = wallet.address;
       logger.info(`Created EVM wallet with address: ${address} for chain ${chainName}`);
@@ -135,11 +111,12 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
         'Fantom': 'https://rpcapi.fantom.network',
         'Arbitrum': 'https://arb1.arbitrum.io/rpc',
         'Optimism': 'https://mainnet.optimism.io',
-        'Base': 'https://mainnet.base.org'
+        'Base': 'https://mainnet.base.org',
+        'Mantle': 'https://rpc.mantle.xyz'
       };
       
       // Get provider URL for the chain
-      const providerUrl = providerMap[chainName] || 'https://rpc.ankr.com/eth';
+      const providerUrl = providerMap[chainName] || providerMap[chainName.toLowerCase()] || 'https://rpc.ankr.com/eth';
       
       logger.info(`Using provider URL: ${providerUrl} for chain ${chainName}`);
       provider = new ethers.JsonRpcProvider(providerUrl);
@@ -171,7 +148,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
     // Create a custom signer that matches what the Wormhole SDK expects
     const wormholeSigner = {
       // Required method that returns the chain identifier
-      chain: chainName as Chain,
+      chain: chainName,
       
       // Required method that returns the wallet address
       address: () => address,
@@ -188,34 +165,28 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
             // Use safe serialization for logging
             logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
             
-            // For EVM chains, handle the transaction appropriately
-            if (evmChains.includes(chainName) || chainName === 'Mantle' || chainName.toLowerCase() === 'bsc') {
-              // Extract transaction details from the Wormhole transaction format
-              const transaction = tx.transaction || tx;
-              
-              // Convert the transaction to a format ethers can understand
-              // Handle BigInt values properly
-              const ethersTransaction = {
-                to: transaction.to,
-                data: transaction.data,
-                value: transaction.value ? (typeof transaction.value === 'bigint' ? transaction.value : BigInt(transaction.value.toString())) : BigInt(0),
-                gasLimit: transaction.gasLimit || BigInt(3000000),
-                chainId: transaction.chainId || (provider ? (await provider.getNetwork()).chainId : 1)
-              };
-              
-              // Use safe serialization for logging
-              logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
-              
-              // Sign and send the transaction
-              const txResponse = await wallet.sendTransaction(ethersTransaction);
-              logger.info(`Transaction sent with hash: ${txResponse.hash}`);
-              
-              // Add the transaction hash to the result array
-              txHashes.push(txResponse.hash);
-            } else {
-              // For non-EVM chains, we don't have implementations yet
-              throw new Error(`Real transaction implementation for ${chainName} not available`);
-            }
+            // Extract transaction details from the Wormhole transaction format
+            const transaction = tx.transaction || tx;
+            
+            // Convert the transaction to a format ethers can understand
+            // Handle BigInt values properly
+            const ethersTransaction = {
+              to: transaction.to,
+              data: transaction.data,
+              value: transaction.value ? (typeof transaction.value === 'bigint' ? transaction.value : BigInt(transaction.value.toString())) : BigInt(0),
+              gasLimit: transaction.gasLimit || BigInt(3000000),
+              chainId: transaction.chainId || (provider ? (await provider.getNetwork()).chainId : 1)
+            };
+            
+            // Use safe serialization for logging
+            logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
+            
+            // Sign and send the transaction
+            const txResponse = await wallet.sendTransaction(ethersTransaction);
+            logger.info(`Transaction sent with hash: ${txResponse.hash}`);
+            
+            // Add the transaction hash to the result array
+            txHashes.push(txResponse.hash);
           } catch (error: any) {
             logger.error(`Error signing/sending transaction: ${error.message}`);
             throw error;
@@ -237,34 +208,28 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
             // Use safe serialization for logging
             logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
             
-            // For EVM chains, handle the transaction appropriately
-            if (evmChains.includes(chainName) || chainName === 'Mantle' || chainName.toLowerCase() === 'bsc') {
-              // Extract transaction details from the Wormhole transaction format
-              const transaction = tx.transaction || tx;
-              
-              // Convert the transaction to a format ethers can understand
-              // Handle BigInt values properly
-              const ethersTransaction = {
-                to: transaction.to,
-                data: transaction.data,
-                value: transaction.value ? (typeof transaction.value === 'bigint' ? transaction.value : BigInt(transaction.value.toString())) : BigInt(0),
-                gasLimit: transaction.gasLimit || BigInt(3000000),
-                chainId: transaction.chainId || (provider ? (await provider.getNetwork()).chainId : 1)
-              };
-              
-              // Use safe serialization for logging
-              logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
-              
-              // Sign the transaction
-              const signedTx = await wallet.signTransaction(ethersTransaction);
-              logger.info(`Transaction signed: ${signedTx.substring(0, 66)}...`);
-              
-              // Add the signed transaction to the result array
-              signedTxs.push(signedTx);
-            } else {
-              // For non-EVM chains, we don't have implementations yet
-              throw new Error(`Real transaction implementation for ${chainName} not available`);
-            }
+            // Extract transaction details from the Wormhole transaction format
+            const transaction = tx.transaction || tx;
+            
+            // Convert the transaction to a format ethers can understand
+            // Handle BigInt values properly
+            const ethersTransaction = {
+              to: transaction.to,
+              data: transaction.data,
+              value: transaction.value ? (typeof transaction.value === 'bigint' ? transaction.value : BigInt(transaction.value.toString())) : BigInt(0),
+              gasLimit: transaction.gasLimit || BigInt(3000000),
+              chainId: transaction.chainId || (provider ? (await provider.getNetwork()).chainId : 1)
+            };
+            
+            // Use safe serialization for logging
+            logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
+            
+            // Sign the transaction
+            const signedTx = await wallet.signTransaction(ethersTransaction);
+            logger.info(`Transaction signed: ${signedTx.substring(0, 66)}...`);
+            
+            // Add the signed transaction to the result array
+            signedTxs.push(signedTx);
           } catch (error: any) {
             logger.error(`Error signing transaction: ${error.message}`);
             throw error;
@@ -272,27 +237,13 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
         }
         
         return signedTxs;
-      },
-      
-      // Provide access to the underlying wallet for platform-specific operations
-      unwrap: () => wallet
+      }
     };
     
     return wormholeSigner;
   } catch (error: any) {
-    logger.error(`Error creating signer for ${typeof chain === 'string' ? chain : chain?.chain || 'unknown'}:`, error);
-    
-    // Log more detailed error information
-    if (error.message) {
-      logger.error('Error message:', error.message);
-    }
-    
-    if (error.stack) {
-      logger.error('Error stack:', error.stack);
-    }
-    
-    // We don't want to use mock signers for mainnet, so rethrow the error
-    throw new Error(`Failed to create signer for ${typeof chain === 'string' ? chain : chain?.chain || 'unknown'}: ${error.message}`);
+    logger.error(`Error creating signer: ${error.message}`);
+    throw error;
   }
 }
 

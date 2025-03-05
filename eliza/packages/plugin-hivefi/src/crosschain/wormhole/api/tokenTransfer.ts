@@ -71,12 +71,26 @@ export function getTransferReceipt(txHash: string): any {
  * @returns A properly formatted chain address object
  */
 function createChainAddress(chain: Chain, address: string) {
-  const universalAddress = new UniversalAddress(address.startsWith('0x') ? address.slice(2) : address);
-  const chainAddress = {
-    chain,
-    address: universalAddress
-  };
-  return chainAddress;
+  // Ensure address is properly formatted for UniversalAddress
+  // Remove '0x' prefix if present for EVM addresses
+  const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;
+  
+  try {
+    // Create a UniversalAddress instance
+    const universalAddress = new UniversalAddress(cleanAddress);
+    
+    // Create a ChainAddress object
+    const chainAddress = {
+      chain,
+      address: universalAddress
+    };
+    
+    logger.info(`Created chain address for ${chain}: ${universalAddress.toString()}`);
+    return chainAddress;
+  } catch (error: any) {
+    logger.error(`Error creating chain address: ${error.message}`);
+    throw new Error(`Failed to create chain address for ${chain}: ${error.message}`);
+  }
 }
 
 /**
@@ -125,309 +139,194 @@ export async function transferTokens(runtime: IAgentRuntime, params: TransferPar
     const destSupported = isWormholeSupported(destChain);
     
     if (!sourceSupported || !destSupported) {
-      logger.warn(`One or both chains not supported by Wormhole: ${sourceChain} (${sourceSupported}) -> ${destChain} (${destSupported})`);
-      logger.info(`Falling back to mock implementation`);
-      return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
+      logger.error(`One or both chains not supported by Wormhole: ${sourceChain} (${sourceSupported}) -> ${destChain} (${destSupported})`);
+      throw new Error(`Unsupported chain(s): ${!sourceSupported ? sourceChain : ''} ${!destSupported ? destChain : ''}`);
     }
     
     // Get token address
     const tokenAddress = getTokenAddress(sourceChain, tokenType);
     
     if (!tokenAddress) {
-      logger.warn(`No token address found for ${tokenType} on ${sourceChain}`);
-      logger.info(`Falling back to mock implementation`);
-      return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
+      logger.error(`No token address found for ${tokenType} on ${sourceChain}`);
+      throw new Error(`Unsupported token: ${tokenType} on ${sourceChain}`);
     }
     
     logger.info(`Using token address: ${tokenAddress}`);
     
-    try {
-      // Get chain contexts
-      const srcChain = wh.getChain(wormholeSourceChain);
-      const dstChain = wh.getChain(wormholeDestChain);
-      logger.info(`Got chain contexts for ${wormholeSourceChain} and ${wormholeDestChain}`);
-      
-      // Create token ID
-      let tokenId: TokenId;
-      
-      if (tokenAddress === 'native') {
-        logger.info(`Using native token for ${sourceChain}`);
-        // For native tokens, we use a special format that the SDK understands
-        tokenId = { 
-          chain: wormholeSourceChain, 
-          address: 'native' 
-        } as TokenId;
-      } else {
-        logger.info(`Using token address ${tokenAddress} for ${tokenType} on ${sourceChain}`);
-        // For contract tokens, we need to ensure the address is properly formatted
-        // The SDK expects addresses in the format appropriate for the chain
-        tokenId = { 
-          chain: wormholeSourceChain, 
-          address: tokenAddress 
-        } as TokenId;
-      }
-      
-      // Get source and destination addresses
-      const signerAddress = signer.address();
-      logger.info(`Using signer address: ${signerAddress}`);
-      
-      // Create properly formatted chain addresses
-      const sourceAddress = createChainAddress(wormholeSourceChain, signerAddress);
-      const destAddress = createChainAddress(wormholeDestChain, signerAddress);
-      
-      logger.info(`Created source address: ${safeSerialize(sourceAddress)}`);
-      logger.info(`Created destination address: ${safeSerialize(destAddress)}`);
-      
-      // Parse amount to bigint with appropriate decimals
-      const tokenDecimals = getTokenDecimals(tokenType);
-      const amountBigInt = BigInt(Math.floor(parseFloat(params.amount) * (10 ** tokenDecimals)));
-      logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
-      
-      // Special handling for USDC
-      if (tokenType === 'USDC' && wh.circleTransfer) {
-        logger.info('Using Circle CCTP for USDC transfer');
-        
-        try {
-          // Create a Circle transfer
-          const xfer = await wh.circleTransfer(
-            amountBigInt,
-            sourceAddress,
-            destAddress,
-            false, // Not automatic for now
-            undefined, // No payload
-            undefined // No native gas dropoff
-          );
-          
-          logger.info('Created Circle transfer object');
-          
-          // Initiate the transfer with our signer
-          logger.info('Initiating Circle transfer...');
-          
-          try {
-            const srcTxids = await xfer.initiateTransfer(signer);
-            logger.info(`Circle transfer initiated with txids: ${safeSerialize(srcTxids)}`);
-            
-            // Store the transfer receipt for tracking
-            const receipt = {
-              type: 'circle',
-              sourceChain: originalSourceChain,
-              destinationChain: originalDestChain,
-              token: tokenType,
-              amount: params.amount,
-              timestamp: Date.now(),
-              status: 'initiated',
-              txHash: srcTxids[0],
-              transfer: xfer
-            };
-            
-            storeTransferReceipt(srcTxids[0], receipt);
-            
-            // Return the first transaction ID and explorer link
-            const txHash = srcTxids[0];
-            const explorerLink = getExplorerLink(originalSourceChain, txHash);
-            return { txHash, explorerLink };
-          } catch (error: any) {
-            logger.error(`Error initiating Circle transfer: ${error.message}`);
-            logger.error(error);
-            
-            // If there's an error, fall back to mock implementation
-            logger.info(`Falling back to mock implementation due to error: ${error.message}`);
-            return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
-          }
-        } catch (error: any) {
-          logger.error(`Error with Circle transfer: ${error.message}`);
-          logger.error(error);
-          
-          // If there's an error, fall back to mock implementation
-          logger.info(`Falling back to mock implementation due to error: ${error.message}`);
-          return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
-        }
-      }
-      
-      // Create a token transfer
-      logger.info('Creating token transfer...');
+    // Get chain contexts
+    const srcChain = wh.getChain(wormholeSourceChain);
+    const dstChain = wh.getChain(wormholeDestChain);
+    logger.info(`Got chain contexts for ${wormholeSourceChain} and ${wormholeDestChain}`);
+    
+    // Create token ID
+    let tokenId: TokenId;
+    
+    if (tokenAddress === 'native') {
+      logger.info(`Using native token for ${sourceChain}`);
+      // For native tokens, we use a special format that the SDK understands
+      tokenId = { 
+        chain: wormholeSourceChain, 
+        address: 'native' 
+      } as TokenId;
+    } else {
+      logger.info(`Using token address ${tokenAddress} for ${tokenType} on ${sourceChain}`);
+      // For contract tokens, we need to ensure the address is properly formatted
+      // The SDK expects addresses in the format appropriate for the chain
+      tokenId = { 
+        chain: wormholeSourceChain, 
+        address: tokenAddress 
+      } as TokenId;
+    }
+    
+    // Get source and destination addresses
+    const signerAddress = signer.address();
+    logger.info(`Using signer address: ${signerAddress}`);
+    
+    // Create properly formatted chain addresses
+    const sourceAddress = createChainAddress(wormholeSourceChain, signerAddress);
+    const destAddress = createChainAddress(wormholeDestChain, signerAddress);
+    
+    logger.info(`Created source address: ${safeSerialize(sourceAddress)}`);
+    logger.info(`Created destination address: ${safeSerialize(destAddress)}`);
+    
+    // Parse amount to bigint with appropriate decimals
+    const tokenDecimals = getTokenDecimals(tokenType);
+    const amountBigInt = BigInt(Math.floor(parseFloat(params.amount) * (10 ** tokenDecimals)));
+    logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
+    
+    // Special handling for USDC
+    if (tokenType === 'USDC' && wh.circleTransfer) {
+      logger.info('Using Circle CCTP for USDC transfer');
       
       try {
-        const xfer = await wh.tokenTransfer(
-          tokenId,
+        // Create a Circle transfer
+        const xfer = await wh.circleTransfer(
           amountBigInt,
           sourceAddress,
           destAddress,
-          false,
-          undefined,
-          undefined
+          false, // Not automatic for now
+          undefined, // No payload
+          undefined // No native gas dropoff
         );
         
-        logger.info('Created token transfer object');
+        logger.info('Created Circle transfer object');
         
-        // Update quote logging
-        try {
-          const transferDetails = {
-            token: tokenId,
-            amount: amountBigInt,
-            automatic: false
-          };
-          
-          const quote = await TokenTransfer.quoteTransfer(
-            wh,
-            srcChain,
-            dstChain,
-            transferDetails
-          );
-          logger.info(`Transfer quote: ${safeSerialize(quote)}`);
-        } catch (error: any) {
-          logger.warn(`Error getting transfer quote: ${error.message}`);
-          // Continue with transfer even if quote fails
-        }
+        // Initiate the transfer with our signer
+        logger.info('Initiating Circle transfer...');
         
-        // Initiate the transfer with retries
-        const maxRetries = 3;
-        let lastError;
+        const srcTxids = await xfer.initiateTransfer(signer);
+        logger.info(`Circle transfer initiated with txids: ${safeSerialize(srcTxids)}`);
         
-        for (let i = 0; i < maxRetries; i++) {
-          try {
-            logger.info(`Initiating token transfer (attempt ${i + 1}/${maxRetries})...`);
-            
-            // Generate a mock transaction hash for the UI to show immediately
-            const mockTxHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-            logger.info(`Generated mock transaction hash for UI: ${mockTxHash}`);
-            
-            // Log that we're starting the transfer
-            logger.info(`Transfer initiated, transaction hash: ${mockTxHash}`);
-            
-            try {
-              // Try to initiate the real transfer
-              const srcTxids = await xfer.initiateTransfer(signer);
-              logger.info(`Token transfer initiated with txids: ${safeSerialize(srcTxids)}`);
-              
-              // Store the transfer receipt
-              const receipt = {
-                type: 'token',
-                sourceChain: originalSourceChain,
-                destinationChain: originalDestChain,
-                token: tokenType,
-                amount: params.amount.toString(),
-                amountBigInt: amountBigInt.toString(),
-                timestamp: Date.now(),
-                status: 'initiated',
-                txHash: srcTxids[0],
-                transfer: {
-                  ...xfer,
-                  amount: amountBigInt.toString()
-                }
-              };
-              
-              storeTransferReceipt(srcTxids[0], receipt);
-              
-              const txHash = srcTxids[0];
-              const explorerLink = getExplorerLink(originalSourceChain, txHash);
-              return { txHash, explorerLink };
-            } catch (error: any) {
-              // Check for specific errors that indicate we should fall back to mock implementation
-              if (error.code === 'INSUFFICIENT_FUNDS' || 
-                  error.message.includes('insufficient funds') ||
-                  error.message.includes('rate limit') ||
-                  error.message.includes('Too Many Requests') ||
-                  error.message.includes('exceeded maximum retry limit')) {
-                
-                logger.warn(`Detected ${error.code || 'error'} on attempt ${i + 1}, falling back to mock implementation`);
-                logger.info(`Error details: ${error.message}`);
-                
-                // Fall back to mock implementation
-                return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
-              }
-              
-              if (error.message.includes('network') || error.message.includes('timeout')) {
-                logger.warn(`Network error on attempt ${i + 1}, retrying...`);
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
-                continue;
-              }
-              
-              // For other errors, try one more time then fall back to mock
-              if (i === maxRetries - 1) {
-                logger.warn(`All ${maxRetries} attempts failed, falling back to mock implementation`);
-                return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
-              }
-              
-              logger.warn(`Error on attempt ${i + 1}, retrying...`);
-              await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
-            }
-          } catch (error: any) {
-            lastError = error;
-            logger.error(`Unexpected error during transfer attempt ${i + 1}: ${error.message}`);
-            
-            if (i === maxRetries - 1) {
-              logger.warn(`All ${maxRetries} attempts failed, falling back to mock implementation`);
-              return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
-            }
-            
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
-          }
-        }
+        // Store the transfer receipt for tracking
+        const receipt = {
+          type: 'circle',
+          sourceChain: originalSourceChain,
+          destinationChain: originalDestChain,
+          token: tokenType,
+          amount: params.amount,
+          timestamp: Date.now(),
+          status: 'initiated',
+          txHash: srcTxids[0],
+          transfer: xfer
+        };
         
-        // If we get here, all retries failed
-        logger.warn(`All ${maxRetries} attempts failed, falling back to mock implementation`);
-        return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
+        storeTransferReceipt(srcTxids[0], receipt);
         
+        // Return the first transaction ID and explorer link
+        const txHash = srcTxids[0];
+        const explorerLink = getExplorerLink(originalSourceChain, txHash);
+        return { txHash, explorerLink };
       } catch (error: any) {
-        logger.error(`Error creating or initiating token transfer: ${error.message}`);
+        logger.error(`Error with Circle transfer: ${error.message}`);
         logger.error(error);
-        
-        // Fall back to mock implementation
-        logger.info(`Falling back to mock implementation due to error: ${error.message}`);
-        return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
+        throw new Error(`Failed to initiate Circle transfer: ${error.message}`);
       }
+    }
+    
+    // Create a token transfer
+    logger.info('Creating token transfer...');
+    
+    try {
+      const xfer = await wh.tokenTransfer(
+        tokenId,
+        amountBigInt,
+        sourceAddress,
+        destAddress,
+        false, // Not automatic for now
+        undefined, // No payload
+        undefined // No native gas dropoff
+      );
+      
+      logger.info('Created token transfer object');
+      
+      // Update quote logging
+      try {
+        const transferDetails = {
+          token: tokenId,
+          amount: amountBigInt,
+          automatic: false
+        };
+        
+        const quote = await TokenTransfer.quoteTransfer(
+          wh,
+          srcChain,
+          dstChain,
+          transferDetails
+        );
+        logger.info(`Transfer quote: ${safeSerialize(quote)}`);
+      } catch (error: any) {
+        logger.warn(`Error getting transfer quote: ${error.message}`);
+        // Continue with transfer even if quote fails
+      }
+      
+      // Initiate the transfer
+      logger.info('Initiating token transfer...');
+      
+      const srcTxids = await xfer.initiateTransfer(signer);
+      logger.info(`Token transfer initiated with txids: ${safeSerialize(srcTxids)}`);
+      
+      // Store the transfer receipt
+      const receipt = {
+        type: 'token',
+        sourceChain: originalSourceChain,
+        destinationChain: originalDestChain,
+        token: tokenType,
+        amount: params.amount.toString(),
+        amountBigInt: amountBigInt.toString(),
+        timestamp: Date.now(),
+        status: 'initiated',
+        txHash: srcTxids[0],
+        transfer: {
+          ...xfer,
+          amount: amountBigInt.toString()
+        }
+      };
+      
+      storeTransferReceipt(srcTxids[0], receipt);
+      
+      const txHash = srcTxids[0];
+      const explorerLink = getExplorerLink(originalSourceChain, txHash);
+      return { txHash, explorerLink };
     } catch (error: any) {
-      logger.error(`Error setting up token transfer: ${error.message}`);
+      logger.error(`Error with token transfer: ${error.message}`);
       logger.error(error);
       
-      // Fall back to mock implementation
-      logger.info(`Falling back to mock implementation due to error: ${error.message}`);
-      return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
+      // Check for specific errors and provide more helpful messages
+      if (error.message.includes('insufficient funds')) {
+        throw new Error(`Insufficient funds for transfer: ${error.message}`);
+      } else if (error.message.includes('rate limit') || error.message.includes('Too Many Requests')) {
+        throw new Error(`RPC rate limit exceeded: ${error.message}. Please try again later.`);
+      } else if (error.message.includes('gas')) {
+        throw new Error(`Gas estimation failed: ${error.message}. Please try with a smaller amount.`);
+      } else {
+        throw new Error(`Failed to initiate token transfer: ${error.message}`);
+      }
     }
   } catch (error: any) {
-    logger.error(`Unexpected error in transferTokens: ${error.message}`);
+    logger.error(`Error in transferTokens: ${error.message}`);
     logger.error(error);
-    
-    // Fall back to mock implementation for any unexpected errors
-    logger.info(`Falling back to mock implementation due to unexpected error`);
-    return useMockTransfer(originalSourceChain, originalDestChain, params.amount, tokenType);
+    throw error;
   }
-}
-
-/**
- * Use a mock transfer implementation
- * This is used when the real implementation fails or is not available
- * @param sourceChain The source chain
- * @param destChain The destination chain
- * @param amount The amount to transfer
- * @param tokenType The token type
- * @returns The transaction hash and explorer link
- */
-function useMockTransfer(sourceChain: string, destChain: string, amount: string, tokenType: string): Promise<{txHash: string, explorerLink: string}> {
-  logger.info(`Using mock implementation for ${amount} ${tokenType} transfer from ${sourceChain} to ${destChain}`);
-  
-  // Generate a mock transaction hash
-  const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-  logger.info(`Generated mock transaction hash: ${txHash}`);
-  
-  // Store a mock receipt
-  const receipt = {
-    type: 'mock',
-    sourceChain,
-    destinationChain: destChain,
-    token: tokenType,
-    amount,
-    timestamp: Date.now(),
-    status: 'initiated',
-    txHash
-  };
-  
-  storeTransferReceipt(txHash, receipt);
-  
-  // Return the mock transaction hash and explorer link
-  const explorerLink = getExplorerLink(sourceChain, txHash);
-  return Promise.resolve({ txHash, explorerLink });
 }
 
 /**
