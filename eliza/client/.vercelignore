@@ -7,8 +7,17 @@
 ../node_modules/
 ../.git/
 ../pnpm-lock.yaml
+../package-lock.json
+
+# Ignore Docusaurus related files and directories
+**/docusaurus*
+**/@docusaurus*
+**/typedoc*
+**/mdx-js*
+**/lunr-search*
 
 # Ignore large files in the client directory
 node_modules/
 .git/
-pnpm-lock.yaml 
+pnpm-lock.yaml
+package-lock.json 

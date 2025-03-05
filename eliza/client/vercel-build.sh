@@ -8,12 +8,12 @@ echo "Starting Vercel build script..."
 echo "Copying simplified package.json..."
 cp package.vercel.json package.json
 
-# Clean install without using lockfile
-echo "Installing dependencies..."
-pnpm install --no-frozen-lockfile
+# Clean install using npm instead of pnpm
+echo "Installing dependencies using npm..."
+npm install
 
 # Build the client
 echo "Building client..."
-pnpm build
+npm run build
 
 echo "Build completed successfully!" 
