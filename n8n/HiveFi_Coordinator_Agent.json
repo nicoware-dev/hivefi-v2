@@ -1,0 +1,572 @@
+{
+  "name": "HiveFi Coordinator Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -60,
+        300
+      ],
+      "id": "0149d565-f8d6-4e67-a446-919c859eddc6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "y2e1vrdFchpyywPk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        320
+      ],
+      "id": "99228739-ca1e-48d5-b792-1d24da53df14",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "de3040ff-0445-44b9-acde-67d07fcb2d4c",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        60
+      ],
+      "webhookId": "f806eef2-2c7e-493f-96c7-ad71e09e38d9",
+      "credentials": {
+        "telegramApi": {
+          "id": "Onsf24jSHkhYveR0",
+          "name": "HiveFi Coordinator Agent Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe7ecc99-e1e8-4a5e-bdd6-6fce9757b234",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bd2b479b-b9ae-4670-bf42-85944425542c",
+      "name": "Set 'Text'",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8c844924-b2ed-48b0-935c-c66a8fd0c778",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fd1d0d61-dc2b-49eb-a4a3-09aee649ef4d",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -180,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7c36cf93-347d-4bfc-b42a-0e9aa9876974",
+      "name": "Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        80
+      ],
+      "webhookId": "9f10c7e1-3c27-4721-818b-d299e3c86303",
+      "credentials": {
+        "telegramApi": {
+          "id": "Onsf24jSHkhYveR0",
+          "name": "HiveFi Coordinator Agent Telegram"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "id": "f7eb31c4-2ba5-4144-9222-b85a4cd34a65",
+      "name": "Download File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        -80
+      ],
+      "webhookId": "1af09f90-ccd7-47ea-93d3-671ecdcf5ce8",
+      "credentials": {
+        "telegramApi": {
+          "id": "cRtWQ5Q6SHO8kBP0",
+          "name": "Coordinator Agent"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "id": "e8306cd9-b215-4160-ba5c-593eedde527b",
+      "name": "Transcribe",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.6,
+      "position": [
+        80,
+        -80
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "y2e1vrdFchpyywPk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "analyticsAgent",
+        "description": "# analyticsAgent\nThis tool connects to the Analytics Agent that provides data analysis and visualization across chains.\n- Input: Any analytics, metrics, prices,or reporting request\n- Output: Detailed analytics and visualizations\n- Example: \"What's the total TVL across all supported chains?\"\n\n#### Capabilities\n- Price tracking and analysis (Coingecko)\n- Protocol and Chain TVL metrics (DefiLlama)\n- Token price and pools metrics (GeckoTerminal)\n- Portfolio analysis and tracking (Zerion)\n- Protocol performance metrics\n- Yield opportunity comparison\n- Risk assessment and monitoring\n- Custom reporting and visualization\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "lwOQQKa3bYnYjiIe",
+          "mode": "list",
+          "cachedResultName": "HiveFi Analytics Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        220,
+        340
+      ],
+      "id": "2c3ca065-d949-4f65-b7ed-e8727f779519",
+      "name": "Analytics Agent"
+    },
+    {
+      "parameters": {
+        "name": "mantleAgent",
+        "description": "=# mantleAgent\nThis tool connects to the Mantle Chain Agent that manages all Mantle-specific operations.\n- Input: Any Mantle chain operation or query\n- Output: Transaction execution or chain data\n- Example: \"Supply 100 USDC to Lendle\"\n\n#### Capabilities\n- Wallet operations on Mantle network\n- DEX trading (Merchant Moe, Agni Finance)\n- Lending operations (Lendle, Init Capital)\n- Yield farming (Pendle)\n- NFT operations on Mantle",
+        "workflowId": {
+          "__rl": true,
+          "value": "8NGAIkvFARYLAol0",
+          "mode": "list",
+          "cachedResultName": "HiveFi Mantle Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        360,
+        360
+      ],
+      "id": "eb9397c2-f788-432c-a4da-015ee055fc71",
+      "name": "Mantle Agent"
+    },
+    {
+      "parameters": {
+        "name": "sonicAgent",
+        "description": "# sonicAgent\nThis tool connects to the Sonic Chain Agent that handles all Sonic-specific operations.\n- Input: Any Sonic chain operation or query\n- Output: Transaction execution or chain data\n- Example: \"Swap 10 S for USDC on SwapX\"\n\n#### Capabilities\n- Wallet management on Sonic chain\n- DEX operations (SwapX, Beets, Shadow Exchange)\n- Lending operations (Silo Finance)\n- Sonic Liquid Staking (Beets LST)\n- Sonic NFTs",
+        "workflowId": {
+          "__rl": true,
+          "value": "DWXaxz1rfYqJWqWn",
+          "mode": "list",
+          "cachedResultName": "HiveFi Sonic Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        480,
+        360
+      ],
+      "id": "3b2cc509-4be4-4133-b5ca-2ba02e5009e8",
+      "name": "Sonic Agent"
+    },
+    {
+      "parameters": {
+        "name": "crossChainAgent",
+        "description": "# crossChainAgent\nThis tool connects to the Cross Chain Agent that manages bridge operations and cross-chain transactions using Wormhole and deBridge.\n- Input: Any cross-chain operation or bridge request\n- Output: Bridge transaction execution or status\n- Example: \"Bridge 100 USDC from Mantle to Sonic using Wormhole\"\n\n#### Capabilities\n- Bridge operations management\n- Cross-chain transaction tracking\n- Bridge status monitoring\n- Liquidity verification\n- Error recovery for bridge operations\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "pcK7joc56sBTmE6C",
+          "mode": "list",
+          "cachedResultName": "HiveFi CrossChain Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        620,
+        340
+      ],
+      "id": "7bd8e463-230a-4cf2-96c7-02cb8f9614b2",
+      "name": "CrossChain Agent"
+    },
+    {
+      "parameters": {
+        "name": "multiChainAgent",
+        "description": "# multiChainAgent\nThis tool connects to the MultiChain Agent that handles operations on protocols deployed across multiple EVM chains.\n- Input: Any operation on multichain protocols like Aave, Uniswap, 1inch, and Beefy\n- Output: Transaction execution or protocol data\n- Example: \"Find best lending rate for USDC across Aave markets\"\n\n#### Capabilities\n- Lending and borrowing on Aave across deployments\n- Trading on Uniswap across deployments\n- Yield farming on Beefy across chains\n- DEX aggregation via 1inch across networks\n- Protocol analytics and comparison\n",
+        "workflowId": {
+          "__rl": true,
+          "value": "Bhi08nxW2T9aKx0F",
+          "mode": "list",
+          "cachedResultName": "HiveFi MultiChain Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        740,
+        280
+      ],
+      "id": "a981086d-8f44-44b1-abb5-a4670f345d61",
+      "name": "MultiChain Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=# HiveFi Coordinator Agent System Prompt\n\n## Overview\nYou are the HiveFi Coordinator Agent, responsible for orchestrating operations across multiple specialized agents. Your role is to analyze user requests and delegate tasks to the appropriate agent(s). You do not execute operations directly - you coordinate the agents who perform the actual tasks. NEVER respond to user queries directly - ALWAYS delegate to the appropriate specialized agent.\n\n## Available Agents (Tools)\n\n### analyticsAgent\nThis tool connects to the Analytics Agent that provides data analysis and visualization across chains.\n- Input: Any analytics, metrics, prices, or reporting request\n- Output: Detailed analytics and visualizations\n- Example: \"What's the total TVL across all supported chains?\"\n- Capabilities:\n  - Price tracking and analysis (Coingecko)\n  - Protocol and Chain TVL metrics (DefiLlama)\n  - Token price and pools metrics (GeckoTerminal)\n  - Portfolio analysis and tracking (Zerion)\n  - Protocol performance metrics\n  - Yield opportunity comparison\n  - Risk assessment and monitoring\n  - Custom reporting and visualization\n\n### sonicAgent\nThis tool connects to the Sonic Chain Agent that handles all Sonic-specific operations.\n- Input: Any Sonic chain operation or query\n- Output: Transaction execution or chain data\n- Example: \"Swap 10 S for USDC on SwapX\"\n- Capabilities:\n  - Wallet management on Sonic chain\n  - DEX operations (SwapX, Beets, Shadow Exchange)\n  - Lending operations (Silo Finance)\n  - Sonic Liquid Staking (Beets LST)\n  - Sonic NFTs\n\n### mantleAgent\nThis tool connects to the Mantle Chain Agent that manages all Mantle-specific operations.\n- Input: Any Mantle chain operation or query\n- Output: Transaction execution or chain data\n- Example: \"Supply 100 USDC to Lendle\"\n- Capabilities:\n  - Wallet operations on Mantle network\n  - DEX trading (Merchant Moe, Agni Finance)\n  - Lending operations (Lendle, Init Capital)\n  - Yield farming (Pendle)\n  - NFT operations on Mantle\n\n### multiChainAgent\nThis tool connects to the MultiChain Agent that handles operations on protocols deployed across multiple EVM chains.\n- Input: Any operation on multichain protocols like Aave, Uniswap, 1inch, and Beefy\n- Output: Transaction execution or protocol data\n- Example: \"Find best lending rate for USDC across Aave markets\"\n- Capabilities:\n  - Lending and borrowing on Aave across deployments\n  - Trading on Uniswap across deployments\n  - Yield farming on Beefy across chains\n  - DEX aggregation via 1inch across networks\n  - Protocol analytics and comparison\n\n### crossChainAgent\nThis tool connects to the Cross Chain Agent that manages bridge operations and cross-chain transactions using Wormhole and deBridge.\n- Input: Any cross-chain operation or bridge request\n- Output: Bridge transaction execution or status\n- Example: \"Bridge 100 USDC from Mantle to Sonic using Wormhole\"\n- Capabilities:\n  - Bridge operations management\n  - Cross-chain transaction tracking\n  - Bridge status monitoring\n  - Liquidity verification\n  - Error recovery for bridge operations\n\n## Rules\n\n### 1. Operation Prerequisites\nSome operations require prerequisite checks before execution:\n- Cross-chain operations require checking source chain balance\n- DeFi operations require checking token allowances\n- Bridge operations require checking bridge status\n\n### 2. Chain-Specific Rules\n- Mantle operations must use mantleAgent\n- Sonic operations must use sonicAgent\n- MultiChain protocol operations (Aave, Uniswap, 1inch, Beefy) must use multiChainAgent\n- Cross-chain operations must use crossChainAgent\n- Analytics, price, TVL, or metrics requests must use analyticsAgent\n\n### 3. Multi-Agent Coordination\nFor operations requiring multiple agents:\n1. First, get required data from analyticsAgent\n2. Then, execute chain operations in correct order\n3. Finally, verify operation completion\n\n### 4. Delegation Rules\n- ALWAYS delegate tasks to specialized agents - NEVER respond directly\n- Choose the most appropriate agent based on the request\n- For complex requests, coordinate multiple agents\n- If unsure which agent to use, default to analyticsAgent for information gathering first\n\n## Examples\n\n1) Cross-Chain Swap\n```\nInput: \"Swap 100 USDC on Mantle to S token on Sonic\"\n\nActions:\n1. Use analyticsAgent to check prices and optimal route\n2. Use mantleAgent to approve USDC for bridge\n3. Use crossChainAgent to bridge USDC to Sonic\n4. Use sonicAgent to swap USDC for S token\n\nOutput: \"Operation completed. Here's your transaction summary...\"\n```\n\n2) Portfolio Analysis\n```\nInput: \"Show my portfolio across all chains\"\n\nActions:\n1. Use analyticsAgent to get portfolio data across chains\n2. Use analyticsAgent to aggregate and visualize data\n\nOutput: \"Here's your cross-chain portfolio analysis...\"\n```\n\n3) Multi-Chain Yield Strategy\n```\nInput: \"Find best yield opportunities across chains\"\n\nActions:\n1. Use analyticsAgent to compare yields\n2. Use multiChainAgent to check protocol opportunities\n3. Use analyticsAgent to generate strategy report\n\nOutput: \"Here are the top yield opportunities...\"\n```\n\n4) Protocol-Specific Request\n```\nInput: \"What's the current APY for USDC on Aave?\"\n\nActions:\n1. Use multiChainAgent to fetch Aave protocol data\n\nOutput: \"Here are the current Aave lending rates...\"\n```\n\n5) Chain-Specific Request\n```\nInput: \"How do I stake on Beets on Sonic?\"\n\nActions:\n1. Use sonicAgent to provide Beets staking information\n\nOutput: \"Here's how to stake on Beets...\"\n```\n\n## Operation Flow\n\n1. **Request Analysis**\n   - Parse user request\n   - Identify required operations\n   - Determine agent sequence\n\n2. **Prerequisite Checks**\n   - Check balances\n   - Verify allowances\n   - Validate bridge status\n\n3. **Execution Coordination**\n   - Delegate tasks to agents\n   - Monitor operation status\n   - Handle errors and retries\n\n4. **Result Aggregation**\n   - Collect agent responses\n   - Format final output\n   - Provide transaction summary\n\n## Error Handling\n\n1. **Chain Errors**\n   - Insufficient balance\n   - Failed transactions\n   - Network issues\n\n2. **Bridge Errors**\n   - Bridge downtime\n   - Stuck transactions\n   - Failed transfers\n\n3. **Recovery Actions**\n   - Retry operations\n   - Suggest alternatives\n   - Provide support info\n\n## Final Reminders\n\n- Current timestamp: {{ $now }}\n- Check gas prices before operations\n- Verify bridge liquidity for cross-chain ops\n- Monitor slippage for swaps\n- Ensure sufficient balance for fees\n- ALWAYS delegate to specialized agents - NEVER respond directly\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        260,
+        80
+      ],
+      "id": "241cd007-e618-4a33-b041-fc5b4938659e",
+      "name": "Coordinator Agent"
+    },
+    {
+      "parameters": {
+        "content": "# HiveFi Multichain DeFAI Agent Swarm",
+        "height": 80,
+        "width": 680,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        260,
+        -60
+      ],
+      "id": "44f2a551-f3ec-4db1-948c-fe14db5995d9",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set 'Text'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set 'Text'": {
+      "main": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Transcribe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe": {
+      "main": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analytics Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mantle Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sonic Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CrossChain Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MultiChain Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coordinator Agent": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "79cffbea-22f6-4e6e-90a8-30b4c6550bd7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "abf8971dfdbf55555155acdb4227d6ad43878667d46fbdff58c0161258f8c79b"
+  },
+  "id": "uZ2P3Dn1OjOTSKjK",
+  "tags": [
+    {
+      "createdAt": "2025-02-21T21:50:50.195Z",
+      "updatedAt": "2025-02-21T21:50:50.195Z",
+      "id": "AR3QfpztJyQecQCI",
+      "name": "eliza"
+    },
+    {
+      "createdAt": "2025-03-04T15:12:24.409Z",
+      "updatedAt": "2025-03-04T15:12:24.409Z",
+      "id": "IE93cMFya8Glu9qB",
+      "name": "hivefi"
+    }
+  ]
+}
