@@ -5,7 +5,7 @@
 cp package.vercel.json package.json
 
 # Install dependencies
-pnpm install --no-frozen-lockfile
+pnpm install --no-frozen-lockfile --ignore-workspace
 
 # Build the client
 pnpm build 
