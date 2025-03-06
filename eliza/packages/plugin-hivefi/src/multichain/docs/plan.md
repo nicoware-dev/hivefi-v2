@@ -4,30 +4,36 @@ This document outlines the step-by-step implementation plan for the multichain m
 
 ## Phase 1: Core Infrastructure
 
-### Step 1: Set Up Basic Structure
+### Step 1: Set Up Basic Structure ✅
 - [x] Create the module directory structure
 - [x] Define types and interfaces in `types.ts`
 - [x] Define chain configurations in `constants.ts`
 - [x] Create utility functions in `utils/chain-utils.ts`
 
-### Step 2: Implement Wallet Provider
+### Step 2: Implement Wallet Provider ✅
 - [x] Create `providers/wallet-provider.ts` with the `MultichainWalletProvider` class
 - [x] Implement wallet initialization for multiple chains
 - [x] Implement methods to get wallet for specific chains
 - [x] Implement balance checking across chains
 
-### Step 3: Implement Core Actions
+### Step 3: Implement Core Actions ✅
 - [x] Create `actions/transfer.ts` for native token transfers
 - [x] Create `actions/token-transfer.ts` for ERC-20 token transfers
 - [x] Create `actions/index.ts` to export all core actions
-- [ ] Implement action context composition utilities
-- [ ] Implement response generation utilities
+- [x] Implement action context composition utilities
+- [x] Implement response generation utilities
 
-### Step 4: Update Main Module Exports
+Key Implementation Details:
+- Actions use runtime settings to get EVM_PRIVATE_KEY
+- Each action follows the ActionExample format for proper type compatibility
+- Actions handle their own wallet provider initialization
+- Proper error handling and user feedback implemented
+
+### Step 4: Update Main Module Exports ✅
 - [x] Update `index.ts` to export all actions and providers
-- [x] Implement `initializeMultichainModule` function
+- [x] Export providers alongside actions for runtime use
 
-## Phase 2: Protocol Integrations
+## Phase 2: Protocol Integrations 🔄
 
 ### Step 1: Uniswap Integration
 - [ ] Create `protocols/uniswap/types.ts` for Uniswap-specific types
@@ -75,9 +81,9 @@ This document outlines the step-by-step implementation plan for the multichain m
 - [ ] Test error handling and edge cases
 
 ### Step 3: Documentation
-- [ ] Update API documentation
-- [ ] Create usage examples
-- [ ] Document environment variables and configuration
+- [x] Update API documentation
+- [x] Create usage examples
+- [x] Document environment variables and configuration
 
 ## Implementation Details
 
@@ -94,41 +100,39 @@ The `MultichainWalletProvider` class is responsible for managing wallets across 
 
 Each action (like transfer or token-transfer) follows this pattern:
 
-1. Extract the chain from the user's prompt
-2. Get the appropriate wallet for that chain
-3. Initialize the GOAT tools with that wallet
-4. Execute the action using the chain-specific wallet
-5. Generate a response based on the action result
-
-### Protocol Integrations
-
-Each protocol integration will:
-
-1. Define protocol-specific types and constants
-2. Implement protocol actions that work across multiple chains
-3. Handle chain-specific protocol addresses and parameters
-4. Provide a unified interface for protocol interactions
+1. Extract the chain from the user's prompt using `parseChainFromPrompt`
+2. Get the private key from runtime settings (`EVM_PRIVATE_KEY`)
+3. Initialize the wallet provider with the private key
+4. Get the appropriate wallet for the specified chain
+5. Initialize GOAT tools with the wallet and specific plugins (sendETH or erc20)
+6. Execute the action using generateText with proper context
+7. Handle responses and errors with user-friendly messages
 
 ## Environment Variables
 
 The module requires the following environment variables:
 
 ```
-# Wallet Configuration
-EVM_PRIVATE_KEY=your_private_key_here
+# Required
+EVM_PRIVATE_KEY=your_private_key_here  # 64-character hex string without 0x prefix
 
-# RPC Endpoints (optional, defaults will be used if not provided)
-ETHEREUM_RPC_URL=https://ethereum-rpc-url
-ARBITRUM_RPC_URL=https://arbitrum-rpc-url
-OPTIMISM_RPC_URL=https://optimism-rpc-url
-POLYGON_RPC_URL=https://polygon-rpc-url
-BASE_RPC_URL=https://base-rpc-url
+# Optional (defaults will be used if not provided)
+EVM_RPC_URL=your_preferred_rpc_url     # Override default RPC URL
 ```
 
 ## Next Steps
 
-After completing the core infrastructure (Phase 1), we'll move on to implementing protocol integrations (Phase 2). Each protocol will be implemented as a separate module with its own actions and utilities.
+1. Test the implemented core actions:
+   - Native token transfers across different chains
+   - ERC-20 token transfers across different chains
+   - Error handling for various scenarios
 
-The explorer and network status providers (Phase 3) will provide additional functionality for monitoring transactions and network conditions.
+2. Begin implementing protocol integrations:
+   - Start with Uniswap as it's the most widely used
+   - Follow with Aave for lending/borrowing functionality
+   - Add Beefy for yield optimization
 
-Finally, comprehensive testing and documentation (Phase 4) will ensure the module is reliable and easy to use.
+3. Add comprehensive testing:
+   - Unit tests for each component
+   - Integration tests for full workflows
+   - Documentation of test cases and scenarios
