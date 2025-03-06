@@ -12,7 +12,7 @@ export interface TransferParams {
  * Wormhole redeem parameters
  */
 export interface RedeemParams {
-  chain: string;
+  chain?: string;
   transactionId?: string;
   token?: string;
 }

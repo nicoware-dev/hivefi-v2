@@ -115,6 +115,8 @@ export function extractChain(text: string): WormholeChain | undefined {
     'glmr': WormholeChain.MOONBEAM,
     'arbitrum': WormholeChain.ARBITRUM,
     'arb': WormholeChain.ARBITRUM,
+    'abritrum': WormholeChain.ARBITRUM, // Common typo
+    'arbitrium': WormholeChain.ARBITRUM, // Common typo
     'optimism': WormholeChain.OPTIMISM,
     'op': WormholeChain.OPTIMISM,
     'aptos': WormholeChain.APTOS,
@@ -134,34 +136,60 @@ export function extractChain(text: string): WormholeChain | undefined {
     }
   }
   
-  // If no direct match, try to extract from patterns like "from X" or "to X"
+  // If no direct match, try to extract from patterns like "from X" or "to X" or "on X"
   const fromMatch = normalizedText.match(/from\s+(\w+(?:\s+\w+)?)/i);
   const toMatch = normalizedText.match(/to\s+(\w+(?:\s+\w+)?)/i);
+  const onMatch = normalizedText.match(/on\s+(\w+(?:\s+\w+)?)/i);
   
   let extractedChain = undefined;
+  
+  // Helper function for fuzzy matching
+  const fuzzyMatchChain = (chainText: string): WormholeChain | undefined => {
+    // First try exact matches
+    for (const [chainName, chainValue] of Object.entries(chainMap)) {
+      if (chainText.includes(chainName)) {
+        return chainValue;
+      }
+    }
+    
+    // If no exact match, try fuzzy matching for common typos
+    // This handles cases like "abritrum" instead of "arbitrum"
+    const typoMap: Record<string, string[]> = {
+      'arbitrum': ['arb', 'abritrum', 'arbitrium', 'arbitrium', 'abitrum'],
+      'ethereum': ['eth', 'etherium', 'etherum'],
+      'polygon': ['matic', 'polygone', 'poligon'],
+      'optimism': ['op', 'optimisim', 'optimizm'],
+      'avalanche': ['avax', 'avalanch', 'aval'],
+      'binance': ['bsc', 'binace', 'binanace'],
+      'solana': ['sol', 'solona', 'salana']
+    };
+    
+    for (const [chainName, typos] of Object.entries(typoMap)) {
+      if (typos.some(typo => chainText.includes(typo))) {
+        console.log(`[extractChain] Found fuzzy match: ${chainName} from "${chainText}"`);
+        return chainMap[chainName];
+      }
+    }
+    
+    return undefined;
+  };
   
   if (fromMatch) {
     const fromChain = fromMatch[1].trim().toLowerCase();
     console.log(`[extractChain] Extracted from pattern: "${fromChain}"`);
-    
-    for (const [chainName, chainValue] of Object.entries(chainMap)) {
-      if (fromChain.includes(chainName)) {
-        extractedChain = chainValue;
-        break;
-      }
-    }
+    extractedChain = fuzzyMatchChain(fromChain);
   }
   
   if (!extractedChain && toMatch) {
     const toChain = toMatch[1].trim().toLowerCase();
     console.log(`[extractChain] Extracted to pattern: "${toChain}"`);
-    
-    for (const [chainName, chainValue] of Object.entries(chainMap)) {
-      if (toChain.includes(chainName)) {
-        extractedChain = chainValue;
-        break;
-      }
-    }
+    extractedChain = fuzzyMatchChain(toChain);
+  }
+  
+  if (!extractedChain && onMatch) {
+    const onChain = onMatch[1].trim().toLowerCase();
+    console.log(`[extractChain] Extracted on pattern: "${onChain}"`);
+    extractedChain = fuzzyMatchChain(onChain);
   }
   
   // Special handling for Mantle and BSC

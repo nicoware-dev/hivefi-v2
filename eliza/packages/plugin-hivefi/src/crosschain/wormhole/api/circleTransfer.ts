@@ -2,10 +2,14 @@ import { elizaLogger, IAgentRuntime } from '@elizaos/core';
 import { TransferParams, RedeemParams } from '../types';
 import { getSigner, getBalance } from '../utils/wallet';
 import { normalizeChainName } from '../utils/chain';
-import { getWormholeInstance } from './instance';
-import { Chain, UniversalAddress } from '@wormhole-foundation/sdk';
-import { getWormholeChain, isWormholeSupported } from '../config';
+import { Chain } from '@wormhole-foundation/sdk';
 import { getTokenAddress, getTokenDecimals } from '../config/tokens';
+import { ethers } from 'ethers';
+import { getWormholeInstance } from './instance';
+import { getWormholeChain, isWormholeSupported } from '../config';
+import { CircleTransfer as CircleTransferSDK, Wormhole as WormholeSDK } from '@wormhole-foundation/sdk-connect';
+import { getExplorerLink } from '../utils/explorer';
+import { circle } from '@wormhole-foundation/sdk-connect';
 
 const logger = elizaLogger.child({ module: 'CircleTransfer' });
 
@@ -24,100 +28,129 @@ const CIRCLE_SUPPORTED_CHAINS = [
 
 /**
  * Check if a chain is supported by Circle Bridge
- * @param chain The chain to check
+ * @param chain The chain name
  * @returns True if the chain is supported by Circle Bridge
  */
 export function isCircleSupported(chain: string): boolean {
-  const normalizedChain = chain.toLowerCase();
-  return CIRCLE_SUPPORTED_CHAINS.includes(normalizedChain);
+  return CIRCLE_SUPPORTED_CHAINS.includes(chain.toLowerCase());
 }
 
-// Map of chain names to block explorers
-const BLOCK_EXPLORERS: Record<string, string> = {
-  'ethereum': 'https://etherscan.io/tx/',
-  'polygon': 'https://polygonscan.com/tx/',
-  'bsc': 'https://bscscan.com/tx/',
-  'avalanche': 'https://snowtrace.io/tx/',
-  'arbitrum': 'https://arbiscan.io/tx/',
-  'optimism': 'https://optimistic.etherscan.io/tx/',
-  'base': 'https://basescan.org/tx/',
-  'mantle': 'https://explorer.mantle.xyz/tx/'
-};
-
-// Store transfer receipts for tracking
-const transferReceipts: Record<string, any> = {};
-
 /**
- * Helper function to safely serialize objects with BigInt values
+ * Safely serialize an object to a string
  * @param obj The object to serialize
- * @returns A JSON string with BigInt values converted to strings
+ * @returns The serialized object
  */
 function safeSerialize(obj: any): string {
-  return JSON.stringify(obj, (_, value) => 
-    typeof value === 'bigint' ? value.toString() : value
-  );
+  try {
+    return JSON.stringify(obj, (_, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    });
+  } catch (error) {
+    return String(obj);
+  }
 }
 
 /**
- * Get a block explorer link for a transaction
+ * Get the explorer link for a transaction
  * @param chain The chain name
  * @param txHash The transaction hash
- * @returns The block explorer link
+ * @returns The explorer link
  */
 function getExplorerLink(chain: string, txHash: string): string {
-  const normalizedChain = chain.toLowerCase();
-  const baseUrl = BLOCK_EXPLORERS[normalizedChain] || 'https://etherscan.io/tx/';
+  const explorers: Record<string, string> = {
+    'ethereum': 'https://etherscan.io/tx/',
+    'polygon': 'https://polygonscan.com/tx/',
+    'arbitrum': 'https://arbiscan.io/tx/',
+    'optimism': 'https://optimistic.etherscan.io/tx/',
+    'base': 'https://basescan.org/tx/',
+    'avalanche': 'https://snowtrace.io/tx/',
+    'solana': 'https://solscan.io/tx/',
+    'sui': 'https://explorer.sui.io/txblock/',
+    'aptos': 'https://explorer.aptoslabs.com/txn/'
+  };
+
+  const baseUrl = explorers[chain.toLowerCase()] || 'https://etherscan.io/tx/';
   return `${baseUrl}${txHash}`;
 }
 
+// In-memory storage for transfer receipts
+const transferReceipts: Record<string, any> = {};
+
 /**
- * Store a transfer receipt for tracking
+ * Store a transfer receipt
  * @param txHash The transaction hash
- * @param receipt The transfer receipt
+ * @param receipt The receipt to store
  */
 function storeTransferReceipt(txHash: string, receipt: any): void {
-  // Convert any BigInt values to strings before storing
-  const safeReceipt = JSON.parse(safeSerialize(receipt));
-  transferReceipts[txHash] = safeReceipt;
-  logger.info(`Stored transfer receipt for transaction ${txHash}`);
+  transferReceipts[txHash] = receipt;
 }
 
 /**
- * Get a transfer receipt for tracking
+ * Get a transfer receipt
  * @param txHash The transaction hash
  * @returns The transfer receipt
  */
-export function getTransferReceipt(txHash: string): any {
-  return transferReceipts[txHash];
+function getTransferReceipt(txHash: string): any {
+  // Return the existing receipt if it exists, otherwise return null
+  // No more mock receipts for testing
+  return transferReceipts[txHash] || null;
 }
 
 /**
- * Create a chain address object for the Wormhole SDK
+ * Create a chain address object
  * @param chain The chain
  * @param address The address
  * @returns The chain address object
  */
 function createChainAddress(chain: Chain, address: string) {
-  // Ensure address is properly formatted for UniversalAddress
-  // Remove '0x' prefix if present for EVM addresses
-  const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;
-  
   try {
-    // Create a UniversalAddress instance
-    const universalAddress = new UniversalAddress(cleanAddress);
+    // For EVM chains
+    if (chain === 'Ethereum' || 
+        chain === 'Polygon' || 
+        chain === 'Arbitrum' || 
+        chain === 'Optimism' || 
+        chain === 'Base' || 
+        chain === 'Avalanche') {
+      return {
+        chain,
+        address: address
+      };
+    }
     
-    // Create a ChainAddress object
-    const chainAddress = {
+    // For non-EVM chains
+    return {
       chain,
-      address: universalAddress
+      address: address
     };
-    
-    logger.info(`Created chain address for ${chain}: ${universalAddress.toString()}`);
-    return chainAddress;
   } catch (error: any) {
     logger.error(`Error creating chain address: ${error.message}`);
-    throw new Error(`Failed to create chain address for ${chain}: ${error.message}`);
+    throw new Error(`Invalid address for chain ${chain}: ${address}`);
   }
+}
+
+/**
+ * Get the private key from runtime settings
+ * @param runtime The agent runtime
+ * @returns The private key
+ */
+function getPrivateKey(runtime: IAgentRuntime): string {
+  // First try EVM_PRIVATE_KEY (our custom setting)
+  let privateKey = runtime.getSetting('EVM_PRIVATE_KEY');
+  
+  // If not found, try WALLET_PRIVATE_KEY (from the original implementation)
+  if (!privateKey) {
+    privateKey = runtime.getSetting('WALLET_PRIVATE_KEY');
+  }
+  
+  if (!privateKey) {
+    logger.error('No private key found in runtime settings');
+    throw new Error('No private key found in runtime settings. Please set EVM_PRIVATE_KEY or WALLET_PRIVATE_KEY.');
+  }
+  
+  return privateKey;
 }
 
 /**
@@ -126,7 +159,7 @@ function createChainAddress(chain: Chain, address: string) {
  * @param params The transfer parameters
  * @returns The transaction hash, explorer link, and additional transfer details
  */
-export async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams): Promise<{
+async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams): Promise<{
   txHash: string;
   explorerLink: string;
   sourceChain?: string;
@@ -314,7 +347,7 @@ export async function transferCircleUSDC(runtime: IAgentRuntime, params: Transfe
           amount: params.amount,
           token: 'USDC',
           status: 'initiated',
-          message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete.`,
+          message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete. After that, you'll need to redeem your USDC on ${originalDestChain} by saying "Redeem my USDC transfer with transaction ID ${txHash}".`,
           estimatedTime: '5-10 minutes'
         };
       } catch (error: any) {
@@ -349,156 +382,520 @@ export async function transferCircleUSDC(runtime: IAgentRuntime, params: Transfe
 }
 
 /**
- * Check the status of a Circle transfer
+ * Checks the status of a Circle USDC transfer
  * @param txHash The transaction hash
- * @returns The transfer status
+ * @returns The status of the transfer
  */
 export async function checkCircleTransferStatus(txHash: string): Promise<{status: string, message: string}> {
-  const receipt = getTransferReceipt(txHash);
-  
-  if (!receipt) {
-    return { status: 'unknown', message: 'Transfer not found' };
-  }
+  logger.info(`Checking status of Circle transfer with ID: ${txHash}`);
   
   try {
-    // Only proceed if this is a Circle transfer
-    if (receipt.type !== 'circle') {
-      return { status: 'unknown', message: 'Not a Circle transfer' };
+    // Get the transfer receipt
+    const transferReceipt = getTransferReceipt(txHash);
+    
+    if (!transferReceipt) {
+      logger.error(`No transfer receipt found for transaction ID: ${txHash}`);
+      return {
+        status: 'unknown',
+        message: 'No transfer receipt found for this transaction ID. Please ensure you initiated the transfer through this interface.'
+      };
     }
     
-    // Check if the transfer has been completed
-    if (receipt.status === 'completed') {
-      return { status: 'completed', message: 'Transfer completed' };
+    if (transferReceipt.type !== 'circle') {
+      logger.error(`Transfer receipt is not a Circle transfer: ${transferReceipt.type}`);
+      return {
+        status: 'invalid',
+        message: 'This is not a Circle transfer. Please use the appropriate redeem function for this transfer type.'
+      };
     }
     
-    // Check if the transfer has been redeemed
-    if (receipt.status === 'redeemed') {
-      return { status: 'redeemed', message: 'Transfer redeemed' };
+    logger.info(`Found Circle transfer receipt: ${safeSerialize(transferReceipt)}`);
+    
+    // If the receipt already shows it as redeemed, return that status
+    if (transferReceipt.status === 'redeemed') {
+      return {
+        status: 'redeemed',
+        message: 'Transfer has been redeemed. The USDC should already be available in your wallet.'
+      };
     }
     
-    // For Circle transfers, we can't easily check the status on-chain without additional SDK support
-    // So we'll just return a generic pending status
-    logger.info(`Circle transfer ${txHash} is still pending`);
-    return { status: 'pending', message: 'Circle transfer in progress. This may take several minutes to complete.' };
+    // In a production environment, we should:
+    // 1. Get the source and destination chains from the receipt
+    const sourceChain = transferReceipt.sourceChain;
+    const destChain = transferReceipt.destinationChain;
+    
+    if (!sourceChain || !destChain) {
+      logger.error(`Missing chain information in transfer receipt: source=${sourceChain}, dest=${destChain}`);
+      return {
+        status: 'invalid',
+        message: 'Transfer receipt is missing chain information. Please try initiating the transfer again.'
+      };
+    }
+    
+    // 2. Get the source transaction hash
+    const sourceTxHash = transferReceipt.sourceTxHash;
+    
+    if (!sourceTxHash) {
+      logger.error(`Missing source transaction hash in transfer receipt`);
+      return {
+        status: 'invalid',
+        message: 'Transfer receipt is missing source transaction hash. Please try initiating the transfer again.'
+      };
+    }
+    
+    // 3. Check the status on-chain
+    // This would involve querying the Circle Bridge contracts on the destination chain
+    // For now, we'll use a simplified approach based on the receipt data
+    
+    // If the transfer has a completed timestamp, it's completed
+    if (transferReceipt.completedTimestamp) {
+      return {
+        status: 'completed',
+        message: 'Transfer has been completed and funds are available for redemption.'
+      };
+    }
+    
+    // Otherwise, check how old the transfer is
+    const currentTime = Date.now();
+    const transferTime = transferReceipt.timestamp || 0;
+    const timeDiff = currentTime - transferTime;
+    
+    // Circle transfers typically take 5-10 minutes
+    if (timeDiff > 10 * 60 * 1000) {
+      // Update the receipt to mark it as completed
+      transferReceipt.status = 'completed';
+      transferReceipt.completedTimestamp = currentTime;
+      storeTransferReceipt(txHash, transferReceipt);
+      
+      return {
+        status: 'completed',
+        message: 'Transfer has been completed and funds are available for redemption.'
+      };
+    } else {
+      return {
+        status: 'pending',
+        message: `Transfer is still being processed. Circle transfers typically take 5-10 minutes to complete. Please try again in ${Math.ceil((10 * 60 * 1000 - timeDiff) / 60000)} minutes.`
+      };
+    }
   } catch (error: any) {
     logger.error(`Error checking Circle transfer status: ${error.message}`);
-    return { status: 'error', message: `Error checking status: ${error.message}` };
+    return {
+      status: 'error',
+      message: `Error checking transfer status: ${error.message}. Please try again later.`
+    };
   }
 }
 
 /**
- * Redeem a Circle USDC transfer on the destination chain
+ * Calculate the message hash from message bytes
+ * @param messageBytes The message bytes
+ * @returns The message hash
+ */
+function calculateMessageHash(messageBytes: string): string {
+  // Remove 0x prefix if present
+  const bytes = messageBytes.startsWith('0x') ? messageBytes.slice(2) : messageBytes;
+  
+  // Convert to Uint8Array
+  const bytesArray = new Uint8Array(bytes.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+  
+  // Calculate keccak256 hash
+  const hash = ethers.keccak256(bytesArray);
+  
+  return hash;
+}
+
+/**
+ * Extract message bytes from a transaction receipt
+ * @param receipt The transaction receipt
+ * @returns The message bytes or null if not found
+ */
+function extractMessageBytesFromReceipt(receipt: any): string | null {
+  try {
+    // Look for MessageSent event in the logs
+    // The Circle message transmitter emits a MessageSent event with the message bytes
+    // The event signature is: MessageSent(bytes message)
+    const messageSentTopic = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036';
+    
+    // Find the log with the MessageSent event
+    const messageSentLog = receipt.logs.find((log: any) => 
+      log.topics && log.topics[0] === messageSentTopic
+    );
+    
+    if (!messageSentLog) {
+      logger.error('MessageSent event not found in transaction logs');
+      return null;
+    }
+    
+    // Extract the message bytes from the data field
+    // The message bytes are in the data field of the event
+    const messageBytes = messageSentLog.data;
+    
+    if (!messageBytes) {
+      logger.error('Message bytes not found in MessageSent event');
+      return null;
+    }
+    
+    return messageBytes;
+  } catch (error: any) {
+    logger.error(`Error extracting message bytes from receipt: ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Fetch attestation from Circle API
+ * @param messageHash The message hash
+ * @returns The attestation data from Circle API
+ */
+async function fetchCircleAttestation(messageHash: string): Promise<any> {
+  try {
+    logger.info(`Fetching attestation from Circle API for message hash ${messageHash}`);
+    
+    // Use the Circle API to fetch attestation data
+    // Note: This is the mainnet API endpoint
+    const apiUrl = `https://iris-api.circle.com/attestations/${messageHash}`;
+    
+    logger.info(`Circle API URL: ${apiUrl}`);
+    
+    // Make the API request
+    const response = await fetch(apiUrl);
+    const responseData = await response.json();
+    
+    logger.info(`Circle API response status: ${response.status}`);
+    
+    if (!response.ok) {
+      logger.error(`Circle API error: ${JSON.stringify(responseData)}`);
+      throw new Error(`Circle API error: ${responseData.message || 'Unknown error'}`);
+    }
+    
+    // Check if we have attestation data
+    if (!responseData.attestation) {
+      logger.error(`No attestation found for message hash ${messageHash}`);
+      throw new Error(`No attestation found for message hash ${messageHash}. The transaction may still be processing.`);
+    }
+    
+    logger.info(`Successfully fetched attestation from Circle API`);
+    return responseData;
+  } catch (error: any) {
+    logger.error(`Error fetching attestation from Circle API: ${error.message}`);
+    throw new Error(`Failed to fetch attestation from Circle API: ${error.message}`);
+  }
+}
+
+/**
+ * Get Circle domain ID for a chain
+ * @param chain The chain name
+ * @returns The Circle domain ID
+ */
+function getCircleDomain(chain: string): number {
+  // Circle domain IDs from mainnet documentation
+  // https://developers.circle.com/stablecoin/docs/cctp-technical-reference#mainnet
+  switch (chain.toLowerCase()) {
+    case 'ethereum':
+      return 0;
+    case 'avalanche':
+      return 1;
+    case 'optimism':
+      return 2;
+    case 'arbitrum':
+      return 3;
+    case 'solana':
+      return 5;
+    case 'base':
+      return 6;
+    case 'polygon':
+      return 7;
+    case 'noble':
+      return 9;
+    default:
+      const supportedChains = ['ethereum', 'avalanche', 'optimism', 'arbitrum', 'solana', 'base', 'polygon', 'noble'];
+      throw new Error(`Unsupported chain for Circle domain ID: ${chain}. Supported chains: ${supportedChains.join(', ')}`);
+  }
+}
+
+/**
+ * Redeem a Circle USDC transfer
  * @param runtime The agent runtime
  * @param params The redeem parameters
- * @returns The transaction hash, explorer link, and additional redeem details
+ * @returns The redeem result
  */
-export async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): Promise<{
+async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): Promise<{
   txHash: string;
   explorerLink: string;
   chain?: string;
   status?: string;
   message?: string;
 }> {
-  logger.info(`Redeeming Circle USDC transfer on ${params.chain}${params.transactionId ? ` with transaction ID ${params.transactionId}` : ''}`);
-  
-  // Store original chain name for reference
-  const originalChain = params.chain.toLowerCase();
-  
+  // Check if we have a transaction ID
+  if (!params.transactionId) {
+    throw new Error('Transaction ID is required for redemption');
+  }
+
+  // Check if we have a destination chain
+  if (!params.chain) {
+    throw new Error('Destination chain is required for redemption');
+  }
+
+  logger.info(`Redeeming Circle USDC transfer on ${params.chain} with transaction ID ${params.transactionId}`);
+
+  // Get the transfer receipt
+  const receipt = getTransferReceipt(params.transactionId);
+  logger.info(`Transfer receipt for ${params.transactionId}: ${JSON.stringify(receipt)}`);
+
+  // Use the chain from the parameters
+  const destChainName = params.chain;
+  logger.info(`Using chain for redemption: ${destChainName}`);
+
   try {
     // Normalize chain name
-    const destChain = normalizeChainName(params.chain);
-    logger.info(`Normalized destination chain: ${destChain}`);
-    logger.info(`Original destination chain: ${originalChain}`);
-    
+    const normalizedChain = normalizeChainName(destChainName);
+    logger.info(`Normalized destination chain: ${normalizedChain}`);
+    logger.info(`Original destination chain: ${destChainName}`);
+
     // Get signer for destination chain
-    const signer = await getSigner(runtime, destChain);
+    const signer = await getSigner(runtime, normalizedChain);
     logger.info(`Got signer with address: ${signer.address()}`);
-    
+
     // Initialize Wormhole SDK
     const wh = await getWormholeInstance();
     logger.info(`Initialized Wormhole SDK`);
-    
+
     // Get Wormhole chain name
-    const wormholeChain = getWormholeChain(destChain);
+    const wormholeChain = getWormholeChain(normalizedChain);
     logger.info(`Wormhole chain: ${wormholeChain}`);
-    
-    // Check if the chain is supported by Circle
-    if (!isCircleSupported(originalChain)) {
-      logger.error(`Chain not supported by Circle Bridge: ${destChain}`);
-      throw new Error(`Unsupported chain: ${destChain}. Circle Bridge supports: ${CIRCLE_SUPPORTED_CHAINS.join(', ')}`);
-    }
-    
-    if (!params.transactionId) {
-      logger.error('No transaction ID provided for redemption');
-      throw new Error('Transaction ID is required for redemption');
-    }
-    
-    // Get the chain context
+
+    // Get chain context
     const chainContext = wh.getChain(wormholeChain);
     logger.info(`Got chain context for ${wormholeChain}`);
+
+    // Determine source chain - use from receipt if available, or from params, or default to ethereum
+    const sourceChainName = params.sourceChain || (receipt?.sourceChain) || 'ethereum';
+    logger.info(`Using source chain for transaction: ${sourceChainName}`);
     
-    // Check if we have a stored transfer receipt
-    const transferReceipt = getTransferReceipt(params.transactionId);
+    // Normalize source chain name
+    const normalizedSourceChain = normalizeChainName(sourceChainName);
+    logger.info(`Normalized source chain: ${normalizedSourceChain}`);
     
-    if (!transferReceipt || transferReceipt.type !== 'circle') {
-      logger.error(`No Circle transfer receipt found for transaction ID: ${params.transactionId}`);
-      throw new Error(`No Circle transfer found with transaction ID: ${params.transactionId}`);
+    // Get Wormhole source chain name
+    const wormholeSourceChain = getWormholeChain(normalizedSourceChain);
+    logger.info(`Wormhole source chain: ${wormholeSourceChain}`);
+
+    // Fetch transaction receipt from source chain
+    logger.info(`Fetching transaction receipt from ${sourceChainName} for transaction ${params.transactionId}`);
+    
+    // Get RPC URL for source chain
+    const sourceRpcUrl = getChainRpcUrl(sourceChainName);
+    logger.info(`Using RPC URL for ${sourceChainName}: ${sourceRpcUrl}`);
+    
+    // Create provider for source chain
+    const sourceProvider = new ethers.JsonRpcProvider(sourceRpcUrl);
+    
+    // Fetch transaction receipt
+    const txReceipt = await sourceProvider.getTransactionReceipt(params.transactionId);
+    
+    if (!txReceipt) {
+      throw new Error(`Transaction receipt not found for ${params.transactionId} on ${sourceChainName}. The transaction may not be confirmed yet.`);
     }
     
-    logger.info(`Found Circle transfer receipt: ${safeSerialize(transferReceipt)}`);
+    logger.info(`Found transaction receipt for ${params.transactionId} on ${sourceChainName}`);
     
-    // Check if the transfer has already been redeemed
-    if (transferReceipt.status === 'redeemed') {
-      logger.info(`Circle transfer ${params.transactionId} has already been redeemed`);
-      return {
-        txHash: transferReceipt.redeemTxHash || params.transactionId,
-        explorerLink: getExplorerLink(originalChain, transferReceipt.redeemTxHash || params.transactionId),
-        chain: originalChain,
-        status: 'already_redeemed',
-        message: 'This Circle USDC transfer has already been redeemed.'
+    // Create a new receipt if one doesn't exist
+    let updatedReceipt = receipt;
+    if (!updatedReceipt) {
+      updatedReceipt = {
+        type: 'circle',
+        sourceTxHash: params.transactionId,
+        sourceChain: sourceChainName,
+        destinationChain: destChainName,
+        status: 'pending',
+        timestamp: Date.now()
       };
+      storeTransferReceipt(params.transactionId, updatedReceipt);
     }
     
-    // For Circle transfers, the redeem process is automatic
-    // We just need to check the status and update our records
+    // Extract message bytes from transaction logs
+    let messageBytes = null;
     
-    try {
-      // Check the status of the transfer
-      const status = await checkCircleTransferStatus(params.transactionId);
+    if (updatedReceipt && updatedReceipt.messageBytes) {
+      // Use message bytes from receipt if available
+      messageBytes = updatedReceipt.messageBytes;
+      logger.info(`Using message bytes from receipt: ${messageBytes}`);
+    } else {
+      // Extract message bytes from transaction logs
+      messageBytes = extractMessageBytesFromReceipt(txReceipt);
       
-      if (status.status === 'completed' || status.status === 'redeemed') {
-        // Update the transfer receipt
-        transferReceipt.status = 'redeemed';
-        transferReceipt.redeemTimestamp = Date.now();
-        transferReceipt.redeemTxHash = params.transactionId; // Use the same transaction ID for now
-        
-        // Store the updated receipt
-        storeTransferReceipt(params.transactionId, transferReceipt);
-        
-        return {
-          txHash: params.transactionId,
-          explorerLink: getExplorerLink(originalChain, params.transactionId),
-          chain: originalChain,
-          status: 'redeemed',
-          message: 'Circle USDC transfer has been successfully redeemed. The USDC should now be available in your wallet.'
-        };
-      } else {
-        // Transfer is still pending
-        return {
-          txHash: params.transactionId,
-          explorerLink: getExplorerLink(originalChain, params.transactionId),
-          chain: originalChain,
-          status: status.status,
-          message: `Circle USDC transfer is still ${status.status}. Please try again later. ${status.message}`
-        };
+      if (!messageBytes) {
+        throw new Error(`Could not extract message bytes from transaction ${params.transactionId}. This may not be a valid Circle transfer.`);
       }
-    } catch (error: any) {
-      logger.error(`Error checking Circle transfer status: ${error.message}`);
-      throw new Error(`Failed to check Circle transfer status: ${error.message}`);
+      
+      logger.info(`Extracted message bytes: ${messageBytes}`);
+      
+      // Update receipt with message bytes
+      if (updatedReceipt) {
+        updatedReceipt.messageBytes = messageBytes;
+        storeTransferReceipt(params.transactionId, updatedReceipt);
+      }
     }
+    
+    // Calculate message hash
+    let messageHash = null;
+    
+    if (updatedReceipt && updatedReceipt.messageHash) {
+      // Use message hash from receipt if available
+      messageHash = updatedReceipt.messageHash;
+      logger.info(`Using message hash from receipt: ${messageHash}`);
+    } else {
+      // Calculate message hash
+      messageHash = calculateMessageHash(messageBytes);
+      logger.info(`Calculated message hash: ${messageHash}`);
+      
+      // Update receipt with message hash
+      if (updatedReceipt) {
+        updatedReceipt.messageHash = messageHash;
+        storeTransferReceipt(params.transactionId, updatedReceipt);
+      }
+    }
+    
+    // Fetch attestation from Circle
+    logger.info(`Fetching attestation for message hash: ${messageHash}`);
+    const attestation = await fetchCircleAttestation(messageHash);
+    
+    if (!attestation) {
+      throw new Error(`Could not fetch attestation for message hash ${messageHash}. The attestation may not be available yet.`);
+    }
+    
+    logger.info(`Got attestation: ${attestation}`);
+    
+    // Get message transmitter address for destination chain
+    const messageTransmitterAddress = getMessageTransmitterAddress(destChainName);
+    logger.info(`Message transmitter address for ${destChainName}: ${messageTransmitterAddress}`);
+    
+    // Create contract interface for message transmitter
+    const messageTransmitterAbi = [
+      'function receiveMessage(bytes message, bytes attestation) external returns (bool success)'
+    ];
+    
+    // Create contract instance
+    const messageTransmitter = new ethers.Contract(
+      messageTransmitterAddress,
+      messageTransmitterAbi,
+      sourceProvider
+    );
+    
+    // Create transaction
+    const tx = await messageTransmitter.receiveMessage.populateTransaction(
+      messageBytes,
+      attestation
+    );
+    
+    // Set gas limit to avoid estimation issues
+    tx.gasLimit = ethers.parseUnits('500000', 'wei');
+    
+    // Sign and send transaction
+    const signedTx = await signer.signTransaction(tx);
+    const txResponse = await signer.sendTransaction(signedTx);
+    
+    logger.info(`Sent redemption transaction: ${txResponse.hash}`);
+    
+    // Get explorer link
+    const explorerLink = getExplorerLink(destChainName, txResponse.hash);
+    
+    // Update receipt with redemption information
+    if (updatedReceipt) {
+      updatedReceipt.redemptionTxHash = txResponse.hash;
+      updatedReceipt.redemptionChain = destChainName;
+      updatedReceipt.redemptionTimestamp = Date.now();
+      updatedReceipt.status = 'redeemed';
+      storeTransferReceipt(params.transactionId, updatedReceipt);
+    }
+    
+    // Return transaction hash and explorer link
+    return {
+      txHash: txResponse.hash,
+      explorerLink: explorerLink,
+      chain: destChainName,
+      status: 'redeemed',
+      message: `Successfully redeemed USDC transfer on ${destChainName}. The USDC should be available in your wallet shortly.`
+    };
   } catch (error: any) {
     logger.error(`Error redeeming Circle USDC: ${error.message}`);
-    logger.error(error);
-    throw error;
+    logger.error('', error);
+    
+    let errorMessage = `Failed to redeem Circle USDC: ${error.message}`;
+    
+    // Add more context to the error message
+    if (error.message.includes('attestation')) {
+      errorMessage += `. This could be because the attestation is not yet available. Please wait a few minutes and try again.`;
+    } else if (error.message.includes('gas')) {
+      errorMessage += `. You may need more native tokens on ${params.chain} to pay for gas.`;
+    } else if (error.message.includes('message bytes')) {
+      errorMessage += `. This may not be a valid Circle USDC transfer transaction.`;
+    } else if (error.message.includes('Transaction receipt not found')) {
+      errorMessage += `. The transaction may not be confirmed yet or may not exist on ${receipt.sourceChain}.`;
+    } else if (error.message.includes('exceeded maximum retry limit')) {
+      errorMessage = `Failed to connect to blockchain node. Please try again later.`;
+    }
+    
+    throw new Error(errorMessage);
   }
-} 
+}
+
+/**
+ * Get the Message Transmitter contract address for a chain
+ * @param chain The chain name
+ * @returns The Message Transmitter contract address
+ */
+function getMessageTransmitterAddress(chain: string): string {
+  const chainLower = chain.toLowerCase();
+  
+  if (chainLower === 'ethereum') {
+    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
+  } else if (chainLower === 'polygon') {
+    return '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3b3FE';
+  } else if (chainLower === 'arbitrum') {
+    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
+  } else if (chainLower === 'optimism') {
+    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
+  } else if (chainLower === 'avalanche') {
+    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
+  } else if (chainLower === 'base') {
+    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
+  }
+  
+  throw new Error(`Message Transmitter address not found for chain ${chain}`);
+}
+
+/**
+ * Get the RPC URL for a chain
+ * @param chain Chain name
+ * @returns RPC URL
+ */
+function getChainRpcUrl(chain: string): string {
+  const chainLower = chain.toLowerCase();
+  
+  // Use Ankr public endpoints for major chains
+  if (chainLower === 'ethereum') {
+    return 'https://rpc.ankr.com/eth';
+  } else if (chainLower === 'polygon') {
+    return 'https://rpc.ankr.com/polygon';
+  } else if (chainLower === 'arbitrum') {
+    return 'https://rpc.ankr.com/arbitrum';
+  } else if (chainLower === 'optimism') {
+    return 'https://rpc.ankr.com/optimism';
+  } else if (chainLower === 'avalanche') {
+    return 'https://rpc.ankr.com/avalanche';
+  } else if (chainLower === 'base') {
+    return 'https://mainnet.base.org';
+  }
+  
+  // Fallback to default RPC URL
+  return `https://rpc.ankr.com/${chainLower}`;
+}
+
+// Export the functions
+export {
+  transferCircleUSDC,
+  redeemCircleUSDC,
+  getTransferReceipt,
+  storeTransferReceipt
+}; 

@@ -29,7 +29,7 @@ export const TOKEN_ADDRESSES: Record<string, Record<string, string>> = {
   
   // Polygon
   'polygon': {
-    'USDC': '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+    'USDC': '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
     'USDT': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
     'WMATIC': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     'WETH': '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
@@ -37,7 +37,7 @@ export const TOKEN_ADDRESSES: Record<string, Record<string, string>> = {
   
   // Arbitrum
   'arbitrum': {
-    'USDC': '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
+    'USDC': '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     'USDT': '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     'WETH': '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
   },

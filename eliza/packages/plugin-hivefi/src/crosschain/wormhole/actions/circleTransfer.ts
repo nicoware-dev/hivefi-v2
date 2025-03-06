@@ -145,13 +145,13 @@ export const circleTransferAction: Action = {
       
       // Send success message with transaction details
       callback?.({
-        text: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\nOnce the transfer is complete, you can check its status by saying "Check my Circle transfer status" or "Redeem my USDC on ${destChain} from Circle Bridge".`
+        text: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\n⚠️ Important: Circle transfers require a two-step process. After the transfer completes (5-10 minutes), you'll need to redeem your USDC on ${destChain} by saying:\n"Redeem my USDC transfer with transaction ID ${result.txHash}"`
       });
       
       // Store the transfer information in the state for later use
       return {
         type: 'text',
-        content: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\nOnce the transfer is complete, you can check its status by saying "Check my Circle transfer status" or "Redeem my USDC on ${destChain} from Circle Bridge".`,
+        content: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\n⚠️ Important: Circle transfers require a two-step process. After the transfer completes (5-10 minutes), you'll need to redeem your USDC on ${destChain} by saying:\n"Redeem my USDC transfer with transaction ID ${result.txHash}"`,
         state: {
           lastCircleTransfer: {
             txHash: result.txHash,

@@ -56,7 +56,45 @@ function isCircleTransferRequest(text: string): boolean {
 }
 
 /**
- * Provider for Circle USDC transfer requests
+ * Check if a message is a Circle redeem request
+ * @param text The message text
+ * @returns True if the message is a Circle redeem request
+ */
+function isCircleRedeemRequest(text: string): boolean {
+  const normalizedText = text.toLowerCase();
+  
+  // Check for redeem keywords
+  const redeemKeywords = ['redeem', 'claim', 'receive', 'get', 'complete', 'finalize'];
+  const hasRedeemKeyword = redeemKeywords.some(keyword => normalizedText.includes(keyword));
+  
+  // Check for USDC keywords
+  const usdcKeywords = ['usdc', 'usd coin', 'circle', 'cctp', 'bridge'];
+  const hasUsdcKeyword = usdcKeywords.some(keyword => normalizedText.includes(keyword));
+  
+  // Check for transaction ID
+  const hasTransactionId = normalizedText.includes('transaction') || 
+                          normalizedText.includes('tx') || 
+                          normalizedText.includes('0x') ||
+                          /transaction id/i.test(normalizedText);
+  
+  // Check for chain specification
+  const chainKeywords = ['on', 'to', 'in', 'at', 'for'];
+  const chainPatterns = chainKeywords.map(keyword => new RegExp(`${keyword} (ethereum|polygon|arbitrum|optimism|avalanche|base|solana|sui|aptos)`, 'i'));
+  const hasChainSpecification = chainPatterns.some(pattern => pattern.test(normalizedText));
+  
+  // Log the detection results
+  logger.info(`Circle redeem detection - Redeem keywords: ${hasRedeemKeyword}, USDC keywords: ${hasUsdcKeyword}, Transaction ID: ${hasTransactionId}, Chain specification: ${hasChainSpecification}`);
+  
+  // Return true if the message has redeem keywords, USDC keywords, and mentions a transaction ID
+  // Or if it explicitly mentions redeeming from Circle or CCTP
+  // Chain specification is encouraged but not required
+  return (hasRedeemKeyword && hasUsdcKeyword && hasTransactionId) || 
+         (hasRedeemKeyword && normalizedText.includes('circle')) ||
+         (hasRedeemKeyword && normalizedText.includes('cctp'));
+}
+
+/**
+ * Provider for Circle USDC transfer and redeem requests
  */
 export const circleProvider = {
   get: async (runtime: IAgentRuntime, message: { content: { text?: string } }) => {
@@ -65,6 +103,16 @@ export const circleProvider = {
     if (isCircleTransferRequest(text)) {
       return {
         action: 'CIRCLE_USDC_TRANSFER',
+        confidence: 0.9,
+        params: {
+          text: message.content.text
+        }
+      };
+    }
+    
+    if (isCircleRedeemRequest(text)) {
+      return {
+        action: 'CIRCLE_USDC_REDEEM',
         confidence: 0.9,
         params: {
           text: message.content.text

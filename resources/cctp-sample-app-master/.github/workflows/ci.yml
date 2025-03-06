@@ -1,0 +1,39 @@
+name: Continuous Integration
+on:
+  pull_request:
+  push:
+    branches: [master]
+jobs:
+  test:
+    name: 'Test'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Install Node 16.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Run Checks
+        run: yarn check-all
+
+      - name: Run Build
+        run: yarn build
+
+      - name: Run Tests
+        run: yarn test:unit:ci
+
+  scan:
+    needs: test
+    if: github.event_name == 'pull_request'
+    uses: circlefin/circle-public-github-workflows/.github/workflows/pr-scan.yaml@v1
+
+  release-sbom:
+    needs: test
+    if: github.event_name == 'push'
+    uses: circlefin/circle-public-github-workflows/.github/workflows/attach-release-assets.yaml@v1

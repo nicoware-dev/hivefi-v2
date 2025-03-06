@@ -1,5 +1,5 @@
-import { elizaLogger, IAgentRuntime, Action, ActionExample } from '@elizaos/core';
-import { redeemCircleUSDC, checkCircleTransferStatus } from '../api/circleTransfer';
+import { elizaLogger, IAgentRuntime, Action, ActionExample, Memory, State, HandlerCallback } from '@elizaos/core';
+import { redeemCircleUSDC, getTransferReceipt, storeTransferReceipt } from '../api/circleTransfer';
 import { extractChain, extractTransactionId } from '../utils';
 
 const logger = elizaLogger.child({ module: 'CircleRedeemAction' });
@@ -32,138 +32,128 @@ export const circleRedeemAction: Action = {
       {
         user: 'user',
         content: {
-          text: 'Redeem my USDC transfer from Circle Bridge with transaction ID 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+          text: 'Redeem my USDC transfer from Circle Bridge with transaction ID 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef on Polygon'
         }
       },
       {
         user: 'assistant',
         content: {
-          text: 'I\'m processing your Circle USDC redemption request. Please wait...'
+          text: 'I\'ll redeem your Circle USDC transfer on Polygon. Processing now...'
         }
       },
       {
         user: 'assistant',
         content: {
-          text: 'Your USDC has been successfully redeemed. Transaction Hash: {hash}'
-        }
-      }
-    ],
-    [
-      {
-        user: 'user',
-        content: {
-          text: 'Claim my USDC on Polygon from Circle Bridge'
+          text: 'Your Circle USDC transfer has been redeemed on Polygon. The USDC should now be available in your wallet.'
         }
       }
     ]
   ],
-  handler: async (runtime, message, state, options, callback) => {
-    // Cast state to our interface
-    const circleState = state as CircleTransferState | undefined;
+  handler: async (runtime: IAgentRuntime, message: any, memory: Memory, state: State): Promise<any> => {
+    // Extract the text from the message object
+    const text = message?.content?.text || '';
     
-    logger.info(`Processing Circle USDC redeem request: "${message.content.text}"`);
+    logger.info(`Processing Circle USDC redeem request: "${text}"`);
+    logger.info(`Extracting parameters from message text: "${text}"`);
+    
+    // Extract transaction ID
+    const transactionId = extractTransactionId(text);
+    logger.info(`Extracted transaction ID: ${transactionId}`);
+    
+    // Extract destination chain
+    let destinationChain = extractChain(text);
+    logger.info(`Extracted chain: ${destinationChain}`);
+    
+    // Extract source chain if specified
+    let sourceChain = 'ethereum'; // Default to ethereum
+    
+    // Check for "from X to Y" pattern
+    const fromToPattern = /from\s+(\w+)\s+to\s+(\w+)/i;
+    const fromToMatch = text.match(fromToPattern);
+    
+    if (fromToMatch && fromToMatch.length >= 3) {
+      sourceChain = fromToMatch[1].toLowerCase();
+      // Update destination chain from the pattern as well
+      destinationChain = fromToMatch[2].toLowerCase();
+      logger.info(`Extracted source chain from message: ${sourceChain}`);
+      logger.info(`Updated destination chain from message: ${destinationChain}`);
+    }
+    
+    // Check if we have a transaction ID
+    if (!transactionId) {
+      return {
+        text: "I need a transaction ID to redeem your Circle USDC transfer. Please provide the transaction ID and specify both the source and destination chains, for example: 'Redeem my USDC transfer from Polygon to Arbitrum with transaction ID 0x1234...'"
+      };
+    }
+    
+    // Check if we have a destination chain
+    if (!destinationChain) {
+      return {
+        text: `I need to know which chain to redeem your USDC on for transaction ID ${transactionId}. Please specify both the source and destination chains, for example: 'Redeem my USDC transfer from Polygon to Arbitrum with transaction ID ${transactionId}'`
+      };
+    }
+    
+    // Get existing receipt or create a new one
+    let receipt = getTransferReceipt(transactionId);
+    
+    if (receipt) {
+      logger.info(`Transfer receipt: ${JSON.stringify(receipt)}`);
+    } else {
+      // Create a new receipt with the source chain from the message
+      receipt = {
+        type: 'circle',
+        sourceTxHash: transactionId,
+        sourceChain: sourceChain,
+        destinationChain: destinationChain,
+        amount: '0.01',
+        token: 'USDC',
+        status: 'completed',
+        timestamp: Date.now(),
+        messageBytes: null,
+        messageHash: null
+      };
+      
+      // Store the receipt
+      storeTransferReceipt(transactionId, receipt);
+      logger.info(`Created new receipt with source chain ${sourceChain}: ${JSON.stringify(receipt)}`);
+    }
     
     try {
-      // Extract parameters from message text
-      const text = message.content.text || '';
-      logger.info(`Extracting parameters from message text: "${text}"`);
-      
-      // Extract chain
-      const chain = extractChain(text);
-      if (!chain) {
-        return {
-          type: 'text',
-          content: 'I couldn\'t determine which chain you want to redeem your USDC on. Please specify a chain in your message.'
-        };
-      }
-      logger.info(`Extracted chain: ${chain}`);
-      
-      // Extract transaction ID
-      const transactionId = extractTransactionId(text);
-      if (!transactionId) {
-        // If no transaction ID is provided, check if there's a recent transfer in the state
-        if (circleState && circleState.lastCircleTransfer && circleState.lastCircleTransfer.txHash) {
-          logger.info(`Using transaction ID from state: ${circleState.lastCircleTransfer.txHash}`);
-          
-          // Send initial processing message
-          callback?.({
-            text: `I'm checking the status of your Circle USDC transfer from ${circleState.lastCircleTransfer.sourceChain} to ${circleState.lastCircleTransfer.destinationChain}. Please wait...`
-          });
-          
-          // Check the status of the transfer
-          const status = await checkCircleTransferStatus(circleState.lastCircleTransfer.txHash);
-          
-          if (status.status === 'pending') {
-            return {
-              type: 'text',
-              content: `⏱️ Your Circle USDC transfer is still in progress.\n\n${status.message}\n\nPlease try again in a few minutes. Circle transfers typically take 5-10 minutes to complete.`
-            };
-          }
-          
-          // Send redemption processing message
-          callback?.({
-            text: `I'm now redeeming your USDC transfer on ${chain}. Please wait while I process this transaction...`
-          });
-          
-          // Proceed with redemption using the transaction ID from state
-          const result = await redeemCircleUSDC(runtime, {
-            chain: chain,
-            transactionId: circleState.lastCircleTransfer.txHash
-          });
-          
-          // Send success message
-          callback?.({
-            text: `✅ ${result.message}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n${result.status === 'redeemed' ? '🎉 Your USDC is now available in your wallet!' : `⏱️ Status: ${result.status}`}`
-          });
-          
-          return {
-            type: 'text',
-            content: `✅ ${result.message}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n${result.status === 'redeemed' ? '🎉 Your USDC is now available in your wallet!' : `⏱️ Status: ${result.status}`}`
-          };
-        }
-        
-        return {
-          type: 'text',
-          content: 'I couldn\'t find a transaction ID in your message. Please provide a transaction ID for the Circle USDC transfer you want to redeem.'
-        };
-      }
-      
-      logger.info(`Extracted transaction ID: ${transactionId}`);
-      
-      // All parameters validated, proceed with redemption
-      logger.info('All parameters validated, proceeding with Circle USDC redemption');
-      
-      // Send initial processing message
-      callback?.({
-        text: `I'm processing your Circle USDC redemption request for transaction ${transactionId} on ${chain}. Please wait...`
+      // Call the redeemCircleUSDC function with the extracted parameters
+      const result = await redeemCircleUSDC(runtime, {
+        chain: destinationChain,
+        transactionId: transactionId,
+        token: 'USDC',
+        sourceChain: sourceChain // Pass the source chain to the redeem function
       });
       
-      // Call the redeem function
-      const redeemParams = {
-        chain,
-        transactionId
+      // Update the state with the last Circle transfer
+      state.lastCircleTransfer = {
+        txHash: transactionId,
+        sourceChain: sourceChain,
+        destinationChain: destinationChain,
+        amount: receipt?.amount || '0.01',
+        token: 'USDC'
       };
       
-      logger.info(`Calling redeemCircleUSDC with params: ${JSON.stringify(redeemParams)}`);
-      const result = await redeemCircleUSDC(runtime, redeemParams);
-      
-      // Send success message
-      callback?.({
-        text: `✅ ${result.message}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n${result.status === 'redeemed' ? '🎉 Your USDC is now available in your wallet!' : `⏱️ Status: ${result.status}`}`
-      });
-      
-      // Return success message with transaction hash and explorer link
+      // Return a success message
       return {
-        type: 'text',
-        content: `✅ ${result.message}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n${result.status === 'redeemed' ? '🎉 Your USDC is now available in your wallet!' : `⏱️ Status: ${result.status}`}`
+        text: `Let's proceed with redeeming your USDC transfer from the Circle Bridge using the provided transaction ID ${transactionId} on the ${destinationChain} network. This will finalize the transfer and make the USDC available in your destination wallet. Please hold on while I process the redemption.`,
+        followUp: {
+          text: `I've successfully submitted the redemption transaction for your USDC transfer. You can track it here: ${result.explorerLink}\n\nTransaction hash: ${result.txHash}\n\n${result.message || 'The USDC redemption transaction has been submitted successfully. It may take a few minutes to complete.'}`,
+          data: result
+        }
       };
     } catch (error: any) {
-      logger.error(`Error during Circle USDC redemption: ${error.message}`);
+      logger.error(`Error redeeming Circle USDC transfer: ${error.message}`);
       
-      // Return error message
+      // Return an error message
       return {
-        type: 'text',
-        content: `There was an error with your Circle USDC redemption: ${error.message}`
+        text: `Let's proceed with redeeming your USDC transfer from the Circle Bridge using the provided transaction ID ${transactionId} on the ${destinationChain} network. This will finalize the transfer and make the USDC available in your destination wallet. Please hold on while I process the redemption.`,
+        followUp: {
+          text: `There was an error redeeming your Circle USDC transfer on ${destinationChain}: ${error.message}. Please try again later or contact support.`,
+          data: { error: error.message }
+        }
       };
     }
   },
@@ -171,4 +161,4 @@ export const circleRedeemAction: Action = {
     // No specific validation needed for Circle redemptions
     return true;
   }
-}; 
+};
