@@ -1,12 +1,18 @@
-import { transfer } from './transfer';
-import { erc20Transfer } from './erc20Transfer';
-import { portfolio } from './portfolio';
-import { swap as beetsSwap } from './beets-dex/swap';
-import { addLiquidity as beetsAddLiquidity } from './beets-dex/add-liquidity';
-import { deposit as siloDeposit } from './silo-lending/deposit';
-import { borrow as siloBorrow } from './silo-lending/borrow';
-import { repay as siloRepay } from './silo-lending/repay';
-import { withdraw as siloWithdraw } from './silo-lending/withdraw';
+import type { Plugin } from "@elizaos/core";
+import { transfer } from "./transfer";
+import { erc20Transfer } from "./erc20Transfer";
+import { portfolio } from "./portfolio";
+/* import { swap } from "./actions/beets-dex/swap";
+ */import { swapv2 } from "./beets-dex/swapv2";
+import { deposit } from "./silo-lending/deposit";
+import { withdraw } from "./silo-lending/withdraw";
+import { borrow } from "./silo-lending/borrow";
+import { repay } from "./silo-lending/repay";
+import { stake } from "./beets-lst/stake";
+import { unstake } from "./beets-lst/unstake";
+import { withdraw as withdrawBeetsLst } from "./beets-lst/withdraw";
+import { bridge } from "./debridge/bridge";
+import { claim } from "./debridge/claim";
 
 export const actions = [
   // Native token transfers
@@ -19,14 +25,22 @@ export const actions = [
   portfolio,
   
   // Beets DEX operations
-  beetsSwap,
-  beetsAddLiquidity,
+  swapv2,
   
   // Silo Finance lending operations
-  siloDeposit,
-  siloBorrow,
-  siloRepay,
-  siloWithdraw,
+  deposit,
+  borrow,
+  repay,
+  withdraw,
+  
+  // Beets LST operations
+  stake,
+  unstake,
+  withdrawBeetsLst,
+  
+/*   // Debridge operations
+  bridge,
+  claim, */
 ];
 
 export default actions; 

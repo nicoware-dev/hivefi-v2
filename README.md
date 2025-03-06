@@ -240,11 +240,11 @@ pnpm build
 # Start a single agent (Recommended for testing)
 pnpm start --characters="characters/demo-agent.character.json"
 
-# Start demo agents (3)
-pnpm start --characters="characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/web3-advisor-agent.character.json"
+# Start demo agents (7) (Private+Internal)
+pnpm start --characters="characters/demo-agent.character.json,characters/meme-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json,characters/crosschain-agent.character.json,characters/analytics-agent.character.json"
 
-# Start all agents
-pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/cross-chain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json"
+# Start all agents (13) (Public+Private+Internal)
+pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/crosschain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json"
 ```
 
 ### Running the Web Client
@@ -269,29 +269,36 @@ Tell me about Sonic Chain.
 ### Market Data
 ```
 Get prices for ETH, BTC, MNT, and S
-Show me TVL metrics for Mantle and Sonic
-What are the top protocols on Mantle by TVL?
+What's Uniswap's TVL on Arbitrum?
+Show TVL for Uniswap, Aave, and Curve
+Show me global DeFi stats
+Show me top pools on Arbitrum
 ```
 
 ### Wallet Operations
 ```
-Show me my wallet balances across all chains
-Show my portfolio
+Show me my Mantle wallet address and balances
+Show me detailed positions in my portfolio for 0xfb0eb7294e39bb7b0aa6c7ec294be2c968656fb0 across all chains
 ```
 
-### Token Transfers
+### Multichain Token Transfers
 ```
-Send 0.1 MNT to 0x123...
-Send 0.01 S to 0x456...
-Transfer 0.001 BTC to bc1q...
+Send 0.1 MNT to 0xF12d64817029755853bc74a585EcD162f63c5f84 on Mantle
+Send 0.01 S to 0xF12d64817029755853bc74a585EcD162f63c5f84 on Sonic
+Transfer 0.001 USDC on Arbitrum to 0xF12d64817029755853bc74a585EcD162f63c5f84
 ```
 
-### DeFi Operations
+### Multichain DeFi Operations
 ```
-Swap 0.1 MNT for USDC on Merchant Moe
-Supply 0.1 USDC to Lendle
-Borrow 0.01 USDT from Silo Finance
-Bridge 0.1 USDC from Mantle to Sonic using Wormhole
+Swap 0.1 MNT for USDC on Merchant Moe on Mantle
+Supply 0.1 USDC to Lendle on Mantle
+Stake 0.1 S with Beets LST on Sonic
+```
+
+### Cross-Chain Operations
+```
+Transfer 0.01 USDC from Polygon to Arbitrum via Circle Bridge
+Send 0.01 USDC from Arbitrum to Polygon using Circle Bridge
 ```
 
 ## 🔍 Important Notes
