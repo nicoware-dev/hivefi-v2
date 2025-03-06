@@ -2,7 +2,7 @@ import { sendETH } from "@goat-sdk/wallet-evm";
 import { getOnChainTools } from "@goat-sdk/adapter-vercel-ai";
 import { parseChainFromPrompt } from "../utils/chain-utils";
 import { MultichainWalletProvider } from "../providers/wallet-provider";
-import { generateText, ModelClass, IAgentRuntime, Memory, State } from "@elizaos/core";
+import { generateText, ModelClass, IAgentRuntime, Memory, State, ActionExample, Handler } from "@elizaos/core";
 
 type ActionCallback = (response: { text: string; content: Record<string, unknown> }) => void;
 
@@ -18,15 +18,54 @@ export function createTransferAction() {
     ],
     validate: async () => true,
     examples: [
-      "Transfer 0.01 ETH on Arbitrum to 0x123...",
-      "Send 0.5 MATIC on Polygon to 0xabc...",
-      "Transfer 0.1 ETH from my wallet to 0x456... on Optimism",
-    ],
+      [
+        {
+          user: "user1",
+          content: {
+            text: "Transfer 0.01 ETH on Arbitrum to 0x123..."
+          }
+        },
+        {
+          user: "assistant",
+          content: {
+            text: "I'll help you transfer 0.01 ETH on Arbitrum to 0x123... Let me process that transaction for you."
+          }
+        }
+      ],
+      [
+        {
+          user: "user1",
+          content: {
+            text: "Send 0.5 MATIC on Polygon to 0xabc..."
+          }
+        },
+        {
+          user: "assistant",
+          content: {
+            text: "I'll help you send 0.5 MATIC on the Polygon network to 0xabc... I'll process that transaction now."
+          }
+        }
+      ],
+      [
+        {
+          user: "user1",
+          content: {
+            text: "Transfer 0.1 ETH from my wallet to 0x456... on Optimism"
+          }
+        },
+        {
+          user: "assistant",
+          content: {
+            text: "I'll help you transfer 0.1 ETH on Optimism to 0x456... Processing the transaction now."
+          }
+        }
+      ]
+    ] as ActionExample[][],
     handler: async (
       runtime: IAgentRuntime, 
       message: Memory, 
-      state: State | null, 
-      options: Record<string, unknown>, 
+      state?: State, 
+      options: Record<string, unknown> = {}, 
       callback?: ActionCallback
     ) => {
       let currentState = state ?? (await runtime.composeState(message));
@@ -94,21 +133,17 @@ function composeActionContext(
   state: State,
   chainId: string
 ): string {
-  // Implementation similar to the one in the example
   return `Action: ${actionName}\nDescription: ${actionDescription}\nChain: ${chainId}`;
 }
 
 function composeResponseContext(result: string, state: State): string {
-  // Implementation similar to the one in the example
   return `Result: ${result}`;
 }
 
 function composeErrorResponseContext(errorMessage: string, state: State): string {
-  // Implementation similar to the one in the example
   return `Error: ${errorMessage}`;
 }
 
 async function generateResponse(runtime: IAgentRuntime, context: string): Promise<string> {
-  // Implementation similar to the one in the example
   return context;
 } 

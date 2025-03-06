@@ -2,8 +2,11 @@ import { erc20 } from "@goat-sdk/plugin-erc20";
 import { getOnChainTools } from "@goat-sdk/adapter-vercel-ai";
 import { parseChainFromPrompt } from "../utils/chain-utils";
 import { MultichainWalletProvider } from "../providers/wallet-provider";
+import { generateText, ModelClass, IAgentRuntime, Memory, State, ActionExample, Handler } from "@elizaos/core";
 
-export async function createTokenTransferAction(walletProvider: MultichainWalletProvider) {
+type ActionCallback = (response: { text: string; content: Record<string, unknown> }) => void;
+
+export function createTokenTransferAction() {
   return {
     name: "TRANSFER_ERC20_TOKEN",
     description: "Transfer ERC-20 tokens on any supported chain",
@@ -15,17 +18,71 @@ export async function createTokenTransferAction(walletProvider: MultichainWallet
     ],
     validate: async () => true,
     examples: [
-      "Send 10 USDC on Optimism to 0x123...",
-      "Transfer 5 DAI on Ethereum to 0xabc...",
-      "Send 100 USDT from my wallet to 0x456... on Arbitrum",
-    ],
-    handler: async (runtime, message, state, options, callback) => {
+      [
+        {
+          user: "user1",
+          content: {
+            text: "Send 10 USDC on Optimism to 0x123..."
+          }
+        },
+        {
+          user: "assistant",
+          content: {
+            text: "I'll help you send 10 USDC on Optimism to 0x123... Let me process that transaction for you."
+          }
+        }
+      ],
+      [
+        {
+          user: "user1",
+          content: {
+            text: "Transfer 5 DAI on Ethereum to 0xabc..."
+          }
+        },
+        {
+          user: "assistant",
+          content: {
+            text: "I'll help you transfer 5 DAI on Ethereum to 0xabc... I'll process that transaction now."
+          }
+        }
+      ],
+      [
+        {
+          user: "user1",
+          content: {
+            text: "Send 100 USDT from my wallet to 0x456... on Arbitrum"
+          }
+        },
+        {
+          user: "assistant",
+          content: {
+            text: "I'll help you send 100 USDT on Arbitrum to 0x456... Processing the transaction now."
+          }
+        }
+      ]
+    ] as ActionExample[][],
+    handler: async (
+      runtime: IAgentRuntime, 
+      message: Memory, 
+      state?: State, 
+      options: Record<string, unknown> = {}, 
+      callback?: ActionCallback
+    ) => {
       let currentState = state ?? (await runtime.composeState(message));
       currentState = await runtime.updateRecentMessageState(currentState);
 
       try {
+        // Get private key from runtime settings
+        const privateKey = runtime.getSetting("EVM_PRIVATE_KEY");
+        if (!privateKey) {
+          throw new Error("EVM_PRIVATE_KEY not configured");
+        }
+
+        // Initialize wallet provider
+        const walletProvider = new MultichainWalletProvider(privateKey);
+        
         // Extract chain from the prompt
-        const prompt = message.content;
+        const prompt = message.content?.text ?? "";
         const chainId = parseChainFromPrompt(prompt);
         const wallet = walletProvider.getWallet(chainId);
         
@@ -68,4 +125,25 @@ export async function createTokenTransferAction(walletProvider: MultichainWallet
       }
     },
   };
+}
+
+function composeActionContext(
+  actionName: string,
+  actionDescription: string,
+  state: State,
+  chainId: string
+): string {
+  return `Action: ${actionName}\nDescription: ${actionDescription}\nChain: ${chainId}`;
+}
+
+function composeResponseContext(result: string, state: State): string {
+  return `Result: ${result}`;
+}
+
+function composeErrorResponseContext(errorMessage: string, state: State): string {
+  return `Error: ${errorMessage}`;
+}
+
+async function generateResponse(runtime: IAgentRuntime, context: string): Promise<string> {
+  return context;
 } 

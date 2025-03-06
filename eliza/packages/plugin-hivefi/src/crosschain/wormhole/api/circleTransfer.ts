@@ -342,7 +342,7 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         amount: params.amount,
         token: 'USDC',
         status: 'initiated',
-        message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete. After that, you'll need to redeem your USDC on ${originalDestChain} by saying "Redeem my USDC transfer with transaction ID ${txHash}".`,
+        message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete. After that, you'll need to redeem your USDC on ${originalDestChain} by saying "Redeem my USDC transfer from ${originalSourceChain} to ${originalDestChain} with transaction ID ${txHash}".`,
         estimatedTime: '5-10 minutes'
       };
     } catch (error: any) {
