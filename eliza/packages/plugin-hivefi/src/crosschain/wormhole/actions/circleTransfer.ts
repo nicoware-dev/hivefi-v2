@@ -23,6 +23,18 @@ export const circleTransferAction: Action = {
         content: {
           text: 'Transfer 10 USDC from Ethereum to Polygon using Circle Bridge'
         }
+      },
+      {
+        user: 'assistant',
+        content: {
+          text: 'The Circle USDC transfer has been initiated. You will receive a confirmation once the transaction is complete.'
+        }
+      },
+      {
+        user: 'assistant',
+        content: {
+          text: '10 USDC transferred from Ethereum to Polygon via Circle Bridge. Transaction Hash: {hash}'
+        }
       }
     ],
     [
@@ -34,7 +46,7 @@ export const circleTransferAction: Action = {
       }
     ]
   ],
-  handler: async (runtime, message, state) => {
+  handler: async (runtime, message, state, options, callback) => {
     logger.info(`Processing Circle USDC transfer request: "${message.content.text}"`);
     
     try {
@@ -115,6 +127,11 @@ export const circleTransferAction: Action = {
       // All parameters validated, proceed with transfer
       logger.info('All parameters validated, proceeding with Circle USDC transfer');
       
+      // Send initial confirmation message
+      callback?.({
+        text: `I'm initiating a Circle USDC transfer of ${amount} USDC from ${sourceChain} to ${destChain}. Please wait while I process this transaction...`
+      });
+      
       // Call the transfer function
       const transferParams = {
         sourceChain,
@@ -126,10 +143,24 @@ export const circleTransferAction: Action = {
       logger.info(`Calling transferCircleUSDC with params: ${JSON.stringify(transferParams)}`);
       const result = await transferCircleUSDC(runtime, transferParams);
       
-      // Return success message with transaction hash and explorer link
+      // Send success message with transaction details
+      callback?.({
+        text: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\nOnce the transfer is complete, you can check its status by saying "Check my Circle transfer status" or "Redeem my USDC on ${destChain} from Circle Bridge".`
+      });
+      
+      // Store the transfer information in the state for later use
       return {
         type: 'text',
-        content: `I've initiated a Circle USDC transfer of ${amount} USDC from ${sourceChain} to ${destChain}. You can track the transaction here: ${result.explorerLink}\n\nTransaction hash: ${result.txHash}\n\nPlease note that Circle transfers typically take 5-10 minutes to complete.`
+        content: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\nOnce the transfer is complete, you can check its status by saying "Check my Circle transfer status" or "Redeem my USDC on ${destChain} from Circle Bridge".`,
+        state: {
+          lastCircleTransfer: {
+            txHash: result.txHash,
+            sourceChain: sourceChain,
+            destinationChain: destChain,
+            amount: amount,
+            token: 'USDC'
+          }
+        }
       };
     } catch (error: any) {
       logger.error(`Error during Circle USDC transfer: ${error.message}`);

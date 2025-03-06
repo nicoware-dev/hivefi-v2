@@ -1,5 +1,5 @@
 import { elizaLogger, IAgentRuntime } from '@elizaos/core';
-import { TransferParams } from '../types';
+import { TransferParams, RedeemParams } from '../types';
 import { getSigner, getBalance } from '../utils/wallet';
 import { normalizeChainName } from '../utils/chain';
 import { getWormholeInstance } from './instance';
@@ -122,12 +122,21 @@ function createChainAddress(chain: Chain, address: string) {
 
 /**
  * Transfer USDC from one chain to another using Circle Bridge
- * 
  * @param runtime The agent runtime
  * @param params The transfer parameters
- * @returns The transaction hash and explorer link
+ * @returns The transaction hash, explorer link, and additional transfer details
  */
-export async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams): Promise<{txHash: string, explorerLink: string}> {
+export async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams): Promise<{
+  txHash: string;
+  explorerLink: string;
+  sourceChain?: string;
+  destinationChain?: string;
+  amount?: string;
+  token?: string;
+  status?: string;
+  message?: string;
+  estimatedTime?: string;
+}> {
   const tokenName = params.token || 'USDC';
   
   // Verify that we're transferring USDC
@@ -284,7 +293,10 @@ export async function transferCircleUSDC(runtime: IAgentRuntime, params: Transfe
           amount: params.amount,
           timestamp: Date.now(),
           status: 'initiated',
-          txHash: srcTxids[0]
+          txHash: srcTxids[0],
+          sourceAddress: signerAddress,
+          destinationAddress: signerAddress,
+          tokenAddress: tokenAddress
         };
         
         storeTransferReceipt(srcTxids[0], receipt);
@@ -292,7 +304,19 @@ export async function transferCircleUSDC(runtime: IAgentRuntime, params: Transfe
         // Return the first transaction ID and explorer link
         const txHash = srcTxids[0];
         const explorerLink = getExplorerLink(originalSourceChain, txHash);
-        return { txHash, explorerLink };
+        
+        // Return additional information for better user experience
+        return { 
+          txHash, 
+          explorerLink,
+          sourceChain: originalSourceChain,
+          destinationChain: originalDestChain,
+          amount: params.amount,
+          token: 'USDC',
+          status: 'initiated',
+          message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete.`,
+          estimatedTime: '5-10 minutes'
+        };
       } catch (error: any) {
         logger.error(`Error initiating Circle transfer: ${error.message}`);
         logger.error(error);
@@ -359,5 +383,122 @@ export async function checkCircleTransferStatus(txHash: string): Promise<{status
   } catch (error: any) {
     logger.error(`Error checking Circle transfer status: ${error.message}`);
     return { status: 'error', message: `Error checking status: ${error.message}` };
+  }
+}
+
+/**
+ * Redeem a Circle USDC transfer on the destination chain
+ * @param runtime The agent runtime
+ * @param params The redeem parameters
+ * @returns The transaction hash, explorer link, and additional redeem details
+ */
+export async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): Promise<{
+  txHash: string;
+  explorerLink: string;
+  chain?: string;
+  status?: string;
+  message?: string;
+}> {
+  logger.info(`Redeeming Circle USDC transfer on ${params.chain}${params.transactionId ? ` with transaction ID ${params.transactionId}` : ''}`);
+  
+  // Store original chain name for reference
+  const originalChain = params.chain.toLowerCase();
+  
+  try {
+    // Normalize chain name
+    const destChain = normalizeChainName(params.chain);
+    logger.info(`Normalized destination chain: ${destChain}`);
+    logger.info(`Original destination chain: ${originalChain}`);
+    
+    // Get signer for destination chain
+    const signer = await getSigner(runtime, destChain);
+    logger.info(`Got signer with address: ${signer.address()}`);
+    
+    // Initialize Wormhole SDK
+    const wh = await getWormholeInstance();
+    logger.info(`Initialized Wormhole SDK`);
+    
+    // Get Wormhole chain name
+    const wormholeChain = getWormholeChain(destChain);
+    logger.info(`Wormhole chain: ${wormholeChain}`);
+    
+    // Check if the chain is supported by Circle
+    if (!isCircleSupported(originalChain)) {
+      logger.error(`Chain not supported by Circle Bridge: ${destChain}`);
+      throw new Error(`Unsupported chain: ${destChain}. Circle Bridge supports: ${CIRCLE_SUPPORTED_CHAINS.join(', ')}`);
+    }
+    
+    if (!params.transactionId) {
+      logger.error('No transaction ID provided for redemption');
+      throw new Error('Transaction ID is required for redemption');
+    }
+    
+    // Get the chain context
+    const chainContext = wh.getChain(wormholeChain);
+    logger.info(`Got chain context for ${wormholeChain}`);
+    
+    // Check if we have a stored transfer receipt
+    const transferReceipt = getTransferReceipt(params.transactionId);
+    
+    if (!transferReceipt || transferReceipt.type !== 'circle') {
+      logger.error(`No Circle transfer receipt found for transaction ID: ${params.transactionId}`);
+      throw new Error(`No Circle transfer found with transaction ID: ${params.transactionId}`);
+    }
+    
+    logger.info(`Found Circle transfer receipt: ${safeSerialize(transferReceipt)}`);
+    
+    // Check if the transfer has already been redeemed
+    if (transferReceipt.status === 'redeemed') {
+      logger.info(`Circle transfer ${params.transactionId} has already been redeemed`);
+      return {
+        txHash: transferReceipt.redeemTxHash || params.transactionId,
+        explorerLink: getExplorerLink(originalChain, transferReceipt.redeemTxHash || params.transactionId),
+        chain: originalChain,
+        status: 'already_redeemed',
+        message: 'This Circle USDC transfer has already been redeemed.'
+      };
+    }
+    
+    // For Circle transfers, the redeem process is automatic
+    // We just need to check the status and update our records
+    
+    try {
+      // Check the status of the transfer
+      const status = await checkCircleTransferStatus(params.transactionId);
+      
+      if (status.status === 'completed' || status.status === 'redeemed') {
+        // Update the transfer receipt
+        transferReceipt.status = 'redeemed';
+        transferReceipt.redeemTimestamp = Date.now();
+        transferReceipt.redeemTxHash = params.transactionId; // Use the same transaction ID for now
+        
+        // Store the updated receipt
+        storeTransferReceipt(params.transactionId, transferReceipt);
+        
+        return {
+          txHash: params.transactionId,
+          explorerLink: getExplorerLink(originalChain, params.transactionId),
+          chain: originalChain,
+          status: 'redeemed',
+          message: 'Circle USDC transfer has been successfully redeemed. The USDC should now be available in your wallet.'
+        };
+      } else {
+        // Transfer is still pending
+        return {
+          txHash: params.transactionId,
+          explorerLink: getExplorerLink(originalChain, params.transactionId),
+          chain: originalChain,
+          status: status.status,
+          message: `Circle USDC transfer is still ${status.status}. Please try again later. ${status.message}`
+        };
+      }
+    } catch (error: any) {
+      logger.error(`Error checking Circle transfer status: ${error.message}`);
+      throw new Error(`Failed to check Circle transfer status: ${error.message}`);
+    }
+  } catch (error: any) {
+    logger.error(`Error redeeming Circle USDC: ${error.message}`);
+    logger.error(error);
+    throw error;
   }
 } 
