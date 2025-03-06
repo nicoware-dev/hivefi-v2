@@ -7,6 +7,8 @@ The Analytics Module provides real-time market data, price information, and anal
 The Analytics Module includes the following key components:
 
 - **CoinGecko Integration**: Real-time price data for tokens across multiple chains
+- **DefiLlama Integration**: Total Value Locked (TVL) tracking across chains and protocols
+- **GeckoTerminal Integration**: DEX analytics, pool data, and trading volumes
 - **Market Data**: Comprehensive market information including prices, market caps, and trading volumes
 - **Cross-Chain Analytics**: Data aggregation across Mantle, Sonic, and other supported chains
 
@@ -14,122 +16,218 @@ The Analytics Module includes the following key components:
 
 The CoinGecko integration provides real-time price data and market information for a wide range of cryptocurrencies and tokens across multiple blockchains.
 
-### Supported Tokens
+### Key Features
+- Real-time token price data
+- Market capitalization information
+- 24-hour trading volume statistics
+- Price change tracking (24-hour)
+- Support for hundreds of cryptocurrencies and tokens
 
-The module supports tokens from various chains, including:
+For detailed information, see the [CoinGecko Module Documentation](coingecko.md).
 
-- **Mantle Network**: MNT, WMNT
-- **Sonic Chain**: S, WS
-- **Ethereum**: ETH, WETH
-- **Bitcoin**: BTC, WBTC
-- **Stablecoins**: USDC, USDT, DAI, BUSD, TUSD
-- **Major Layer 1s**: BNB, SOL, ADA, AVAX, DOT, MATIC, NEAR, ATOM, FTM, ARB, OP
-- **DeFi Tokens**: UNI, AAVE, LINK, CRV, MKR, COMP, SUSHI, CAKE, SNX, 1INCH
-- **Other Popular Tokens**: DOGE, SHIB, APE, GRT, LDO, MANA, SAND, AXS
+## DefiLlama Integration
 
-### Actions
+The DefiLlama integration provides comprehensive DeFi analytics by tracking Total Value Locked (TVL) across multiple chains and protocols.
+
+### Key Features
+- Chain TVL tracking
+- Protocol TVL analysis
+- Multi-chain TVL comparison
+- Protocol TVL by chain analysis
+- Global DeFi statistics
+
+For detailed information, see the [DefiLlama Module Documentation](defillama.md).
+
+## GeckoTerminal Integration
+
+The GeckoTerminal integration provides comprehensive DEX analytics by tracking liquidity pools, trading volumes, and token prices across multiple networks.
+
+### Key Features
+- Multi-chain pool analytics
+- Pool TVL tracking
+- 24h volume analysis
+- Fee generation metrics
+- Token price tracking
+
+For detailed information, see the [GeckoTerminal Module Documentation](geckoterminal.md).
+
+## Analytics Actions
+
+### Token Price Actions
 
 #### GET_TOKEN_PRICE
 
 Retrieves the current price and market data for a specific cryptocurrency or token.
 
-```typescript
-// Example usage
-await analyticsAgent.execute('GET_TOKEN_PRICE', {
-  denom: 'mnt'
-});
+**Example Prompts:**
+```
+What's the current price of ETH?
+Show me the price of Bitcoin
+How much is MNT worth right now?
+What's the current value of USDC?
 ```
 
-**Similes**: `PRICE_OF_TOKEN`, `TOKEN_PRICE`, `CRYPTO_PRICE`, `CHECK_PRICE`
-
-**Parameters**:
-- `denom`: Token symbol to query (e.g., "mnt", "s", "eth", "btc", "usdc")
-
-**Returns**:
-- Current price in USD
-- Market cap
-- 24h trading volume
-- 24h price change
-- 24h price change percentage
-
-**Example Response**:
+**Response Example:**
 ```
-The current price of MNT (Mantle) is $0.75 USD. This represents a 2.5% increase in the last 24 hours. The current market cap is $2.5B with a 24h trading volume of $150M.
-```
-
-**Example Prompts for Testing**:
-```
-What's the current price of MNT?
-```
-```
-Show me the ETH price
-```
-```
-How much is Bitcoin worth right now?
-```
-```
-What's the price of S token?
+Bitcoin (BTC) Price Information:
+💰 Current Price: $68,245.32
+📊 Market Cap: $1.34T
+📈 24h Volume: $28.7B
+📉 24h Change: -1.2% (-$832.67)
 ```
 
 #### GET_MULTIPLE_TOKEN_PRICES
 
 Retrieves current prices and market data for multiple cryptocurrencies or tokens at once.
 
-```typescript
-// Example usage
-await analyticsAgent.execute('GET_MULTIPLE_TOKEN_PRICES', {
-  denoms: ['mnt', 's', 'eth', 'btc', 'usdc']
-});
+**Example Prompts:**
 ```
-
-**Similes**: `COMPARE_PRICES`, `MULTIPLE_PRICES`, `PRICE_COMPARISON`, `CRYPTO_PRICES`
-
-**Parameters**:
-- `denoms`: Array of token symbols to query (e.g., ["mnt", "s", "eth", "btc", "usdc"])
-
-**Returns**:
-- Current prices in USD
-- Market caps
-- 24h trading volumes
-- 24h price changes
-- 24h price change percentages
-
-**Example Response**:
-```
-Here are the current prices:
-
-- BTC (Bitcoin): $65,432.10 USD (+1.5% in 24h)
-- ETH (Ethereum): $3,245.67 USD (-1.2% in 24h)
-- MNT (Mantle): $0.75 USD (+2.5% in 24h)
-- S (Sonic): $0.42 USD (+0.8% in 24h)
-- USDC (USD Coin): $1.00 USD (0.0% in 24h)
-```
-
-**Example Prompts for Testing**:
-```
-What are the prices of BTC, ETH, MNT, and S?
-```
-```
+Show me prices for ETH, BTC, and MNT
+What are the current prices of Bitcoin, Ethereum, and Solana?
 Compare prices for USDC, USDT, and DAI
-```
-```
-Show me the current prices of Mantle, Sonic, and Ethereum
-```
-```
-Get the prices for Bitcoin, Ethereum, Sonic and Mantle
+Get market data for MNT, S, and ETH
 ```
 
-### Natural Language Processing
+**Response Example:**
+```
+Current Cryptocurrency Prices:
 
-The CoinGecko integration includes advanced natural language processing capabilities to extract token symbols from user messages. This allows users to query token prices using various formats:
+Bitcoin (BTC):
+💰 Price: $68,245.32
+📊 Market Cap: $1.34T
+📈 24h Volume: $28.7B
+📉 24h Change: -1.2% (-$832.67)
+
+Ethereum (ETH):
+💰 Price: $3,456.78
+📊 Market Cap: $415.2B
+📈 24h Volume: $12.3B
+📉 24h Change: -0.8% (-$28.12)
+
+Mantle (MNT):
+💰 Price: $0.75
+📊 Market Cap: $2.5B
+📈 24h Volume: $125.4M
+📈 24h Change: +5.2% (+$0.037)
+```
+
+### TVL Actions
+
+#### GET_CHAIN_TVL
+
+Gets the current TVL and related metrics for a specific blockchain.
+
+**Example Prompts:**
+```
+What's the TVL of Ethereum?
+Show me Mantle's TVL
+Get the TVL for Arbitrum
+What's the total value locked in Optimism?
+```
+
+**Response Example:**
+```
+Ethereum Chain TVL: $123.45B
+24h Change: +2.5%
+7d Change: -1.2%
+```
+
+#### GET_PROTOCOL_TVL
+
+Gets the current TVL for a specific DeFi protocol.
+
+**Example Prompts:**
+```
+What's the TVL of Uniswap?
+Show me Aave's TVL
+Get the TVL for Curve
+What's the total value locked in MakerDAO?
+```
+
+**Response Example:**
+```
+Uniswap Protocol TVL: $4.1B
+24h Change: +1.2%
+7d Change: +3.5%
+```
+
+### DEX Analytics Actions
+
+#### GET_TRENDING_POOLS
+
+Gets trending pools across all networks or for a specific network.
+
+**Example Prompts:**
+```
+Show me trending pools
+What are the trending pools on Arbitrum?
+Get hot pools on Mantle
+Show popular pools on Optimism
+```
+
+**Response Example:**
+```
+# Trending Pools Across All Networks
+
+## USDC/WETH Pool
+- TVL: $10.5M
+- 24h Volume: $5.2M
+- 24h Fees Generated: $15.6K
+- 24h Price Change: +2.5%
+- 24h Transactions: 1,234
+```
+
+#### GET_TOP_POOLS
+
+Gets top pools by TVL for a specific network with customizable limit.
+
+**Example Prompts:**
+```
+Show me top pools on Arbitrum
+Get top 5 pools on Mantle
+What are the biggest pools on Optimism?
+List top 10 pools by TVL on Base
+```
+
+**Response Example:**
+```
+# Top 10 Pools on Arbitrum
+
+## USDC/WETH Pool
+- TVL: $10.5M
+- 24h Volume: $5.2M
+- 24h Fees Generated: $15.6K
+- 24h Price Change: +2.5%
+- 24h Transactions: 1,234
+```
+
+## Natural Language Processing
+
+The Analytics module includes advanced natural language processing capabilities to extract relevant information from user messages. This allows users to query data using various formats:
 
 - "What's the price of MNT?"
-- "Show me the ETH price"
-- "Get the current price of Bitcoin"
+- "Show me the TVL of Uniswap"
+- "Get trending pools on Arbitrum"
 - "Compare prices for USDC, USDT, and DAI"
-- "What are the prices of BTC, ETH, MNT, and S?"
 
-The module can recognize token names in different formats (e.g., "Bitcoin" → "BTC", "Ethereum" → "ETH", "Mantle" → "MNT") and handle various query patterns.
+The module can recognize token names, protocol names, and chain names in different formats and handle various query patterns.
+
+## Data Freshness
+
+- Price data is cached for 5 minutes to optimize performance
+- TVL data is updated hourly for accurate protocol tracking
+- Pool data is refreshed every 15 minutes for timely DEX analytics
+- Market data is updated in real-time for significant market movements
+
+## Error Handling
+
+The module includes comprehensive error handling for:
+- Invalid token/protocol/chain names
+- API connection issues
+- Rate limiting
+- Missing or incomplete data
+
+When an error occurs, the module provides helpful feedback and suggestions for alternative queries or actions.
 
 ## Module Structure
 
@@ -227,22 +325,10 @@ export const hivefiPlugin: Plugin = {
 };
 ```
 
-## Error Handling
-
-The CoinGecko integration includes comprehensive error handling:
-
-- API error detection and logging
-- Rate limit handling
-- Fallback mechanisms
-- Detailed error messages
-- Cache utilization during API failures
-
 ## Future Enhancements
 
 Planned enhancements for the Analytics module include:
 
-- **DefiLlama Integration**: TVL data and protocol metrics
-- **GeckoTerminal Integration**: DEX data and trading pairs
 - **Portfolio Analytics**: Cross-chain portfolio tracking and performance metrics
 - **Yield Comparison**: Cross-chain yield opportunities and optimization
 - **Risk Assessment**: Protocol risk metrics and security analysis

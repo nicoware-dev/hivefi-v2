@@ -17,22 +17,12 @@ This directory contains n8n workflow configurations for the HiveFi Coordinator A
 
 ## Coordinator Agent Architecture
 
-```
-┌─── User Request ───┐
-         │
-┌─── Coordinator Agent ───┐
-│    Request Analysis     │
-│    Task Distribution    │
-│    Response Aggregation │
-└──────────┬────────────┘
-           │
-┌──────────┼────────────┐
-│          │            │
-▼          ▼            ▼
-Analytics  Chain       Cross-Chain
-Agent     Agents        Agent
-(Data)   (Execution)   (Bridges)
-```
+![HiveFi n8n Workflow Diagram](n8n-architecture.png)
+
+
+## Eliza Agent Workflow
+
+![HiveFi Eliza Agent Workflow](eliza-agent-workflow.png)
 
 ## Workflow Setup
 

@@ -15,7 +15,7 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 │  │   Mantle   |   Sonic   | MultiChain│   │
 │  └──────────────┬──────────────────┘     │
 │                 │                         │
-│  ┌─────────── Agent Modules ──────────┐  │
+│  ┌─────── Future Agent Modules ────────┐  │
 │  │ Alpha | Predictions | KOL | Deploy │  │
 │  └────────────────────────────────────┘  │
 │                                          │
@@ -28,21 +28,14 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 
 #### Analytics Module
 - Real-time price data via CoinGecko
+- DEX analytics via GeckoTerminal
 - TVL tracking via DefiLlama
 - Portfolio analytics and tracking
 - Protocol performance metrics
 - Market trend analysis
-- Risk assessment tools
-
-#### Blockchain Module
-- Wallet management
-- Transaction handling
-- Contract interactions
-- Gas optimization
-- Security validation
 
 #### Cross-Chain Module
-- Bridge operations (Wormhole, DeBridge, Multichain)
+- Bridge operations via Wormhole
 - Cross-chain transaction monitoring
 - Liquidity tracking
 - Route optimization
@@ -64,14 +57,14 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 - Token management
 - Protocol integrations
 
-#### MultiChain Network
+#### MultiChain Features
 - Wallet operations
-- UTXO management
-- Transaction handling
-- Network monitoring
-- Fee estimation
+- Native token transfers
+- ERC-20 token transfers
+- Portfolio management
+- Chain-specific wallet access
 
-### Agent-Specific Modules
+### Planned Future Modules
 
 #### Market Analysis
 - Alpha detection
@@ -94,51 +87,46 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 - Security validation
 - Documentation generation
 
-## Plugin Structure
+## Current Plugin Structure
 
 ```
 plugin-hivefi/
 ├── src/
-│   ├── index.ts                 # Agent-specific action selection
+│   ├── index.ts                 # Main plugin entry point
 │   ├── analytics/               # Analytics module
-│   │   └── actions/
-│   │       ├── coingecko/
-│   │       ├── defillama/
-│   │       ├── portfolio/
-│   │       └── market/
+│   │   ├── index.ts             # Analytics module entry point
+│   │   ├── coingecko/           # CoinGecko integration
+│   │   ├── defillama/           # DefiLlama integration
+│   │   ├── geckoterminal/       # GeckoTerminal integration
+│   │   └── utils/               # Shared analytics utilities
 │   ├── crosschain/             # Cross-chain module
-│   │   └── actions/
-│   │       ├── wormhole/
-│   │       ├── debridge/
-│   │       └── multichain/
+│   │   ├── index.ts            # Cross-chain module entry point
+│   │   └── wormhole/           # Wormhole bridge integration
 │   ├── mantle/                 # Mantle module
-│   │   ├── actions/
-│   │   │   ├── merchant-moe/
-│   │   │   ├── init-capital/
-│   │   │   ├── lendle/
-│   │   │   ├── pendle/
-│   │   │   └── agni/
-│   │   └── providers/
+│   │   ├── index.ts            # Mantle module entry point
+│   │   ├── actions/            # Mantle-specific actions
+│   │   ├── providers/          # Mantle-specific providers
+│   │   ├── types/              # Mantle-specific types
+│   │   ├── templates/          # Response templates
+│   │   └── config/             # Configuration
 │   ├── sonic/                  # Sonic module
-│   │   ├── actions/
-│   │   │   ├── beets/
-│   │   │   ├── swapx/
-│   │   │   ├── shadow/
-│   │   │   ├── silo/
-│   │   │   ├── aave/
-│   │   │   └── beefy/
-│   │   └── providers/
-│   ├── multichain/               # MultiChain module
-│   │   └── actions/
-│   │       └── transfer/
-│   ├── alpha/                # Alpha module
-│   ├── predictions/          # Predictions module
-│   ├── kol/                 # KOL module
-│   ├── tokendeployer/       # Token deployer module
-│   └── nftdeployer/         # NFT deployer module
-├── templates/               # Response templates
-├── types/                  # TypeScript definitions
-└── utils/                  # Shared utilities
+│   │   ├── index.ts            # Sonic module entry point
+│   │   ├── actions/            # Sonic-specific actions
+│   │   ├── providers/          # Sonic-specific providers
+│   │   ├── types/              # Sonic-specific types
+│   │   ├── templates/          # Response templates
+│   │   └── config/             # Configuration
+│   └── multichain/             # MultiChain module
+│       ├── index.ts            # MultiChain module entry point
+│       ├── constants.ts        # Chain configurations
+│       ├── types.ts            # Type definitions
+│       ├── actions/            # Core actions
+│       ├── providers/          # Wallet providers
+│       ├── utils/              # Utility functions
+│       ├── portfolio/          # Portfolio management
+│       ├── aave/               # Aave integration (planned)
+│       ├── beefy/              # Beefy integration (planned)
+│       └── uniswap/            # Uniswap integration (planned)
 ```
 
 ## Usage
@@ -166,26 +154,36 @@ const plugin = new HiveFiPlugin({
 });
 ```
 
-### Example: Cross-Chain Operation
+### Example: Cross-Chain Operation with Wormhole
 
 ```typescript
-// Bridge USDC from Mantle to Sonic
-const result = await plugin.crosschain.bridge({
-  fromChain: 'mantle',
-  toChain: 'sonic',
+// Bridge USDC from Ethereum to Arbitrum
+const result = await plugin.crosschain.wormhole.bridge({
+  fromChain: 'ethereum',
+  toChain: 'arbitrum',
   token: 'USDC',
-  amount: '100',
-  bridge: 'wormhole'
+  amount: '100'
 });
 ```
 
-### Example: Analytics Query
+### Example: Analytics Query with DefiLlama
 
 ```typescript
 // Get TVL across chains
-const tvl = await plugin.analytics.getTVL({
+const tvl = await plugin.analytics.defillama.getTVL({
   chains: ['mantle', 'sonic'],
   protocols: ['merchant-moe', 'silo-finance']
+});
+```
+
+### Example: MultiChain Native Token Transfer
+
+```typescript
+// Transfer native tokens on a specific chain
+const transfer = await plugin.multichain.transferNativeToken({
+  chain: 'arbitrum',
+  amount: '0.01',
+  to: '0x123...'
 });
 ```
 
@@ -209,6 +207,20 @@ pnpm install
 pnpm build
 ```
 
+### Environment Variables
+
+The module requires the following environment variables:
+
+```bash
+# Required for MultiChain operations
+EVM_PRIVATE_KEY=your_private_key_here  # 64-character hex string without 0x prefix
+
+# Optional
+EVM_RPC_URL=your_preferred_rpc_url     # Override default RPC URL
+COINGECKO_API_KEY=your_api_key         # For CoinGecko API
+DEFILLAMA_API_KEY=your_api_key         # For DefiLlama API
+```
+
 ### Testing
 ```bash
 # Run tests
@@ -217,6 +229,25 @@ pnpm test
 # Run specific test suite
 pnpm test:mantle
 ```
+
+## Current Status and Roadmap
+
+### Implemented Features
+- Analytics module with CoinGecko, DefiLlama, and GeckoTerminal integrations
+- Cross-chain module with Wormhole bridge support
+- Mantle and Sonic chain-specific modules
+- MultiChain module with basic wallet operations and native token transfers
+
+### In Progress
+- ERC-20 token transfers in MultiChain module (currently in simulation mode)
+- Protocol integrations (Uniswap, Aave, Beefy)
+
+### Planned Features
+- Additional bridge integrations (DeBridge, Multichain)
+- Advanced portfolio analytics
+- Market analysis tools
+- Social and community tools
+- Development tools for token and NFT deployment
 
 ## Contributing
 

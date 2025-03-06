@@ -8,14 +8,12 @@ Get up and running with HiveFi development in minutes! This guide will help you 
 - Node.js v23+
 - pnpm
 - Git
-- n8n (for workflow automation)
 - Visual Studio Code (recommended)
 
 ### API Keys
 - OpenAI API key or Anthropic API key
-- Blockchain node provider keys (Infura, Alchemy, etc.)
-- CoinGecko API key (optional)
-- DefiLlama API key (optional)
+- EVM_PRIVATE_KEY
+
 
 ## Installation
 
@@ -39,18 +37,24 @@ nano .env
 Configure your `.env` file with the following:
 
 ```env
-# Required API Keys
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_anthropic_key
+# Required for blockchain operations
+EVM_PRIVATE_KEY=your_private_key  # 64-character hex string without 0x prefix
+MANTLE_RPC_URL=https://rpc.mantle.xyz
+SONIC_RPC_URL=https://mainnet.sonic.org/rpc
+EVM_RPC_URL=your_preferred_rpc_url  # For multichain operations
 
-# Blockchain Providers
-MANTLE_RPC_URL=your_mantle_rpc_url
-SONIC_RPC_URL=your_sonic_rpc_url
-BTC_RPC_URL=your_btc_rpc_url
+# API Keys for analytics
+COINGECKO_API_KEY=your_api_key     # For CoinGecko API
+DEFILLAMA_API_KEY=your_api_key     # For DefiLlama API
 
-# Optional API Keys
-COINGECKO_API_KEY=your_coingecko_key
-DEFILLAMA_API_KEY=your_defillama_key
+# LLM Provider (choose one)
+OPENAI_API_KEY=                    # OpenAI API key
+ANTHROPIC_API_KEY=                 # For Claude (optional)
+
+# Client Configuration (optional)
+DISCORD_APPLICATION_ID=            # Discord bot ID
+DISCORD_API_TOKEN=                 # Discord bot token
+TELEGRAM_BOT_TOKEN=                # Telegram bot token
 
 # Development Settings
 NODE_ENV=development
@@ -61,12 +65,20 @@ DEBUG=true
 
 ```
 hivefi/
-├── eliza/                     # Eliza framework
+├── assets/                    # Branding assets and images
+│   └── logo/                  # Logo files
+├── docs/                      # Documentation
+│   ├── architecture/          # Architecture diagrams and specs
+│   ├── agents/                # Agent specifications
+│   └── api/                   # API documentation
+├── eliza/                     # Eliza framework integration
+│   ├── client/                # Web application
+│   │   ├── public/            # Static assets
+│   │   └── src/               # Frontend source code
 │   ├── packages/
-│   │   └── plugin-hivefi/     # Main plugin
-│   └── client/               # Web interface
-├── n8n/                      # Workflow automation
-└── docs/                     # Documentation
+│   │   └── plugin-hivefi/     # Main superplugin
+│   └── characters/            # Agent character files
+└── README.md                  # Project overview
 ```
 
 ## First Steps
@@ -80,122 +92,26 @@ pnpm dev
 
 # In another terminal, start the agent
 cd eliza
-pnpm start --characters="characters/demo-agent.character.json"
+pnpm start --characters="characters/analytics-agent.character.json"
 ```
 
-### 2. Create Your First Agent
+### 2. Try Some Example Commands
 
-```typescript
-// agents/my-agent.character.json
-{
-  "name": "MyAgent",
-  "description": "Custom agent example",
-  "systemPrompt": "You are a specialized DeFi agent...",
-  "plugins": ["@elizaos/plugin-hivefi"],
-  "config": {
-    "maxTransactionAmount": "0.1"
-  }
-}
-```
+Once your agent is running, you can try these example commands:
 
-### 3. Implement a Custom Action
+- "What's the current price of ETH?"
+- "Show me the TVL of Uniswap"
+- "Get trending pools on Arbitrum"
+- "Transfer 0.01 USDC from Ethereum to Arbitrum via Wormhole"
 
-```typescript
-// plugin-hivefi/src/actions/custom/my-action.ts
-export const myAction = async (params: MyActionParams): Promise<ActionResult> => {
-  try {
-    // Implementation
-    return {
-      success: true,
-      data: {}
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-};
-```
+### 3. Explore the Documentation
 
-## Basic Examples
+To learn more about HiveFi's capabilities, explore our documentation:
 
-### Agent Interaction
-```typescript
-// Example agent interaction
-const agent = await ElizaOS.createAgent('my-agent.character.json');
-const response = await agent.execute('Show my portfolio');
-console.log(response);
-```
-
-### Custom Plugin Action
-```typescript
-// Example custom action
-import { createAction } from '@elizaos/core';
-
-export const myCustomAction = createAction({
-  name: 'myCustomAction',
-  description: 'Custom action example',
-  execute: async (params) => {
-    // Implementation
-  }
-});
-```
-
-### Web Component
-```tsx
-// Example React component
-import { useAgent } from '@hivefi/hooks';
-
-export const MyComponent: React.FC = () => {
-  const { agent } = useAgent();
-  
-  const handleAction = async () => {
-    const result = await agent.execute('my command');
-    // Handle result
-  };
-
-  return (
-    <div>
-      {/* Component JSX */}
-    </div>
-  );
-};
-```
-
-## Common Patterns
-
-### Error Handling
-```typescript
-try {
-  // Attempt operation
-  const result = await performAction();
-  
-  if (!result.success) {
-    throw new Error(result.error);
-  }
-  
-  return result.data;
-} catch (error) {
-  console.error('Operation failed:', error);
-  // Handle error appropriately
-}
-```
-
-### State Management
-```typescript
-import create from 'zustand';
-
-interface State {
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
-}
-
-export const useStore = create<State>((set) => ({
-  loading: false,
-  setLoading: (loading) => set({ loading })
-}));
-```
+- [Analytics Module](../for-developers/plugin/analytics/analytics-module.md)
+- [Cross-Chain Operations](../for-developers/plugin/crosschain-module.md)
+- [Mantle Module](../for-developers/plugin/mantle-module.md)
+- [Sonic Module](../for-developers/plugin/sonic-module.md)
 
 ## Next Steps
 

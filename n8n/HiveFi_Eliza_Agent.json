@@ -1,10 +1,10 @@
 {
-  "name": "HiveFi MultiChain Agent",
+  "name": "HiveFi Analytics Agent",
   "nodes": [
     {
       "parameters": {
         "method": "POST",
-        "url": "https://stephanie-commodity-cite-jenny.trycloudflare.com/998352ac-ecab-0c94-9d98-c98de7a17c23/message",
+        "url": "https://jake-actual-initiatives-powers.trycloudflare.com/6a79765a-1351-0906-8520-e96345afe67c/message",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -24,7 +24,7 @@
         },
         "options": {}
       },
-      "id": "439295f8-5bef-42ea-977d-233d59898362",
+      "id": "b60f4d01-6cb7-4271-a8d9-62e70a0416c0",
       "name": "Send to Eliza Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
@@ -39,15 +39,15 @@
           "assignments": [
             {
               "id": "42335239-2425-4274-8223-20ae2ca6111e",
-              "name": "output",
-              "value": "={{ $json.text }}",
+              "name": "data",
+              "value": "={{ $json.data }}",
               "type": "string"
             }
           ]
         },
         "options": {}
       },
-      "id": "bc2f3edb-8055-4671-8330-44141409ab02",
+      "id": "6bb7b07e-8500-4f12-a462-3a52cc2af476",
       "name": "Success",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -66,12 +66,13 @@
         60,
         -140
       ],
-      "id": "32177dd7-97c5-4e80-b1f6-19c8436be5c9",
+      "id": "d03e33eb-e6f8-4d24-85ba-effca44ab01a",
       "name": "When Executed by Another Workflow"
     },
     {
       "parameters": {
         "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "=data",
         "options": {}
       },
       "type": "n8n-nodes-base.aggregate",
@@ -80,7 +81,7 @@
         540,
         -140
       ],
-      "id": "64e791c1-3d03-4925-9f0d-4cc848424c7d",
+      "id": "1d75ba8b-34d0-440a-ae4e-98b169cd6118",
       "name": "Aggregate"
     }
   ],
@@ -124,12 +125,12 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "cf2f1494-315a-4803-8749-aa222d84e90e",
+  "versionId": "c1b30298-d2de-41d6-8617-846e6179a8dd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "abf8971dfdbf55555155acdb4227d6ad43878667d46fbdff58c0161258f8c79b"
   },
-  "id": "Bhi08nxW2T9aKx0F",
+  "id": "lwOQQKa3bYnYjiIe",
   "tags": [
     {
       "createdAt": "2025-02-21T21:50:50.195Z",
