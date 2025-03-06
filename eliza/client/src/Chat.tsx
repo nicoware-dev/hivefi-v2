@@ -21,6 +21,9 @@ import { Send } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatFileInput } from "@/components/ui/chat/chat-file-input";
 import { messageStorage, StoredMessage } from "@/lib/storage";
+import { ExamplePrompts } from "@/components/ui/chat/example-prompts";
+import { FloatingPrompts } from "@/components/ui/chat/floating-prompts";
+import { getExamplePrompts } from "@/lib/example-prompts";
 
 type TextResponse = {
     text: string;
@@ -321,6 +324,20 @@ export default function Chat() {
         }
     };
 
+    // Add a function to handle example prompt clicks
+    const handleExamplePromptClick = (promptText: string) => {
+        if (!agent) return;
+        setInput(promptText);
+        // Auto-submit the prompt after a short delay
+        setTimeout(() => {
+            const formEvent = new Event('submit', { bubbles: true, cancelable: true });
+            const formElement = inputRef.current?.closest('form');
+            if (formElement) {
+                formElement.dispatchEvent(formEvent);
+            }
+        }, 300);
+    };
+
     // Return header content if in header slot
     if (headerSlot) {
         return (
@@ -469,19 +486,38 @@ export default function Chat() {
                                     </ChatBubble>
                                 ))
                             ) : (
-                                <div className="h-[calc(100vh-200px)] flex items-center justify-center">
-                                    <div className="text-muted-foreground text-center">
+                                <div className="h-[calc(100vh-200px)] flex flex-col items-center justify-center">
+                                    <div className="text-muted-foreground text-center mb-8">
                                         {agent ? (
                                             `No messages yet. Start a conversation with ${agent.name}!`
                                         ) : (
                                             "⬅️ Please select an agent from the sidebar to start chatting"
                                         )}
                                     </div>
+                                    
+                                    {agent && (
+                                        <div className="w-full">
+                                            <h3 className="text-center text-xl font-semibold mb-2 text-[#7f00ff]">Example Prompts</h3>
+                                            <p className="text-center text-muted-foreground mb-6">Click on any of these suggestions to get started</p>
+                                            <ExamplePrompts 
+                                                prompts={getExamplePrompts(agent.name)}
+                                                onPromptClick={handleExamplePromptClick}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
+
+                {/* Floating example prompts button - always visible */}
+                {agent && messages.length > 0 && (
+                    <FloatingPrompts
+                        prompts={getExamplePrompts(agent.name)}
+                        onPromptClick={handleExamplePromptClick}
+                    />
+                )}
 
                 {/* Input form */}
                 <div className="fixed bottom-0 left-0 right-0 border-t border-[#27272A] bg-[#121212]/80 backdrop-blur-sm z-10">
