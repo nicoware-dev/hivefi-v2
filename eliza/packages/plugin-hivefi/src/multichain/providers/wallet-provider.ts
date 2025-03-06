@@ -8,6 +8,7 @@ import { getChainConfig } from "../utils/chain-utils";
 
 export class MultichainWalletProvider {
   private wallets: Record<string, WalletClientBase> = {};
+  private viemWalletClients: Record<string, any> = {}; // Store raw Viem wallet clients
   private config: MultichainWalletConfig;
   private privateKey: string;
 
@@ -27,25 +28,41 @@ export class MultichainWalletProvider {
     for (const chainId of SUPPORTED_CHAINS) {
       const chainConfig = this.config.chains[chainId];
       if (chainConfig) {
-        this.wallets[chainId] = this.createWalletForChain(chainConfig);
+        const { wallet, viemWalletClient } = this.createWalletForChain(chainConfig);
+        this.wallets[chainId] = wallet;
+        this.viemWalletClients[chainId] = viemWalletClient;
+        
+        // Also store by numeric ID for easier access
+        this.wallets[chainConfig.id] = wallet;
+        this.viemWalletClients[chainConfig.id] = viemWalletClient;
       }
     }
   }
 
-  private createWalletForChain(chainConfig: ChainConfig): WalletClientBase {
+  private createWalletForChain(chainConfig: ChainConfig): { wallet: WalletClientBase, viemWalletClient: any } {
     const account = privateKeyToAccount(this.privateKey as `0x${string}`);
     
-    const walletClient = createWalletClient({
+    const viemWalletClient = createWalletClient({
       account,
       transport: http(chainConfig.rpcUrl),
       chain: {
         id: parseInt(chainConfig.id),
         name: chainConfig.name,
         nativeCurrency: chainConfig.nativeCurrency,
+        rpcUrls: {
+          default: {
+            http: [chainConfig.rpcUrl],
+          },
+          public: {
+            http: [chainConfig.rpcUrl],
+          },
+        },
       },
     });
     
-    return viem(walletClient);
+    const wallet = viem(viemWalletClient);
+    
+    return { wallet, viemWalletClient };
   }
 
   public getWallet(chainId?: string): WalletClientBase {
@@ -56,6 +73,21 @@ export class MultichainWalletProvider {
     }
     
     return this.wallets[chain];
+  }
+
+  /**
+   * Get the raw Viem wallet client for a specific chain
+   * @param chainId The chain ID to get the wallet client for
+   * @returns The raw Viem wallet client
+   */
+  public getViemWalletClient(chainId?: string): any {
+    const chain = chainId || this.config.defaultChain;
+    
+    if (!this.viemWalletClients[chain]) {
+      throw new Error(`Viem wallet client for chain ${chain} not initialized`);
+    }
+    
+    return this.viemWalletClients[chain];
   }
 
   public getAddress(): string {
@@ -74,7 +106,7 @@ export class MultichainWalletProvider {
             const wallet = this.getWallet(chainId);
             const balance = await wallet.balanceOf(address);
             const chainConfig = getChainConfig(chainId);
-            return `${chainConfig.name}: ${balance} ${chainConfig.nativeCurrency.symbol}`;
+            return `${chainConfig.name}: ${balance.value} ${balance.symbol}`;
           } catch (error) {
             console.error(`Error fetching balance for ${chainId}:`, error);
             return `${chainId}: Error fetching balance`;
@@ -82,7 +114,12 @@ export class MultichainWalletProvider {
         })
       );
       
-      return `Multichain Wallet Address: ${address}\nBalances:\n${balances.join('\n')}`;
+      return {
+        address,
+        balances,
+        type: "multichain_wallet",
+        confidence: 1.0
+      };
     } catch (error) {
       console.error("Error in multichain wallet provider:", error);
       return null;

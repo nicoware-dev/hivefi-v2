@@ -8,7 +8,7 @@ interface Token {
   symbol: string;
   name: string;
   decimals: number;
-  chains: Record<string, { contractAddress: `0x${string}` }>;
+  chains: Record<number, { contractAddress: `0x${string}` }>;
 }
 
 // Define supported tokens
@@ -17,10 +17,10 @@ const USDC: Token = {
   name: "USD Coin",
   decimals: 6,
   chains: {
-    "1": { contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }, // Ethereum
-    "10": { contractAddress: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607" }, // Optimism
-    "42161": { contractAddress: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }, // Arbitrum
-    "137": { contractAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174" }, // Polygon
+    1: { contractAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }, // Ethereum
+    10: { contractAddress: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607" }, // Optimism
+    42161: { contractAddress: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }, // Arbitrum
+    137: { contractAddress: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174" }, // Polygon
   }
 };
 
@@ -29,10 +29,10 @@ const USDT: Token = {
   name: "Tether USD",
   decimals: 6,
   chains: {
-    "1": { contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7" }, // Ethereum
-    "10": { contractAddress: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58" }, // Optimism
-    "42161": { contractAddress: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9" }, // Arbitrum
-    "137": { contractAddress: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F" }, // Polygon
+    1: { contractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7" }, // Ethereum
+    10: { contractAddress: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58" }, // Optimism
+    42161: { contractAddress: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9" }, // Arbitrum
+    137: { contractAddress: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F" }, // Polygon
   }
 };
 
@@ -41,10 +41,10 @@ const DAI: Token = {
   name: "Dai Stablecoin",
   decimals: 18,
   chains: {
-    "1": { contractAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F" }, // Ethereum
-    "10": { contractAddress: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1" }, // Optimism
-    "42161": { contractAddress: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1" }, // Arbitrum
-    "137": { contractAddress: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" }, // Polygon
+    1: { contractAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F" }, // Ethereum
+    10: { contractAddress: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1" }, // Optimism
+    42161: { contractAddress: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1" }, // Arbitrum
+    137: { contractAddress: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" }, // Polygon
   }
 };
 
@@ -55,18 +55,18 @@ const TOKENS: Record<string, Token> = {
   DAI
 };
 
+// Chain ID to name mapping for better error messages
+const CHAIN_NAMES: Record<number, string> = {
+  1: "Ethereum",
+  10: "Optimism",
+  42161: "Arbitrum",
+  137: "Polygon",
+};
+
 // Helper function to get token by symbol
 function getTokenBySymbol(symbol: string): Token | undefined {
   return TOKENS[symbol.toUpperCase()];
 }
-
-// Chain ID to name mapping for better error messages
-const CHAIN_NAMES: Record<string, string> = {
-  "1": "Ethereum",
-  "10": "Optimism",
-  "42161": "Arbitrum",
-  "137": "Polygon",
-};
 
 type ActionCallback = (response: { text: string; content: Record<string, unknown> }) => void;
 
@@ -136,10 +136,14 @@ export function createTokenTransferAction() {
       currentState = await runtime.updateRecentMessageState(currentState);
 
       try {
+        // Check if we should use simulation mode
+        const useSimulation = runtime.getSetting("MULTICHAIN_SIMULATION_MODE") === "true";
+        console.log(`[DEBUG] Using simulation mode: ${useSimulation}`);
+        
         // Get private key from runtime settings
-        const privateKey = runtime.getSetting("EVM_PRIVATE_KEY");
-        if (!privateKey) {
-          throw new Error("EVM_PRIVATE_KEY not configured");
+        const privateKey = (runtime.getSetting("MULTICHAIN_PRIVATE_KEY") || runtime.getSetting("EVM_PRIVATE_KEY")) as string;
+        if (!privateKey && !useSimulation) {
+          throw new Error("MULTICHAIN_PRIVATE_KEY or EVM_PRIVATE_KEY not configured");
         }
 
         // Parse transfer details from message
@@ -167,7 +171,7 @@ export function createTokenTransferAction() {
         let amount: string;
         let tokenSymbol: string;
         let to: `0x${string}`;
-        let chainId: string;
+        let chainIdStr: string;
         
         if (transferMatch.length === 5) {
           // Format: Send <amount> <token> on <chain> to <address>
@@ -175,17 +179,30 @@ export function createTokenTransferAction() {
           tokenSymbol = transferMatch[2].toUpperCase();
           const chainName = transferMatch[3];
           to = transferMatch[4].toLowerCase() as `0x${string}`;
-          chainId = parseChainFromPrompt(chainName);
+          chainIdStr = parseChainFromPrompt(chainName);
+          console.log(`[DEBUG] Parsed from format 1: amount=${amount}, token=${tokenSymbol}, chainName=${chainName}, chainId=${chainIdStr}, to=${to}`);
         } else {
           // Format: Send <amount> <token> to <address>
           amount = transferMatch[1];
           tokenSymbol = transferMatch[2].toUpperCase();
           to = transferMatch[3].toLowerCase() as `0x${string}`;
-          chainId = parseChainFromPrompt(text);
+          chainIdStr = parseChainFromPrompt(text);
+          console.log(`[DEBUG] Parsed from format 2: amount=${amount}, token=${tokenSymbol}, chainId=${chainIdStr}, to=${to}`);
         }
+        
+        // Convert chainId to number
+        const chainId = parseInt(chainIdStr);
+        console.log(`[DEBUG] Converted chainId string "${chainIdStr}" to number: ${chainId}`);
         
         // Validate token
         const token = getTokenBySymbol(tokenSymbol);
+        console.log(`[DEBUG] Token lookup: ${tokenSymbol} => ${token ? 'found' : 'not found'}`);
+        if (token) {
+          console.log(`[DEBUG] Token chains:`, Object.keys(token.chains));
+          console.log(`[DEBUG] Looking for chainId: ${chainId}`);
+          console.log(`[DEBUG] Chain supported: ${token.chains[chainId] ? 'yes' : 'no'}`);
+        }
+        
         if (!token) {
           const supportedTokens = Object.keys(TOKENS).join(", ");
           callback?.({
@@ -198,8 +215,9 @@ export function createTokenTransferAction() {
         // Validate chain and token support for chain
         if (!token.chains[chainId]) {
           const supportedChains = Object.keys(token.chains)
-            .map(id => CHAIN_NAMES[id] || id)
+            .map(id => CHAIN_NAMES[parseInt(id)] || id)
             .join(", ");
+          console.log(`[DEBUG] Token ${tokenSymbol} not supported on chain ${chainId}. Supported chains:`, Object.keys(token.chains));
           callback?.({
             text: `${tokenSymbol} is not supported on this chain. Supported chains for ${tokenSymbol}: ${supportedChains}`,
             content: { error: "unsupported_chain", supportedChains }
@@ -216,13 +234,61 @@ export function createTokenTransferAction() {
           return false;
         }
         
+        // Get chain name for display
+        const chainName = CHAIN_NAMES[chainId] || chainId.toString();
+        
+        // If using simulation mode, return a simulated success response
+        if (useSimulation) {
+          const simulatedHash = `0x${Math.random().toString(16).substring(2, 42)}`;
+          callback?.({
+            text: `[SIMULATION MODE] ${amount} ${tokenSymbol} sent to ${to} on ${chainName}\nSimulated Transaction Hash: ${simulatedHash}\n\nNote: This is a simulation. No actual tokens were transferred.`,
+            content: { 
+              hash: simulatedHash, 
+              chainId, 
+              tokenSymbol, 
+              amount, 
+              to, 
+              status: "simulated",
+              simulation: true
+            }
+          });
+          return true;
+        }
+        
         // Initialize wallet provider
         const walletProvider = new MultichainWalletProvider(privateKey);
         
+        // Get the wallet address
+        const fromAddress = walletProvider.getAddress();
+        
+        // Check if the wallet has enough native tokens for gas
+        try {
+          const wallet = walletProvider.getWallet(chainIdStr);
+          const balance = await wallet.balanceOf(fromAddress);
+          console.log(`[DEBUG] Wallet balance: ${balance.value} ${balance.symbol}`);
+          
+          if (parseFloat(balance.value) <= 0) {
+            callback?.({
+              text: `Error: Your wallet does not have any ${balance.symbol} on ${chainName} to pay for gas fees. Please fund your wallet with some ${balance.symbol} before attempting this transaction.`,
+              content: { error: "insufficient_funds", balance: balance.value, symbol: balance.symbol }
+            });
+            return false;
+          }
+          
+          // TODO: Add check for token balance
+          // This would require implementing a method to check ERC-20 token balances
+          // For now, we'll just warn the user that they need to have sufficient token balance
+          callback?.({
+            text: `Note: Please ensure your wallet has sufficient ${tokenSymbol} balance on ${chainName} for this transaction. The transaction will fail if you don't have enough tokens.`,
+            content: { status: "warning", tokenSymbol, chainName }
+          });
+        } catch (error) {
+          console.error("Error checking wallet balance:", error);
+        }
+        
         // Send initial confirmation
-        const chainName = CHAIN_NAMES[chainId] || chainId;
         callback?.({
-          text: `Let's initiate the transfer of ${amount} ${tokenSymbol} on the ${chainName} network to the address ${to}. This process will securely move your ${tokenSymbol} to the specified address. Please hold on while I execute the transfer.`,
+          text: `Initiating transfer of ${amount} ${tokenSymbol} on ${chainName} network to ${to}. Please wait while the transaction is being processed...`,
           content: { status: "initiating", amount, tokenSymbol, chainName, to }
         });
         
@@ -239,47 +305,36 @@ export function createTokenTransferAction() {
         // Construct data parameter
         const data = `0x${transferFunctionSignature}${"000000000000000000000000"}${cleanTo}${amountHex}`;
         
-        // Get the wallet for this chain
-        const wallet = walletProvider.getWallet(chainId);
+        // Log the transaction details for debugging
+        console.log("Sending ERC-20 transaction:", {
+          from: fromAddress,
+          to: token.chains[chainId].contractAddress,
+          data,
+          chainId
+        });
         
-        // Get the wallet address
-        const fromAddress = walletProvider.getAddress();
+        // Access the raw Viem wallet client through the MultichainWalletProvider
+        const viemWalletClient = walletProvider.getViemWalletClient(chainIdStr);
         
-        // For demonstration purposes, we'll simulate a successful transaction
-        // In a real implementation, you would use the wallet client to send the transaction
-        const hash = `0x${Math.random().toString(16).substring(2, 42)}`;
+        // Send transaction using the Viem wallet client
+        console.log(`[DEBUG] Sending transaction to token contract ${token.chains[chainId].contractAddress} on chain ${chainId}`);
+        const hash = await viemWalletClient.sendTransaction({
+          to: token.chains[chainId].contractAddress,
+          data: data as `0x${string}`,
+          chain: {
+            id: chainId,
+          },
+        });
+        
+        if (!hash) {
+          throw new Error("Transaction failed: No transaction hash returned");
+        }
         
         // Return success message with transaction hash
         const explorerUrl = getExplorerUrl(chainId, hash);
         callback?.({
-          text: `Result: To demonstrate the transfer of ERC-20 tokens on the Arbitrum chain, we'll follow these steps:
-
-1. Get the Wallet Address: We'll need the wallet address from which the tokens will be transferred.
-
-2. Get Token Information: We'll retrieve the token's contract address and decimals using its symbol.
-
-3. Check the Balance: Ensure the wallet has enough balance of the token to be transferred.
-
-4. Convert Amount to Base Units: Convert the transfer amount from decimal to base units.
-
-5. Execute Transfer: Transfer the specified amount of tokens to the recipient's address.
-
-Let's start by getting the wallet address and the token information...`,
-          content: { 
-            hash, 
-            chainId, 
-            tokenSymbol, 
-            amount, 
-            to, 
-            status: "success",
-            steps: [
-              "Get the Wallet Address",
-              "Get Token Information",
-              "Check the Balance",
-              "Convert Amount to Base Units",
-              "Execute Transfer"
-            ]
-          }
+          text: `${amount} ${tokenSymbol} sent to ${to} on ${chainName}\nTransaction Hash: ${hash}\nView on Explorer: ${explorerUrl}`,
+          content: { hash, chainId, tokenSymbol, amount, to, status: "success" }
         });
         return true;
       } catch (error) {
@@ -298,12 +353,12 @@ Let's start by getting the wallet address and the token information...`,
 }
 
 // Helper function to get explorer URL for transaction
-function getExplorerUrl(chainId: string, txHash: string): string {
-  const explorers: Record<string, string> = {
-    "1": "https://etherscan.io/tx/",
-    "10": "https://optimistic.etherscan.io/tx/",
-    "42161": "https://arbiscan.io/tx/",
-    "137": "https://polygonscan.com/tx/",
+function getExplorerUrl(chainId: number, txHash: string): string {
+  const explorers: Record<number, string> = {
+    1: "https://etherscan.io/tx/",
+    10: "https://optimistic.etherscan.io/tx/",
+    42161: "https://arbiscan.io/tx/",
+    137: "https://polygonscan.com/tx/",
   };
   
   return (explorers[chainId] || "https://etherscan.io/tx/") + txHash;

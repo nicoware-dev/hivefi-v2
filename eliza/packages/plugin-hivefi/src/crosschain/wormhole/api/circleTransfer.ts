@@ -180,6 +180,14 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
     const signer = await getSigner(runtime, sourceChain);
     logger.info(`Got signer with address: ${signer.address()}`);
     
+    // Get the underlying ethers wallet for direct contract interactions
+    // This is needed because our custom signer doesn't support direct contract calls
+    const privateKey = getPrivateKey(runtime);
+    const providerUrl = getChainRpcUrl(sourceChain);
+    const provider = new ethers.JsonRpcProvider(providerUrl);
+    const ethersWallet = new ethers.Wallet(privateKey, provider);
+    logger.info(`Created ethers wallet with address: ${ethersWallet.address} for direct contract interactions`);
+    
     // Initialize Wormhole SDK
     const wh = await getWormholeInstance();
     logger.info(`Initialized Wormhole SDK`);
@@ -275,19 +283,87 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       
       logger.info(`Created transfer params: ${safeSerialize(transferParams)}`);
       
-      // Create the Circle transfer
-      const circleTransfer = new CircleTransferSDK(wh, transferParams, sourceChainContext, destChainContext);
-      logger.info(`Created Circle transfer object`);
+      // Instead of using the SDK's CircleTransfer class, we'll implement the transfer manually
+      // This gives us more control over the process and allows us to handle approvals and transfers separately
       
-      // Initiate the transfer
-      logger.info(`Initiating Circle transfer...`);
-      const txids = await circleTransfer.initiateTransfer(signer);
+      // 1. First, get the token contract for USDC
+      const usdcTokenAddress = getTokenAddress(sourceChain, 'USDC');
+      logger.info(`Using USDC token address: ${usdcTokenAddress}`);
       
-      if (!txids || txids.length === 0) {
-        throw new Error('No transaction IDs returned from Circle transfer');
+      if (!usdcTokenAddress) {
+        throw new Error(`USDC token address not found for chain ${sourceChain}`);
       }
       
-      const txHash = txids[0];
+      const usdcContract = new ethers.Contract(
+        usdcTokenAddress,
+        [
+          'function approve(address spender, uint256 amount) external returns (bool)',
+          'function allowance(address owner, address spender) external view returns (uint256)'
+        ],
+        ethersWallet
+      );
+      
+      // 2. Get the TokenMessenger contract address
+      const tokenMessengerAddress = getTokenMessengerAddress(sourceChain);
+      logger.info(`Using TokenMessenger address: ${tokenMessengerAddress}`);
+      
+      // 3. Check if we already have sufficient allowance
+      const currentAllowance = await usdcContract.allowance(ethersWallet.address, tokenMessengerAddress);
+      logger.info(`Current allowance: ${currentAllowance}, needed: ${amountBigInt}`);
+      
+      let approveTxHash = '';
+      
+      // 4. If allowance is insufficient, approve the TokenMessenger to spend USDC
+      if (currentAllowance < amountBigInt) {
+        logger.info(`Approving TokenMessenger to spend ${amountBigInt} USDC`);
+        const approveTx = await usdcContract.approve(tokenMessengerAddress, amountBigInt);
+        logger.info(`Approval transaction sent with hash: ${approveTx.hash}`);
+        
+        // Wait for the approval transaction to be mined
+        logger.info(`Waiting for approval transaction to be mined...`);
+        const approveReceipt = await approveTx.wait();
+        logger.info(`Approval transaction mined with status: ${approveReceipt?.status}`);
+        
+        approveTxHash = approveTx.hash;
+      } else {
+        logger.info(`Sufficient allowance already exists, skipping approval`);
+      }
+      
+      // 5. Create the TokenMessenger contract instance
+      const tokenMessengerContract = new ethers.Contract(
+        tokenMessengerAddress,
+        [
+          'function depositForBurn(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken) external returns (uint64 nonce)'
+        ],
+        ethersWallet
+      );
+      
+      // 6. Get the destination domain ID for the target chain
+      const destinationDomain = getCircleDomain(destChain);
+      logger.info(`Destination domain for ${destChain}: ${destinationDomain}`);
+      
+      // 7. Format the recipient address as bytes32 (padded with zeros)
+      // The recipient address needs to be formatted as bytes32 with 12 bytes of padding
+      const mintRecipientBytes32 = '0x000000000000000000000000' + signerAddress.slice(2);
+      logger.info(`Mint recipient bytes32: ${mintRecipientBytes32}`);
+      
+      // 8. Call depositForBurn to initiate the transfer
+      logger.info(`Calling depositForBurn with amount: ${amountBigInt}, destinationDomain: ${destinationDomain}, mintRecipient: ${mintRecipientBytes32}, burnToken: ${usdcTokenAddress}`);
+      const depositTx = await tokenMessengerContract.depositForBurn(
+        amountBigInt,
+        destinationDomain,
+        mintRecipientBytes32,
+        usdcTokenAddress
+      );
+      
+      logger.info(`Deposit transaction sent with hash: ${depositTx.hash}`);
+      
+      // Wait for the deposit transaction to be mined
+      logger.info(`Waiting for deposit transaction to be mined...`);
+      const depositReceipt = await depositTx.wait();
+      logger.info(`Deposit transaction mined with status: ${depositReceipt?.status}`);
+      
+      const txHash = depositTx.hash;
       logger.info(`Circle transfer initiated with transaction hash: ${txHash}`);
       
       // Store the transfer receipt for tracking
@@ -585,34 +661,32 @@ async function fetchCircleAttestation(messageHash: string): Promise<any> {
 }
 
 /**
- * Get Circle domain ID for a chain
+ * Get the Circle domain ID for a chain
  * @param chain The chain name
  * @returns The Circle domain ID
  */
 function getCircleDomain(chain: string): number {
-  // Circle domain IDs from mainnet documentation
-  // https://developers.circle.com/stablecoin/docs/cctp-technical-reference#mainnet
-  switch (chain.toLowerCase()) {
-    case 'ethereum':
-      return 0;
-    case 'avalanche':
-      return 1;
-    case 'optimism':
-      return 2;
-    case 'arbitrum':
-      return 3;
-    case 'solana':
-      return 5;
-    case 'base':
-      return 6;
-    case 'polygon':
-      return 7;
-    case 'noble':
-      return 9;
-    default:
-      const supportedChains = ['ethereum', 'avalanche', 'optimism', 'arbitrum', 'solana', 'base', 'polygon', 'noble'];
-      throw new Error(`Unsupported chain for Circle domain ID: ${chain}. Supported chains: ${supportedChains.join(', ')}`);
+  // Circle CCTP V2 domain IDs
+  const circleDomains: Record<string, number> = {
+    'ethereum': 0,
+    'avalanche': 1,
+    'optimism': 2,
+    'arbitrum': 3,
+    'base': 6,
+    'polygon': 7,
+    'solana': 0, // Not applicable for EVM
+    'sui': 0, // Not applicable for EVM
+    'aptos': 0 // Not applicable for EVM
+  };
+
+  const normalizedChain = chain.toLowerCase();
+  const domain = circleDomains[normalizedChain];
+
+  if (domain === undefined) {
+    throw new Error(`Circle domain ID not found for chain ${chain}`);
   }
+
+  return domain;
 }
 
 /**

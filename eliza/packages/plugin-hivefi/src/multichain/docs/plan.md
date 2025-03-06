@@ -18,7 +18,7 @@ This document outlines the step-by-step implementation plan for the multichain m
 
 ### Step 3: Implement Core Actions ✅
 - [x] Create `actions/transfer.ts` for native token transfers
-- [x] Create `actions/token-transfer.ts` for ERC-20 token transfers
+- [x] Create `actions/token-transfer.ts` for ERC-20 token transfers (simulation mode)
 - [x] Create `actions/index.ts` to export all core actions
 - [x] Implement action context composition utilities
 - [x] Implement response generation utilities
@@ -28,17 +28,18 @@ Key Implementation Details:
 - Each action follows the ActionExample format for proper type compatibility
 - Actions handle their own wallet provider initialization
 - Proper error handling and user feedback implemented
-- ERC-20 token transfers support USDC, MODE, and PEPE tokens
+- ERC-20 token transfers support USDC, USDT, and DAI tokens (simulation only)
 
 ### Step 4: Update Main Module Exports ✅
 - [x] Update `index.ts` to export all actions and providers
 - [x] Export providers alongside actions for runtime use
 
-## Phase 1.5: Enhancements 🔄
-- [ ] Add support for more ERC-20 tokens
-- [ ] Improve error handling with more specific messages
+## Phase 1.5: ERC-20 Token Transfer Completion 🔄
+- [ ] Implement actual transaction sending for ERC-20 tokens
+- [ ] Add balance checking before transfers
 - [ ] Add transaction status tracking
-- [ ] Add balance checking functionality
+- [ ] Add support for more ERC-20 tokens
+- [ ] Implement proper error handling for transaction failures
 
 ## Phase 2: Protocol Integrations 📋
 
@@ -92,6 +93,7 @@ Key Implementation Details:
 - [x] Create usage examples
 - [x] Document environment variables and configuration
 - [x] Document supported tokens and chains
+- [x] Document current limitations and next steps
 
 ## Implementation Details
 
@@ -112,21 +114,27 @@ Each action (like transfer or token-transfer) follows this pattern:
 2. Get the private key from runtime settings (`EVM_PRIVATE_KEY`)
 3. Initialize the wallet provider with the private key
 4. Get the appropriate wallet for the specified chain
-5. Initialize GOAT tools with the wallet and specific plugins (sendETH or erc20)
-6. Execute the action using generateText with proper context
+5. Prepare transaction data (function signature, parameters, etc.)
+6. Execute or simulate the transaction
 7. Handle responses and errors with user-friendly messages
 
 ### ERC-20 Token Support
 
-Currently, the following ERC-20 tokens are supported:
+Currently, the following ERC-20 tokens are supported (in simulation mode):
 - USDC (USD Coin)
-- MODE (Mode Network Token)
-- PEPE (Pepe Token)
+- USDT (Tether USD)
+- DAI (Dai Stablecoin)
+
+Supported chains for these tokens:
+- Ethereum (Chain ID: 1)
+- Optimism (Chain ID: 10)
+- Arbitrum (Chain ID: 42161)
+- Polygon (Chain ID: 137)
 
 To add support for more tokens, we need to:
-1. Check if they're available in the @goat-sdk/plugin-erc20 package
-2. If not, define custom token configurations
-3. Update the token-transfer.ts file to include the new tokens
+1. Define token configurations with correct addresses for each chain
+2. Add the token to the TOKENS record
+3. Update documentation to reflect the new supported tokens
 
 ## Environment Variables
 
@@ -142,14 +150,16 @@ EVM_RPC_URL=your_preferred_rpc_url     # Override default RPC URL
 
 ## Next Steps
 
-1. Test the implemented core actions:
-   - Native token transfers across different chains
-   - ERC-20 token transfers across different chains (USDC, MODE, PEPE)
-   - Error handling for various scenarios
+1. Complete the ERC-20 token transfer implementation:
+   - Integrate with actual transaction sending
+   - Add balance checking before transfers
+   - Add transaction status tracking
+   - Implement proper error handling for transaction failures
 
 2. Add support for more ERC-20 tokens:
    - Research how to add custom token definitions
-   - Add popular tokens like DAI, USDT, WETH, etc.
+   - Add popular tokens like WETH, WBTC, etc.
+   - Ensure token addresses are correct for each chain
 
 3. Begin implementing protocol integrations:
    - Start with Uniswap as it's the most widely used
