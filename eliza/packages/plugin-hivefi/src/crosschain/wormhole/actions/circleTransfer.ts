@@ -11,6 +11,7 @@ export const circleTransferAction: Action = {
   name: 'CIRCLE_USDC_TRANSFER',
   description: 'Transfer USDC between chains using Circle Bridge',
   similes: [
+    'CIRCLE_USDC_TRANSFER',
     'Cross-chain USDC transfer via Circle Bridge',
     'Bridge USDC between blockchains using Circle',
     'Move USDC across different networks with CCTP',

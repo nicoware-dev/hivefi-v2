@@ -22,6 +22,7 @@ export const circleRedeemAction: Action = {
   name: 'CIRCLE_USDC_REDEEM',
   description: 'Redeem USDC transfers made using Circle Bridge',
   similes: [
+    'CIRCLE_USDC_REDEEM',
     'Claim USDC from Circle Bridge',
     'Complete Circle USDC transfer',
     'Finalize CCTP USDC transfer',
@@ -49,7 +50,7 @@ export const circleRedeemAction: Action = {
       }
     ]
   ],
-  handler: async (runtime: IAgentRuntime, message: any, memory: Memory, state: State): Promise<any> => {
+  handler: async (runtime, message, state, options, callback) => {
     // Extract the text from the message object
     const text = message?.content?.text || '';
     

@@ -725,12 +725,33 @@ importers:
       '@elizaos/core':
         specifier: workspace:*
         version: link:../core
+      '@goat-sdk/adapter-vercel-ai':
+        specifier: 0.2.0
+        version: 0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(ai@4.1.16(react@18.3.1)(zod@3.23.8))
+      '@goat-sdk/core':
+        specifier: 0.4.6
+        version: 0.4.6(zod@3.23.8)
+      '@goat-sdk/plugin-erc20':
+        specifier: 0.2.2
+        version: 0.2.2(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8))
+      '@goat-sdk/plugin-kim':
+        specifier: 0.1.2
+        version: 0.1.2(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8))
+      '@goat-sdk/wallet-evm':
+        specifier: 0.2.0
+        version: 0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      '@goat-sdk/wallet-viem':
+        specifier: 0.2.0
+        version: 0.2.0(@goat-sdk/wallet-evm@0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10))(viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8))
       '@uniswap/sdk-core':
         specifier: 6.0.0
         version: 6.0.0
       '@wormhole-foundation/sdk':
         specifier: ^1.10.0
         version: 1.11.1(@types/react@18.2.57)(axios@1.8.1)(bufferutil@4.0.9)(encoding@0.1.13)(got@12.6.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      '@wormhole-foundation/sdk-connect':
+        specifier: ^1.11.1
+        version: 1.11.1
       axios:
         specifier: ^1.6.7
         version: 1.8.1
@@ -745,11 +766,14 @@ importers:
         version: 4.0.2
       viem:
         specifier: 2.21.58
-        version: 2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.24.2)
+        version: 2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
       whatwg-url:
         specifier: 7.1.0
         version: 7.1.0
     devDependencies:
+      '@biomejs/biome':
+        specifier: 1.9.4
+        version: 1.9.4
       '@types/node':
         specifier: ^20.10.4
         version: 20.11.19
@@ -2651,8 +2675,8 @@ packages:
       '@dynamic-labs/wallet-book': 2.6.3
       eventemitter3: 5.0.1
 
-  '@ecies/ciphers@0.2.2':
-    resolution: {integrity: sha512-ylfGR7PyTd+Rm2PqQowG08BCKA22QuX8NzrL+LxAAvazN10DMwdJ2fWwAzRj05FI/M8vNFGm3cv9Wq/GFWCBLg==}
+  '@ecies/ciphers@0.2.3':
+    resolution: {integrity: sha512-tapn6XhOueMwht3E2UzY0ZZjYokdaw9XtL9kEyjhQ/Fb9vL9xTFbOaI+fV0AWvTpYu4BNloC6getKW6NtSg4mA==}
     engines: {bun: '>=1', deno: '>=2', node: '>=16'}
     peerDependencies:
       '@noble/ciphers': ^1.0.0
@@ -3029,6 +3053,40 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@goat-sdk/adapter-vercel-ai@0.2.0':
+    resolution: {integrity: sha512-NqUyO38i6ELbWXSDHddfkD1k4QCUcvfs3jVQArlJ9OO9NSlkKvnbZjO1tTjoVoERjRKfKsCqfMPgsgo3akx7tA==}
+    peerDependencies:
+      '@goat-sdk/core': 0.4.0
+      ai: 4.0.3
+
+  '@goat-sdk/core@0.4.6':
+    resolution: {integrity: sha512-jFk0G9d/WlR1juIhCKtgEr7HBi2v7/veqouP1Zm1KC6EU2bNHXMYrh2TkeO1wjep3ur1MK4DDY1c+rS4WSY/7g==}
+    peerDependencies:
+      zod: ^3.0.0
+
+  '@goat-sdk/plugin-erc20@0.2.2':
+    resolution: {integrity: sha512-uobj8A2GRAHAU8PNY9Be0iA8p+311zRDIRKHRQX0uooCWD4CxD6iMj99Q4RvBl8Es+Kc7JMQPRoZzMLawJUSJw==}
+    peerDependencies:
+      '@goat-sdk/core': 0.4.0
+      viem: 2.21.58
+
+  '@goat-sdk/plugin-kim@0.1.2':
+    resolution: {integrity: sha512-jZ7PTjGk7LPGAmMflhAieZsE0Q28TWinNNuDnljrp6NdfjrLK3wLOQB9syWyFHDCsa+RiddSVjr1ZQJkPFhfKw==}
+    peerDependencies:
+      '@goat-sdk/core': 0.4.0
+      viem: 2.21.58
+
+  '@goat-sdk/wallet-evm@0.2.0':
+    resolution: {integrity: sha512-w/sWi7WHsTz8G+jNWI0xJ+l4wWOVFrSxh7PHfYOEZQyFexOioEdEG5QGYkgYT3/VoYApsx9G1H8itKxs1Mg5Mw==}
+    peerDependencies:
+      '@goat-sdk/core': 0.4.0
+
+  '@goat-sdk/wallet-viem@0.2.0':
+    resolution: {integrity: sha512-x9FTUg9/ZhJyx8tQMAuIGmoFfRkmyDge78yvd9CTK6SQTiYQ/Hio7rAmHjLE95lElXb6EumZu7R0IlX3m/SGSw==}
+    peerDependencies:
+      '@goat-sdk/wallet-evm': 0.2.0
+      viem: 2.21.58
 
   '@gql.tada/cli-utils@1.6.3':
     resolution: {integrity: sha512-jFFSY8OxYeBxdKi58UzeMXG1tdm4FVjXa8WHIi66Gzu9JWtCE6mqom3a8xkmSw+mVaybFW5EN2WXf1WztJVNyQ==}
@@ -8530,8 +8588,8 @@ packages:
     resolution: {integrity: sha512-YSFlK1Ee0/GC8QaO91tHcDxJiE/X4FbpAyQWkxAvG6AXCuR65YzK8ua6D9hvi/TzUfZMpc+BwuM1IPw8fmQBiQ==}
     engines: {node: '>= 0.10.0'}
 
-  exsolve@1.0.1:
-    resolution: {integrity: sha512-Smf0iQtkQVJLaph8r/qS8C8SWfQkaq9Q/dFcD44MLbJj6DNhlWefVuaS21SjfqOsBbjVlKtbCj6L9ekXK6EZUg==}
+  exsolve@1.0.2:
+    resolution: {integrity: sha512-ZEcIMbthn2zeX4/wD/DLxDUjuCltHXT8Htvm/JFlTkdYgWh2+HGppgwwNUnIVxzxP7yJOPtuBAec0dLx6lVY8w==}
 
   ext@1.7.0:
     resolution: {integrity: sha512-6hxeJYaL110a9b5TEJSj0gojyHQAmA2ch5Os+ySCiA1QGdS697XWY1pzsrSjqA9LDEEgdB/KypIlR59RcLuHYw==}
@@ -12527,6 +12585,9 @@ packages:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
     engines: {node: '>=8'}
 
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
+
   regenerate-unicode-properties@10.2.0:
     resolution: {integrity: sha512-DqHn3DwbmmPVzeKj9woBadqmXxLvQoQIwu7nopMc72ztvxVmVk2SBhSnx67zuye5TP+lJsb/TBQsjLKhnDf3MA==}
     engines: {node: '>=4'}
@@ -13418,8 +13479,8 @@ packages:
     resolution: {integrity: sha512-xZFXEGbG7SNC3itwBzI3RYjq/cEhBkx2hJuKGIUOcEULmkQExXiHat2z/qkISYsuR+IKumhEfKKbV5qXmhICFQ==}
     engines: {node: '>=4'}
 
-  terser-webpack-plugin@5.3.13:
-    resolution: {integrity: sha512-JG3pBixF6kx2o0Yfz2K6pqh72DpwTI08nooHd06tcj5WyIt5SsSiUYqRT+kemrGUNSuSzVhwfZ28aO8gogajNQ==}
+  terser-webpack-plugin@5.3.14:
+    resolution: {integrity: sha512-vkZjpUjb6OMS7dhV+tILUW6BhpDR7P2L/aQSAv+Uwk+m8KATX9EccViHTJR2qDtACKPIYndLGCyl3FMo+r2LMw==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -13538,8 +13599,8 @@ packages:
     resolution: {integrity: sha512-n1cw8k1k0x4pgA2+9XrOkFydTerNcJ1zWCO5Nn9scWHTD+5tp8dghT2x1uduQePZTZgd3Tupf+x9BxJjeJi77Q==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@6.1.82:
-    resolution: {integrity: sha512-Jabl32m21tt/d/PbDO88R43F8aY98Piiz6BVH9ShUlOAiiAELhEqwrAmBocjAqnCfoUeIsRU+h3IEzZd318F3w==}
+  tldts-core@6.1.83:
+    resolution: {integrity: sha512-I2wb9OJc6rXyh9d4aInhSNWChNI+ra6qDnFEGEwe9OoA68lE4Temw29bOkf1Uvwt8VZS079t1BFZdXVBmmB4dw==}
 
   tldts@6.0.16:
     resolution: {integrity: sha512-TkEq38COU640mzOKPk4D1oH3FFVvwEtMaKIfw/+F/umVsy7ONWu8PPQH0c11qJ/Jq/zbcQGprXGsT8GcaDSmJg==}
@@ -14803,8 +14864,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  yocto-queue@1.1.1:
-    resolution: {integrity: sha512-b4JR1PFR10y1mKjhHY9LaGo6tmrgjit7hxVIeAmyMw3jegXR4dhYqLaQF5zMXZxY7tLpMyJeLjr1C4rLmkVe8g==}
+  yocto-queue@1.2.0:
+    resolution: {integrity: sha512-KHBC7z61OJeaMGnF3wqNZj+GGNXOyypZviiKpQeiHirG5Ib1ImwcLBH70rbMSkKfSmUNBsdf2PwaEJtKvgmkNw==}
     engines: {node: '>=12.20'}
 
   yup@0.32.11:
@@ -14951,6 +15012,15 @@ snapshots:
       '@ai-sdk/provider-utils': 2.1.6(zod@3.24.2)
       zod: 3.24.2
 
+  '@ai-sdk/provider-utils@2.1.6(zod@3.23.8)':
+    dependencies:
+      '@ai-sdk/provider': 1.0.6
+      eventsource-parser: 3.0.0
+      nanoid: 3.3.8
+      secure-json-parse: 2.7.0
+    optionalDependencies:
+      zod: 3.23.8
+
   '@ai-sdk/provider-utils@2.1.6(zod@3.24.1)':
     dependencies:
       '@ai-sdk/provider': 1.0.6
@@ -14973,6 +15043,16 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
+  '@ai-sdk/react@1.1.8(react@18.3.1)(zod@3.23.8)':
+    dependencies:
+      '@ai-sdk/provider-utils': 2.1.6(zod@3.23.8)
+      '@ai-sdk/ui-utils': 1.1.8(zod@3.23.8)
+      swr: 2.3.2(react@18.3.1)
+      throttleit: 2.1.0
+    optionalDependencies:
+      react: 18.3.1
+      zod: 3.23.8
+
   '@ai-sdk/react@1.1.8(react@18.3.1)(zod@3.24.2)':
     dependencies:
       '@ai-sdk/provider-utils': 2.1.6(zod@3.24.2)
@@ -14982,6 +15062,14 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
       zod: 3.24.2
+
+  '@ai-sdk/ui-utils@1.1.8(zod@3.23.8)':
+    dependencies:
+      '@ai-sdk/provider': 1.0.6
+      '@ai-sdk/provider-utils': 2.1.6(zod@3.23.8)
+      zod-to-json-schema: 3.24.3(zod@3.23.8)
+    optionalDependencies:
+      zod: 3.23.8
 
   '@ai-sdk/ui-utils@1.1.8(zod@3.24.2)':
     dependencies:
@@ -17291,7 +17379,7 @@ snapshots:
       postcss-loader: 7.3.4(postcss@8.4.35)(typescript@5.6.3)(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
       postcss-preset-env: 10.1.5(postcss@8.4.35)
       react-dev-utils: 12.0.1(eslint@9.21.0(jiti@1.21.7))(typescript@5.6.3)(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
-      terser-webpack-plugin: 5.3.13(@swc/core@1.11.7(@swc/helpers@0.5.15))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
+      terser-webpack-plugin: 5.3.14(@swc/core@1.11.7(@swc/helpers@0.5.15))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
       tslib: 2.8.1
       url-loader: 4.1.1(file-loader@6.2.0(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15))))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
       webpack: 5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15))
@@ -18355,7 +18443,7 @@ snapshots:
       '@dynamic-labs/wallet-book': 2.6.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(viem@2.21.58(bufferutil@4.0.9)(typescript@5.3.3)(utf-8-validate@5.0.10)(zod@3.22.4))
       eventemitter3: 5.0.1
 
-  '@ecies/ciphers@0.2.2(@noble/ciphers@1.2.1)':
+  '@ecies/ciphers@0.2.3(@noble/ciphers@1.2.1)':
     dependencies:
       '@noble/ciphers': 1.2.1
 
@@ -18865,6 +18953,55 @@ snapshots:
       tabbable: 6.2.0
 
   '@floating-ui/utils@0.2.9': {}
+
+  '@goat-sdk/adapter-vercel-ai@0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(ai@4.1.16(react@18.3.1)(zod@3.23.8))':
+    dependencies:
+      '@goat-sdk/core': 0.4.6(zod@3.23.8)
+      ai: 4.1.16(react@18.3.1)(zod@3.23.8)
+      zod: 3.23.8
+
+  '@goat-sdk/core@0.4.6(zod@3.23.8)':
+    dependencies:
+      reflect-metadata: 0.2.2
+      zod: 3.23.8
+
+  '@goat-sdk/plugin-erc20@0.2.2(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8))':
+    dependencies:
+      '@goat-sdk/core': 0.4.6(zod@3.23.8)
+      '@goat-sdk/wallet-evm': 0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      viem: 2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+
+  '@goat-sdk/plugin-kim@0.1.2(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8))':
+    dependencies:
+      '@goat-sdk/core': 0.4.6(zod@3.23.8)
+      '@goat-sdk/wallet-evm': 0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      viem: 2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+
+  '@goat-sdk/wallet-evm@0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@goat-sdk/core': 0.4.6(zod@3.23.8)
+      abitype: 1.0.8(typescript@5.6.3)(zod@3.23.8)
+      viem: 2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+
+  '@goat-sdk/wallet-viem@0.2.0(@goat-sdk/wallet-evm@0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10))(viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8))':
+    dependencies:
+      '@goat-sdk/wallet-evm': 0.2.0(@goat-sdk/core@0.4.6(zod@3.23.8))(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)
+      viem: 2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8)
 
   '@gql.tada/cli-utils@1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.6.3))(graphql@16.10.0)(typescript@5.6.3)':
     dependencies:
@@ -24062,6 +24199,11 @@ snapshots:
       typescript: 5.3.3
       zod: 3.22.4
 
+  abitype@1.0.7(typescript@5.6.3)(zod@3.23.8):
+    optionalDependencies:
+      typescript: 5.6.3
+      zod: 3.23.8
+
   abitype@1.0.7(typescript@5.6.3)(zod@3.24.1):
     optionalDependencies:
       typescript: 5.6.3
@@ -24077,15 +24219,15 @@ snapshots:
       typescript: 5.3.3
       zod: 3.22.4
 
+  abitype@1.0.8(typescript@5.6.3)(zod@3.23.8):
+    optionalDependencies:
+      typescript: 5.6.3
+      zod: 3.23.8
+
   abitype@1.0.8(typescript@5.6.3)(zod@3.24.1):
     optionalDependencies:
       typescript: 5.6.3
       zod: 3.24.1
-
-  abitype@1.0.8(typescript@5.6.3)(zod@3.24.2):
-    optionalDependencies:
-      typescript: 5.6.3
-      zod: 3.24.2
 
   abort-controller@3.0.0:
     dependencies:
@@ -24150,6 +24292,18 @@ snapshots:
     dependencies:
       clean-stack: 2.2.0
       indent-string: 4.0.0
+
+  ai@4.1.16(react@18.3.1)(zod@3.23.8):
+    dependencies:
+      '@ai-sdk/provider': 1.0.6
+      '@ai-sdk/provider-utils': 2.1.6(zod@3.23.8)
+      '@ai-sdk/react': 1.1.8(react@18.3.1)(zod@3.23.8)
+      '@ai-sdk/ui-utils': 1.1.8(zod@3.23.8)
+      '@opentelemetry/api': 1.9.0
+      jsondiffpatch: 0.6.0
+    optionalDependencies:
+      react: 18.3.1
+      zod: 3.23.8
 
   ai@4.1.16(react@18.3.1)(zod@3.24.2):
     dependencies:
@@ -26062,7 +26216,7 @@ snapshots:
 
   eciesjs@0.4.14:
     dependencies:
-      '@ecies/ciphers': 0.2.2(@noble/ciphers@1.2.1)
+      '@ecies/ciphers': 0.2.3(@noble/ciphers@1.2.1)
       '@noble/ciphers': 1.2.1
       '@noble/curves': 1.8.1
       '@noble/hashes': 1.7.1
@@ -26641,7 +26795,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  exsolve@1.0.1: {}
+  exsolve@1.0.2: {}
 
   ext@1.7.0:
     dependencies:
@@ -30161,25 +30315,39 @@ snapshots:
   ox@0.4.4(typescript@5.3.3)(zod@3.22.4):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.3.3)(zod@3.22.4)
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      abitype: 1.0.7(typescript@5.3.3)(zod@3.22.4)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.3.3
     transitivePeerDependencies:
       - zod
 
+  ox@0.4.4(typescript@5.6.3)(zod@3.23.8):
+    dependencies:
+      '@adraffy/ens-normalize': 1.11.0
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      abitype: 1.0.7(typescript@5.6.3)(zod@3.23.8)
+      eventemitter3: 5.0.1
+    optionalDependencies:
+      typescript: 5.6.3
+    transitivePeerDependencies:
+      - zod
+
   ox@0.4.4(typescript@5.6.3)(zod@3.24.1):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.6.3)(zod@3.24.1)
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      abitype: 1.0.7(typescript@5.6.3)(zod@3.24.1)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.6.3
@@ -30189,11 +30357,11 @@ snapshots:
   ox@0.4.4(typescript@5.6.3)(zod@3.24.2):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
-      abitype: 1.0.8(typescript@5.6.3)(zod@3.24.2)
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      abitype: 1.0.7(typescript@5.6.3)(zod@3.24.2)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.6.3
@@ -30232,11 +30400,11 @@ snapshots:
 
   p-limit@4.0.0:
     dependencies:
-      yocto-queue: 1.1.1
+      yocto-queue: 1.2.0
 
   p-limit@5.0.0:
     dependencies:
-      yocto-queue: 1.1.1
+      yocto-queue: 1.2.0
 
   p-locate@2.0.0:
     dependencies:
@@ -30565,7 +30733,7 @@ snapshots:
   pkg-types@2.1.0:
     dependencies:
       confbox: 0.2.1
-      exsolve: 1.0.1
+      exsolve: 1.0.2
       pathe: 2.0.3
 
   pkg-up@3.1.0:
@@ -31856,6 +32024,8 @@ snapshots:
       indent-string: 4.0.0
       strip-indent: 3.0.0
 
+  reflect-metadata@0.2.2: {}
+
   regenerate-unicode-properties@10.2.0:
     dependencies:
       regenerate: 1.4.2
@@ -33017,7 +33187,7 @@ snapshots:
 
   temp-dir@1.0.0: {}
 
-  terser-webpack-plugin@5.3.13(@swc/core@1.11.7(@swc/helpers@0.5.15))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15))):
+  terser-webpack-plugin@5.3.14(@swc/core@1.11.7(@swc/helpers@0.5.15))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15))):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       jest-worker: 27.5.1
@@ -33123,11 +33293,11 @@ snapshots:
 
   tinyspy@3.0.2: {}
 
-  tldts-core@6.1.82: {}
+  tldts-core@6.1.83: {}
 
   tldts@6.0.16:
     dependencies:
-      tldts-core: 6.1.82
+      tldts-core: 6.1.83
 
   tmp@0.0.33:
     dependencies:
@@ -33791,6 +33961,24 @@ snapshots:
       - utf-8-validate
       - zod
 
+  viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.23.8):
+    dependencies:
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      abitype: 1.0.7(typescript@5.6.3)(zod@3.23.8)
+      isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      ox: 0.4.4(typescript@5.6.3)(zod@3.23.8)
+      webauthn-p256: 0.0.10
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    optionalDependencies:
+      typescript: 5.6.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
+
   viem@2.21.58(bufferutil@4.0.9)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.24.1):
     dependencies:
       '@noble/curves': 1.7.0
@@ -34286,8 +34474,8 @@ snapshots:
 
   webauthn-p256@0.0.10:
     dependencies:
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
 
   webextension-polyfill@0.10.0: {}
 
@@ -34401,7 +34589,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.0
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.13(@swc/core@1.11.7(@swc/helpers@0.5.15))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
+      terser-webpack-plugin: 5.3.14(@swc/core@1.11.7(@swc/helpers@0.5.15))(webpack@5.98.0(@swc/core@1.11.7(@swc/helpers@0.5.15)))
       watchpack: 2.4.2
       webpack-sources: 3.2.3
     transitivePeerDependencies:
@@ -34650,7 +34838,7 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  yocto-queue@1.1.1: {}
+  yocto-queue@1.2.0: {}
 
   yup@0.32.11:
     dependencies:
@@ -34667,6 +34855,10 @@ snapshots:
       zen-observable: 0.8.15
 
   zen-observable@0.8.15: {}
+
+  zod-to-json-schema@3.24.3(zod@3.23.8):
+    dependencies:
+      zod: 3.23.8
 
   zod-to-json-schema@3.24.3(zod@3.24.2):
     dependencies:

@@ -2,14 +2,13 @@ import { elizaLogger, IAgentRuntime } from '@elizaos/core';
 import { TransferParams, RedeemParams } from '../types';
 import { getSigner, getBalance } from '../utils/wallet';
 import { normalizeChainName } from '../utils/chain';
-import { Chain } from '@wormhole-foundation/sdk';
+import { Chain, UniversalAddress } from '@wormhole-foundation/sdk';
 import { getTokenAddress, getTokenDecimals } from '../config/tokens';
 import { ethers } from 'ethers';
 import { getWormholeInstance } from './instance';
 import { getWormholeChain, isWormholeSupported } from '../config';
-import { CircleTransfer as CircleTransferSDK, Wormhole as WormholeSDK } from '@wormhole-foundation/sdk-connect';
+import { CircleTransfer as CircleTransferSDK, circle } from '@wormhole-foundation/sdk-connect';
 import { getExplorerLink } from '../utils/explorer';
-import { circle } from '@wormhole-foundation/sdk-connect';
 
 const logger = elizaLogger.child({ module: 'CircleTransfer' });
 
@@ -234,20 +233,38 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
     const signerAddress = signer.address();
     logger.info(`Using signer address: ${signerAddress}`);
     
-    // Create properly formatted chain addresses
-    const sourceAddress = createChainAddress(wormholeSourceChain, signerAddress);
-    const destAddress = createChainAddress(wormholeDestChain, signerAddress);
+    // Create UniversalAddress instances for source and destination
+    const cleanAddress = signerAddress.startsWith('0x') ? signerAddress.slice(2) : signerAddress;
+    const universalAddress = new UniversalAddress(cleanAddress);
+    
+    // Create source and destination addresses with UniversalAddress
+    const sourceAddress = {
+      chain: wormholeSourceChain,
+      address: universalAddress
+    };
+    
+    const destAddress = {
+      chain: wormholeDestChain,
+      address: universalAddress
+    };
     
     logger.info(`Created source address: ${safeSerialize(sourceAddress)}`);
     logger.info(`Created destination address: ${safeSerialize(destAddress)}`);
     
-    // Parse amount to bigint with appropriate decimals
-    const tokenDecimals = getTokenDecimals('USDC');
-    const amountBigInt = BigInt(Math.floor(parseFloat(params.amount) * (10 ** tokenDecimals)));
-    logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
-    
-    // Before initiating the transfer, check if the wallet has enough funds for gas
     try {
+      // Get the Wormhole SDK instance
+      const wh = await getWormholeInstance();
+      
+      // Get the chain contexts
+      const sourceChainContext = wh.getChain(wormholeSourceChain);
+      const destChainContext = wh.getChain(wormholeDestChain);
+      
+      // Parse amount to bigint with appropriate decimals
+      const tokenDecimals = getTokenDecimals('USDC');
+      const amountBigInt = BigInt(Math.floor(parseFloat(params.amount) * (10 ** tokenDecimals)));
+      logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
+      
+      // Before initiating the transfer, check if the wallet has enough funds for gas
       // Get the wallet balance for gas
       const nativeBalance = await getBalance(runtime, sourceChain, signerAddress);
       logger.info(`Native token balance on ${sourceChain}: ${nativeBalance}`);
@@ -257,35 +274,9 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         throw new Error(`Your wallet doesn't have any ${originalSourceChain} tokens to pay for gas fees. Please fund your wallet with some ${originalSourceChain} tokens first.`);
       }
       
-      // Check USDC balance - pass 'USDC' as the token address to use the known address mapping
-      let usdcBalance;
-      let balanceCheckRetries = 0;
-      const maxBalanceRetries = 3;
-      
-      while (balanceCheckRetries < maxBalanceRetries) {
-        try {
-          usdcBalance = await getBalance(runtime, sourceChain, signerAddress, 'USDC');
-          logger.info(`USDC balance on ${sourceChain}: ${usdcBalance}`);
-          break; // If successful, exit the retry loop
-        } catch (error: any) {
-          balanceCheckRetries++;
-          logger.warn(`USDC balance check attempt ${balanceCheckRetries} failed: ${error.message}`);
-          
-          if (balanceCheckRetries >= maxBalanceRetries) {
-            logger.error(`Failed to check USDC balance after ${maxBalanceRetries} attempts`);
-            throw new Error(`Failed to check your USDC balance: ${error.message}`);
-          }
-          
-          // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, 1000 * balanceCheckRetries));
-        }
-      }
-      
-      // If we couldn't get the balance, use a default of 0
-      if (!usdcBalance) {
-        usdcBalance = '0';
-        logger.warn(`Using default USDC balance of 0 due to balance check failures`);
-      }
+      // Check USDC balance
+      const usdcBalance = await getBalance(runtime, sourceChain, signerAddress, 'USDC');
+      logger.info(`USDC balance on ${sourceChain}: ${usdcBalance}`);
       
       // Convert amount to a number for comparison
       const amountNum = parseFloat(params.amount);
@@ -296,83 +287,82 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         throw new Error(`You don't have enough USDC on ${originalSourceChain}. Your balance is ${usdcBalance} USDC, but you're trying to transfer ${params.amount} USDC.`);
       }
       
-      // Create a Circle transfer
-      logger.info('Creating Circle USDC transfer...');
+      // Create a Circle transfer using the SDK's method
+      const transferParams = {
+        from: sourceAddress,
+        to: destAddress,
+        amount: amountBigInt,
+        automatic: false,
+        nativeGas: undefined
+      };
       
-      const xfer = await wh.circleTransfer(
-        amountBigInt,
-        sourceAddress,
-        destAddress,
-        false, // Not automatic for now
-        undefined, // No payload
-        undefined // No native gas dropoff
-      );
+      logger.info(`Created transfer params: ${safeSerialize(transferParams)}`);
       
-      logger.info('Created Circle transfer object');
+      // Create the Circle transfer
+      const circleTransfer = new CircleTransferSDK(wh, transferParams, sourceChainContext, destChainContext);
+      logger.info(`Created Circle transfer object`);
       
-      // Initiate the transfer with our signer
-      logger.info('Initiating Circle transfer...');
+      // Initiate the transfer
+      logger.info(`Initiating Circle transfer...`);
+      const txids = await circleTransfer.initiateTransfer(signer);
       
-      try {
-        const srcTxids = await xfer.initiateTransfer(signer);
-        logger.info(`Circle transfer initiated with txids: ${safeSerialize(srcTxids)}`);
-        
-        // Store the transfer receipt for tracking
-        const receipt = {
-          type: 'circle',
-          sourceChain: originalSourceChain,
-          destinationChain: originalDestChain,
-          token: 'USDC',
-          amount: params.amount,
-          timestamp: Date.now(),
-          status: 'initiated',
-          txHash: srcTxids[0],
-          sourceAddress: signerAddress,
-          destinationAddress: signerAddress,
-          tokenAddress: tokenAddress
-        };
-        
-        storeTransferReceipt(srcTxids[0], receipt);
-        
-        // Return the first transaction ID and explorer link
-        const txHash = srcTxids[0];
-        const explorerLink = getExplorerLink(originalSourceChain, txHash);
-        
-        // Return additional information for better user experience
-        return { 
-          txHash, 
-          explorerLink,
-          sourceChain: originalSourceChain,
-          destinationChain: originalDestChain,
-          amount: params.amount,
-          token: 'USDC',
-          status: 'initiated',
-          message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete. After that, you'll need to redeem your USDC on ${originalDestChain} by saying "Redeem my USDC transfer with transaction ID ${txHash}".`,
-          estimatedTime: '5-10 minutes'
-        };
-      } catch (error: any) {
-        logger.error(`Error initiating Circle transfer: ${error.message}`);
-        logger.error(error);
-        
-        // Provide specific error messages based on the error type
-        if (error.code === 'INSUFFICIENT_FUNDS' || error.message.includes('insufficient funds')) {
-          throw new Error(`Insufficient funds for USDC transfer: ${error.message}`);
-        } else if (error.message.includes('rate limit') || error.message.includes('Too Many Requests')) {
-          throw new Error(`RPC rate limit exceeded: ${error.message}. Please try again later.`);
-        } else if (error.message.includes('gas')) {
-          throw new Error(`Gas estimation failed: ${error.message}. Please try with a smaller amount.`);
-        } else if (error.message.includes('rejected') || error.message.includes('denied')) {
-          throw new Error(`Transaction rejected: ${error.message}`);
-        } else if (error.message.includes('nonce')) {
-          throw new Error(`Transaction nonce error: ${error.message}. Please try again.`);
-        } else {
-          throw new Error(`Failed to initiate Circle USDC transfer: ${error.message}`);
-        }
+      if (!txids || txids.length === 0) {
+        throw new Error('No transaction IDs returned from Circle transfer');
       }
+      
+      const txHash = txids[0];
+      logger.info(`Circle transfer initiated with transaction hash: ${txHash}`);
+      
+      // Store the transfer receipt for tracking
+      const receipt = {
+        type: 'circle',
+        sourceChain: originalSourceChain,
+        destinationChain: originalDestChain,
+        token: 'USDC',
+        amount: params.amount,
+        timestamp: Date.now(),
+        status: 'initiated',
+        txHash: txHash,
+        sourceAddress: signerAddress,
+        destinationAddress: signerAddress,
+        tokenAddress: tokenAddress
+      };
+      
+      storeTransferReceipt(txHash, receipt);
+      
+      // Return the first transaction ID and explorer link
+      const explorerLink = getExplorerLink(originalSourceChain, txHash);
+      
+      // Return additional information for better user experience
+      return { 
+        txHash, 
+        explorerLink,
+        sourceChain: originalSourceChain,
+        destinationChain: originalDestChain,
+        amount: params.amount,
+        token: 'USDC',
+        status: 'initiated',
+        message: `Circle USDC transfer initiated. The transfer will typically take 5-10 minutes to complete. After that, you'll need to redeem your USDC on ${originalDestChain} by saying "Redeem my USDC transfer with transaction ID ${txHash}".`,
+        estimatedTime: '5-10 minutes'
+      };
     } catch (error: any) {
-      logger.error(`Error with Circle transfer: ${error.message}`);
+      logger.error(`Error initiating Circle transfer: ${error.message}`);
       logger.error(error);
-      throw error;
+      
+      // Provide specific error messages based on the error type
+      if (error.code === 'INSUFFICIENT_FUNDS' || error.message.includes('insufficient funds')) {
+        throw new Error(`Insufficient funds for USDC transfer: ${error.message}`);
+      } else if (error.message.includes('rate limit') || error.message.includes('Too Many Requests')) {
+        throw new Error(`RPC rate limit exceeded: ${error.message}. Please try again later.`);
+      } else if (error.message.includes('gas')) {
+        throw new Error(`Gas estimation failed: ${error.message}. Please try with a smaller amount.`);
+      } else if (error.message.includes('rejected') || error.message.includes('denied')) {
+        throw new Error(`Transaction rejected: ${error.message}`);
+      } else if (error.message.includes('nonce')) {
+        throw new Error(`Transaction nonce error: ${error.message}. Please try again.`);
+      } else {
+        throw new Error(`Failed to initiate Circle USDC transfer: ${error.message}`);
+      }
     }
   } catch (error: any) {
     logger.error(`Error in transferCircleUSDC: ${error.message}`);
@@ -511,31 +501,66 @@ function calculateMessageHash(messageBytes: string): string {
  */
 function extractMessageBytesFromReceipt(receipt: any): string | null {
   try {
-    // Look for MessageSent event in the logs
-    // The Circle message transmitter emits a MessageSent event with the message bytes
-    // The event signature is: MessageSent(bytes message)
-    const messageSentTopic = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036';
+    if (!receipt || !receipt.logs) {
+      logger.error('Receipt or logs not found');
+      return null;
+    }
+
+    // The Circle message is emitted in the MessageSent event
+    // The event signature is: MessageSent(bytes)
+    const messageSentEventSignature = '0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036';
     
     // Find the log with the MessageSent event
     const messageSentLog = receipt.logs.find((log: any) => 
-      log.topics && log.topics[0] === messageSentTopic
+      log.topics && log.topics[0] === messageSentEventSignature
     );
     
     if (!messageSentLog) {
+      // If we can't find the MessageSent event, try looking for the DepositForBurn event
+      // This is emitted by the TokenMessenger contract and contains information about the transfer
+      const depositForBurnEventSignature = '0x7bfdf9f5263b7a7ddbee7d38b9c2c5cd9e721f5004c3b9330addd6c1d86a4d1e';
+      
+      const depositForBurnLog = receipt.logs.find((log: any) => 
+        log.topics && log.topics[0] === depositForBurnEventSignature
+      );
+      
+      if (depositForBurnLog) {
+        logger.info('Found DepositForBurn event, but no MessageSent event. This transaction may need to be processed by Circle before it can be redeemed.');
+        return null;
+      }
+      
       logger.error('MessageSent event not found in transaction logs');
       return null;
     }
     
     // Extract the message bytes from the data field
     // The message bytes are in the data field of the event
-    const messageBytes = messageSentLog.data;
-    
-    if (!messageBytes) {
-      logger.error('Message bytes not found in MessageSent event');
-      return null;
+    // We need to decode it using the ABI coder
+    try {
+      // Use AbiCoder to decode the bytes from the log data
+      const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+      const decodedData = abiCoder.decode(['bytes'], messageSentLog.data);
+      const messageBytes = decodedData[0];
+      
+      if (!messageBytes) {
+        logger.error('Message bytes not found in MessageSent event after decoding');
+        return null;
+      }
+      
+      // Convert the bytes object to a hex string if it's not already
+      const messageBytesHex = typeof messageBytes === 'string' 
+        ? messageBytes 
+        : ethers.hexlify(messageBytes);
+      
+      logger.info(`Successfully extracted message bytes: ${messageBytesHex.substring(0, 66)}...`);
+      return messageBytesHex;
+    } catch (decodeError: any) {
+      logger.error(`Error decoding message bytes: ${decodeError.message}`);
+      
+      // Fallback to using the raw data if decoding fails
+      logger.info('Falling back to using raw data from the event');
+      return messageSentLog.data;
     }
-    
-    return messageBytes;
   } catch (error: any) {
     logger.error(`Error extracting message bytes from receipt: ${error.message}`);
     return null;
@@ -725,7 +750,8 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
       messageBytes = extractMessageBytesFromReceipt(txReceipt);
       
       if (!messageBytes) {
-        throw new Error(`Could not extract message bytes from transaction ${params.transactionId}. This may not be a valid Circle transfer.`);
+        logger.error(`Could not extract message bytes from transaction ${params.transactionId}`);
+        throw new Error(`Could not extract message bytes from transaction ${params.transactionId}. This may not be a valid Circle transfer or the transaction may still be processing. For CCTP transfers, you need to wait for Circle to process the transaction before you can redeem it, which typically takes 5-10 minutes.`);
       }
       
       logger.info(`Extracted message bytes: ${messageBytes}`);
@@ -756,40 +782,48 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
       }
     }
     
-    // Fetch attestation from Circle
-    logger.info(`Fetching attestation for message hash: ${messageHash}`);
-    const attestation = await fetchCircleAttestation(messageHash);
+    // Fetch attestation from Circle API
+    const attestationData = await fetchCircleAttestation(messageHash);
+    logger.info(`Got attestation: ${safeSerialize(attestationData)}`);
     
-    if (!attestation) {
-      throw new Error(`Could not fetch attestation for message hash ${messageHash}. The attestation may not be available yet.`);
+    // Extract the attestation signature from the response
+    const attestationSignature = attestationData.attestation;
+    if (!attestationSignature) {
+      throw new Error(`No attestation signature found in Circle API response`);
     }
     
-    logger.info(`Got attestation: ${attestation}`);
+    // Get the message transmitter contract address for the destination chain
+    const messageTransmitterAddress = getMessageTransmitterAddress(params.chain || 'arbitrum');
+    logger.info(`Message transmitter address for ${params.chain}: ${messageTransmitterAddress}`);
     
-    // Get message transmitter address for destination chain
-    const messageTransmitterAddress = getMessageTransmitterAddress(destChainName);
-    logger.info(`Message transmitter address for ${destChainName}: ${messageTransmitterAddress}`);
-    
-    // Create contract interface for message transmitter
-    const messageTransmitterAbi = [
-      'function receiveMessage(bytes message, bytes attestation) external returns (bool success)'
-    ];
-    
-    // Create contract instance
-    const messageTransmitter = new ethers.Contract(
+    // Create a contract instance for the message transmitter
+    const messageTransmitterContract = new ethers.Contract(
       messageTransmitterAddress,
-      messageTransmitterAbi,
-      sourceProvider
+      [
+        'function receiveMessage(bytes memory message, bytes memory attestation) external returns (bool)'
+      ],
+      signer
     );
     
-    // Create transaction
-    const tx = await messageTransmitter.receiveMessage.populateTransaction(
+    // Estimate gas for the transaction
+    const gasEstimate = await messageTransmitterContract.receiveMessage.estimateGas(
       messageBytes,
-      attestation
-    );
+      attestationSignature
+    ).catch((error: any) => {
+      logger.error(`Error estimating gas: ${error.message}`);
+      // Use a default gas limit if estimation fails
+      return ethers.parseUnits('1000000', 'wei');
+    });
     
-    // Set gas limit to avoid estimation issues
-    tx.gasLimit = ethers.parseUnits('500000', 'wei');
+    // Add a 20% buffer to the gas estimate
+    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
+    
+    // Call the receiveMessage function on the message transmitter contract
+    const tx = await messageTransmitterContract.receiveMessage(
+      messageBytes,
+      attestationSignature,
+      { gasLimit }
+    );
     
     // Sign and send transaction
     const signedTx = await signer.signTransaction(tx);
