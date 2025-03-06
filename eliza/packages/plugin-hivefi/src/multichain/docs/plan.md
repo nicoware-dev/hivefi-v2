@@ -28,12 +28,19 @@ Key Implementation Details:
 - Each action follows the ActionExample format for proper type compatibility
 - Actions handle their own wallet provider initialization
 - Proper error handling and user feedback implemented
+- ERC-20 token transfers support USDC, MODE, and PEPE tokens
 
 ### Step 4: Update Main Module Exports ✅
 - [x] Update `index.ts` to export all actions and providers
 - [x] Export providers alongside actions for runtime use
 
-## Phase 2: Protocol Integrations 🔄
+## Phase 1.5: Enhancements 🔄
+- [ ] Add support for more ERC-20 tokens
+- [ ] Improve error handling with more specific messages
+- [ ] Add transaction status tracking
+- [ ] Add balance checking functionality
+
+## Phase 2: Protocol Integrations 📋
 
 ### Step 1: Uniswap Integration
 - [ ] Create `protocols/uniswap/types.ts` for Uniswap-specific types
@@ -61,14 +68,14 @@ Key Implementation Details:
 - [ ] Create `protocols/beefy/actions/index.ts` to export all Beefy actions
 - [ ] Update main `index.ts` to include Beefy actions
 
-## Phase 3: Explorer and Network Status
+## Phase 3: Explorer and Network Status 📋
 
 - [ ] Create `providers/explorer-provider.ts` for blockchain explorer integration
 - [ ] Implement transaction history fetching
 - [ ] Implement gas price estimation
 - [ ] Implement network status checking
 
-## Phase 4: Testing and Documentation
+## Phase 4: Testing and Documentation 🔄
 
 ### Step 1: Unit Testing
 - [ ] Create test cases for wallet provider
@@ -80,10 +87,11 @@ Key Implementation Details:
 - [ ] Test protocol interactions across chains
 - [ ] Test error handling and edge cases
 
-### Step 3: Documentation
+### Step 3: Documentation ✅
 - [x] Update API documentation
 - [x] Create usage examples
 - [x] Document environment variables and configuration
+- [x] Document supported tokens and chains
 
 ## Implementation Details
 
@@ -108,6 +116,18 @@ Each action (like transfer or token-transfer) follows this pattern:
 6. Execute the action using generateText with proper context
 7. Handle responses and errors with user-friendly messages
 
+### ERC-20 Token Support
+
+Currently, the following ERC-20 tokens are supported:
+- USDC (USD Coin)
+- MODE (Mode Network Token)
+- PEPE (Pepe Token)
+
+To add support for more tokens, we need to:
+1. Check if they're available in the @goat-sdk/plugin-erc20 package
+2. If not, define custom token configurations
+3. Update the token-transfer.ts file to include the new tokens
+
 ## Environment Variables
 
 The module requires the following environment variables:
@@ -124,15 +144,19 @@ EVM_RPC_URL=your_preferred_rpc_url     # Override default RPC URL
 
 1. Test the implemented core actions:
    - Native token transfers across different chains
-   - ERC-20 token transfers across different chains
+   - ERC-20 token transfers across different chains (USDC, MODE, PEPE)
    - Error handling for various scenarios
 
-2. Begin implementing protocol integrations:
+2. Add support for more ERC-20 tokens:
+   - Research how to add custom token definitions
+   - Add popular tokens like DAI, USDT, WETH, etc.
+
+3. Begin implementing protocol integrations:
    - Start with Uniswap as it's the most widely used
    - Follow with Aave for lending/borrowing functionality
    - Add Beefy for yield optimization
 
-3. Add comprehensive testing:
+4. Add comprehensive testing:
    - Unit tests for each component
    - Integration tests for full workflows
    - Documentation of test cases and scenarios

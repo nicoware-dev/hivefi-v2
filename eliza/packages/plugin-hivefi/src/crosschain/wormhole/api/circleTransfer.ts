@@ -52,29 +52,6 @@ function safeSerialize(obj: any): string {
   }
 }
 
-/**
- * Get the explorer link for a transaction
- * @param chain The chain name
- * @param txHash The transaction hash
- * @returns The explorer link
- */
-function getExplorerLink(chain: string, txHash: string): string {
-  const explorers: Record<string, string> = {
-    'ethereum': 'https://etherscan.io/tx/',
-    'polygon': 'https://polygonscan.com/tx/',
-    'arbitrum': 'https://arbiscan.io/tx/',
-    'optimism': 'https://optimistic.etherscan.io/tx/',
-    'base': 'https://basescan.org/tx/',
-    'avalanche': 'https://snowtrace.io/tx/',
-    'solana': 'https://solscan.io/tx/',
-    'sui': 'https://explorer.sui.io/txblock/',
-    'aptos': 'https://explorer.aptoslabs.com/txn/'
-  };
-
-  const baseUrl = explorers[chain.toLowerCase()] || 'https://etherscan.io/tx/';
-  return `${baseUrl}${txHash}`;
-}
-
 // In-memory storage for transfer receipts
 const transferReceipts: Record<string, any> = {};
 
@@ -797,106 +774,123 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     logger.info(`Message transmitter address for ${params.chain}: ${messageTransmitterAddress}`);
     
     // Create a contract instance for the message transmitter
+    // Make sure we're using a proper signer that can send transactions
+    const provider = new ethers.JsonRpcProvider(getChainRpcUrl(destChainName));
+    const privateKey = getPrivateKey(runtime);
+    const walletSigner = new ethers.Wallet(privateKey, provider);
+    
     const messageTransmitterContract = new ethers.Contract(
       messageTransmitterAddress,
       [
         'function receiveMessage(bytes memory message, bytes memory attestation) external returns (bool)'
       ],
-      signer
+      walletSigner
     );
     
-    // Estimate gas for the transaction
-    const gasEstimate = await messageTransmitterContract.receiveMessage.estimateGas(
-      messageBytes,
-      attestationSignature
-    ).catch((error: any) => {
-      logger.error(`Error estimating gas: ${error.message}`);
-      // Use a default gas limit if estimation fails
-      return ethers.parseUnits('1000000', 'wei');
-    });
-    
-    // Add a 20% buffer to the gas estimate
-    const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
-    
-    // Call the receiveMessage function on the message transmitter contract
-    const tx = await messageTransmitterContract.receiveMessage(
-      messageBytes,
-      attestationSignature,
-      { gasLimit }
-    );
-    
-    // Sign and send transaction
-    const signedTx = await signer.signTransaction(tx);
-    const txResponse = await signer.sendTransaction(signedTx);
-    
-    logger.info(`Sent redemption transaction: ${txResponse.hash}`);
-    
-    // Get explorer link
-    const explorerLink = getExplorerLink(destChainName, txResponse.hash);
-    
-    // Update receipt with redemption information
-    if (updatedReceipt) {
-      updatedReceipt.redemptionTxHash = txResponse.hash;
-      updatedReceipt.redemptionChain = destChainName;
-      updatedReceipt.redemptionTimestamp = Date.now();
-      updatedReceipt.status = 'redeemed';
-      storeTransferReceipt(params.transactionId, updatedReceipt);
+    try {
+      // Estimate gas for the transaction
+      const gasEstimate = await messageTransmitterContract.receiveMessage.estimateGas(
+        messageBytes,
+        attestationSignature
+      ).catch((error: any) => {
+        logger.error(`Error estimating gas: ${error.message}`);
+        // Use a default gas limit if estimation fails
+        return BigInt(1000000);
+      });
+      
+      // Add a 20% buffer to the gas estimate
+      const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
+      
+      logger.info(`Estimated gas: ${gasEstimate}, using gas limit: ${gasLimit}`);
+      
+      // Call the receiveMessage function on the message transmitter contract
+      logger.info(`Sending transaction to redeem USDC on ${destChainName}...`);
+      const tx = await messageTransmitterContract.receiveMessage(
+        messageBytes,
+        attestationSignature,
+        { gasLimit }
+      );
+      
+      logger.info(`Transaction sent with hash: ${tx.hash}`);
+      
+      // Wait for the transaction to be mined
+      logger.info(`Waiting for transaction to be mined...`);
+      const receipt = await tx.wait();
+      
+      logger.info(`Transaction mined with status: ${receipt?.status}`);
+      
+      // Return the transaction hash and explorer link
+      const txHash = tx.hash;
+      const explorerLink = getExplorerLink(destChainName, txHash);
+      
+      // Update the receipt status
+      if (updatedReceipt) {
+        updatedReceipt.status = 'redeemed';
+        storeTransferReceipt(params.transactionId, updatedReceipt);
+      }
+      
+      return {
+        txHash,
+        explorerLink,
+        chain: destChainName,
+        status: 'redeemed',
+        message: `Successfully redeemed USDC on ${destChainName}`
+      };
+    } catch (error: any) {
+      logger.error(`Error redeeming Circle USDC: ${error.message}`);
+      logger.error(error);
+      
+      let errorMessage = `Failed to redeem Circle USDC: ${error.message}`;
+      
+      // Add more context to the error message
+      if (error.message.includes('attestation')) {
+        errorMessage += `. This could be because the attestation is not yet available. Please wait a few minutes and try again.`;
+      } else if (error.message.includes('gas')) {
+        errorMessage += `. You may need more native tokens on ${params.chain} to pay for gas.`;
+      } else if (error.message.includes('message bytes')) {
+        errorMessage += `. This may not be a valid Circle USDC transfer transaction.`;
+      } else if (error.message.includes('Transaction receipt not found')) {
+        errorMessage += `. The transaction may not be confirmed yet or may not exist on ${sourceChainName}.`;
+      } else if (error.message.includes('exceeded maximum retry limit')) {
+        errorMessage = `Failed to connect to blockchain node. Please try again later.`;
+      }
+      
+      throw new Error(errorMessage);
     }
-    
-    // Return transaction hash and explorer link
-    return {
-      txHash: txResponse.hash,
-      explorerLink: explorerLink,
-      chain: destChainName,
-      status: 'redeemed',
-      message: `Successfully redeemed USDC transfer on ${destChainName}. The USDC should be available in your wallet shortly.`
-    };
   } catch (error: any) {
     logger.error(`Error redeeming Circle USDC: ${error.message}`);
-    logger.error('', error);
-    
-    let errorMessage = `Failed to redeem Circle USDC: ${error.message}`;
-    
-    // Add more context to the error message
-    if (error.message.includes('attestation')) {
-      errorMessage += `. This could be because the attestation is not yet available. Please wait a few minutes and try again.`;
-    } else if (error.message.includes('gas')) {
-      errorMessage += `. You may need more native tokens on ${params.chain} to pay for gas.`;
-    } else if (error.message.includes('message bytes')) {
-      errorMessage += `. This may not be a valid Circle USDC transfer transaction.`;
-    } else if (error.message.includes('Transaction receipt not found')) {
-      errorMessage += `. The transaction may not be confirmed yet or may not exist on ${receipt.sourceChain}.`;
-    } else if (error.message.includes('exceeded maximum retry limit')) {
-      errorMessage = `Failed to connect to blockchain node. Please try again later.`;
-    }
-    
-    throw new Error(errorMessage);
+    logger.error(error);
+    throw new Error(`Failed to redeem Circle USDC: ${error.message}`);
   }
 }
 
 /**
- * Get the Message Transmitter contract address for a chain
+ * Get the message transmitter contract address for a chain
  * @param chain The chain name
- * @returns The Message Transmitter contract address
+ * @returns The message transmitter contract address
  */
 function getMessageTransmitterAddress(chain: string): string {
-  const chainLower = chain.toLowerCase();
-  
-  if (chainLower === 'ethereum') {
-    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
-  } else if (chainLower === 'polygon') {
-    return '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3b3FE';
-  } else if (chainLower === 'arbitrum') {
-    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
-  } else if (chainLower === 'optimism') {
-    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
-  } else if (chainLower === 'avalanche') {
-    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
-  } else if (chainLower === 'base') {
-    return '0x0a992d191deec32afe36203ad87d7d289a738f81';
+  // Circle CCTP V2 Message Transmitter contract addresses
+  const messageTransmitterAddresses: Record<string, string> = {
+    'ethereum': '0x0a992d191deec32afe36203ad87d7d289a738f81',
+    'avalanche': '0x8186359af5f57fbb40c6b14a588d2a59c0c29880',
+    'optimism': '0x4d41f22c5a0e5c74090899e5a8fb597a8842b3e8',
+    'arbitrum': '0xC30362313FBBA5cf9163F0bb16a0e01f01A896ca',
+    'base': '0xAD09780d193884d503182aD4588450C416D6F9D4',
+    'polygon': '0xF3be9355363857F3e001be68856A2f96b4C39Ba9',
+    'solana': '0x0000000000000000000000000000000000000000', // Not applicable for EVM
+    'sui': '0x0000000000000000000000000000000000000000', // Not applicable for EVM
+    'aptos': '0x0000000000000000000000000000000000000000' // Not applicable for EVM
+  };
+
+  const normalizedChain = chain.toLowerCase();
+  const address = messageTransmitterAddresses[normalizedChain];
+
+  if (!address || address === '0x0000000000000000000000000000000000000000') {
+    throw new Error(`Message transmitter address not found for chain ${chain}`);
   }
-  
-  throw new Error(`Message Transmitter address not found for chain ${chain}`);
+
+  return address;
 }
 
 /**
@@ -924,6 +918,35 @@ function getChainRpcUrl(chain: string): string {
   
   // Fallback to default RPC URL
   return `https://rpc.ankr.com/${chainLower}`;
+}
+
+/**
+ * Get the token messenger contract address for a chain
+ * @param chain The chain name
+ * @returns The token messenger contract address
+ */
+function getTokenMessengerAddress(chain: string): string {
+  // Circle CCTP V2 Token Messenger contract addresses
+  const tokenMessengerAddresses: Record<string, string> = {
+    'ethereum': '0xbd3fa81b58ba92a82136038b25adec7066af3155',
+    'avalanche': '0x6b25532e1060ce10cc3b0a99e5683b91bfde6982',
+    'optimism': '0x2B4069517957735bE00ceE0fadAE88a26365528f',
+    'arbitrum': '0x19330d10D9Cc8751218eaf51E8885D058642E08A',
+    'base': '0x1682Ae6375C4E4A97e4B583BC394c861A46D8962',
+    'polygon': '0x9daF8c91AEFAE50b9c0E69629D3F6Ca40cA3B3FE',
+    'solana': '0x0000000000000000000000000000000000000000', // Not applicable for EVM
+    'sui': '0x0000000000000000000000000000000000000000', // Not applicable for EVM
+    'aptos': '0x0000000000000000000000000000000000000000' // Not applicable for EVM
+  };
+
+  const normalizedChain = chain.toLowerCase();
+  const address = tokenMessengerAddresses[normalizedChain];
+
+  if (!address || address === '0x0000000000000000000000000000000000000000') {
+    throw new Error(`Token messenger address not found for chain ${chain}`);
+  }
+
+  return address;
 }
 
 // Export the functions
