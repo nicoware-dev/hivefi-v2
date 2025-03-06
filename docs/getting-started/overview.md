@@ -13,7 +13,7 @@ HiveFi is a comprehensive multichain DeFi automation platform powered by AI agen
 
 At its core, HiveFi is built on three main pillars:
 1. **AI Agent Swarms**: Specialized AI agents working together to handle different aspects of DeFi operations
-2. **Cross-Chain Integration**: Seamless support for Mantle, Sonic, and MultiChain protocols
+2. **Cross-Chain Integration**: Seamless support for Mantle, Sonic, and MultiChain protocols with Wormhole bridge technology
 3. **User-Centric Design**: Intuitive interfaces and natural language interaction
 
 ## Why Choose HiveFi?
@@ -30,7 +30,7 @@ HiveFi stands out from traditional DeFi tools for several reasons:
 
 ### For DeFi Users
 - 🤖 AI-powered automation of DeFi operations
-- 🌐 Seamless cross-chain transactions
+- 🌉 Seamless cross-chain transactions via Wormhole bridge
 - 💬 Natural language interaction
 - 📊 Real-time portfolio tracking
 - 🔒 Enhanced security features
@@ -41,6 +41,15 @@ HiveFi stands out from traditional DeFi tools for several reasons:
 - 🤝 Active developer community
 - 📚 Comprehensive documentation
 - 🆓 Open-source codebase
+
+## Cross-Chain Capabilities
+
+HiveFi leverages the Wormhole bridge protocol to enable seamless cross-chain operations:
+
+- **Token Transfers**: Move tokens between Ethereum, Solana, Polygon, BSC, Avalanche, Fantom, Celo, Moonbeam, Arbitrum, Optimism, Aptos, Sui, Base, Mantle, and Sonic
+- **Asset Tracking**: Monitor cross-chain assets in a unified portfolio view
+- **Bridge Operations**: Execute bridge transactions with simple natural language commands
+- **Status Verification**: Track the status of cross-chain transfers in real-time
 
 ## Success Stories
 

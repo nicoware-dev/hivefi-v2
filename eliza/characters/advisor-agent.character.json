@@ -1,6 +1,6 @@
 {
   "name": "Advisor Agent",
-  "plugins": ["@elizaos/plugin-hivefi"],
+  "plugins": ["@elizaos-plugins/plugin-hivefi"],
   "clients": [],
   "modelProvider": "openai",
   "settings": {

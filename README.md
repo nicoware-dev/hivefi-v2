@@ -78,47 +78,55 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 ### Core Features
 
 - 💬 Natural language processing
-- 🤖 Multi-Agent System (MAS): 15 specialized AI agents
+- 🤖 Multi-Agent System (MAS) architecture
 - 🔅 Integrated website & web app
-- 🛠️ Full-featured Discord, Telegram, and Twitter connectors
 - 🔗 Support for multiple LLM providers (OpenAI, Anthropic, etc.)
-- 👥 Multi-agent orchestration and coordination
 - 📚 Knowledge base with DeFi expertise
-- 💾 Retrievable memory and document store
 - 💰 Real-time prices using CoinGecko API
 - 🚀 Real-time TVL using DefiLlama API
-- 📊 Data visualization and analytics
-- 🌐 Web browsing capabilities
+- 📊 DEX analytics via GeckoTerminal
+- 📈 Data visualization and analytics
 - 🚀 Highly extensible superplugin architecture
 
 ### Blockchain Features
 
+#### Analytics Module
+- 📊 Real-time price data via CoinGecko
+- 📈 DEX analytics via GeckoTerminal
+- 💹 TVL tracking via DefiLlama
+- 💼 Portfolio analytics and tracking
+- 📉 Protocol performance metrics
+- 📊 Market trend analysis
+
+#### Cross-Chain Module
+- 🌉 Bridge operations via Wormhole
+- 🔄 Cross-chain transaction monitoring
+- 💧 Liquidity tracking
+- 🛣️ Route optimization
+- ✅ Status verification
+
 #### Mantle Network
 - 💰 Wallet management
-- 💸 Token transfers (MNT, USDT, and custom tokens)
-- 💱 Token swapping on Merchant Moe
-- 💸 Lending on Lendle and Init Capital
-- 🌾 Yield farming on Pendle
-- 💧 Liquidity provision on Agni Finance
+- 💸 Token transfers
+- 💱 DEX operations (Merchant Moe, Agni Finance)
+- 💸 Lending operations (Lendle, Init Capital)
+- 🌾 Yield farming (Pendle)
+- 💧 Protocol interactions
 
 #### Sonic Chain
 - 💰 Wallet management
-- 💸 Token transfers (S and ESDT tokens)
-- 💱 Token swapping on Beets and SwapX
-- 💸 Lending on Silo Finance and Aave
-- 🌾 Yield farming on Beefy
-- 💧 Liquidity provision on Shadow Exchange
+- 💸 Token transfers
+- 💱 DEX operations (Beets, SwapX, Shadow Exchange)
+- 💸 Lending operations (Silo Finance, Aave)
+- 🌾 Yield optimization (Beefy)
+- 💧 Protocol integrations
 
-#### MultiChain Protocols
-- 💱 Swaps and Liquidity Provisioning via Uniswap, 1inch, and other Multichain DEXes
-- 💸 Lending & Borrowing on Aave and Compound
-- 🌾 Multi-chain yield farming on Beefy
-
-#### Cross-Chain Operations
-- 🌉 Bridge operations via Wormhole
-- 🌉 Bridge operations via DeBridge
-- 🌉 Bridge operations via Multichain
-- 🔄 Cross-chain asset tracking
+#### MultiChain Module
+- 💰 Wallet operations
+- 💸 Native token transfers
+- 💱 ERC-20 token transfers
+- 💼 Portfolio management
+- 🔑 Chain-specific wallet access
 
 ### 🖥️ Web App Features
 - 🚀 Landing page
@@ -142,7 +150,7 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - **Blockchain Integration**: thirdweb, web3.js/ethers.js
 - **Build & Deployment**: Vite, Vercel
 - **Agent Framework**: Eliza
-- **Workflow Automation**: n8n
+- **Workflow Automation & Orchestration**: n8n
 - **Package Management**: pnpm
 
 ## 🤖 Agent Categories
@@ -214,21 +222,17 @@ Edit `.env` file and add your credentials:
 
 ```env
 # Required for blockchain operations
-EVM_PRIVATE_KEY=your_private_key
-MANTLE_RPC_URL=https://rpc.mantle.xyz
-SONIC_RPC_URL=https://mainnet.sonic.org/rpc
+EVM_PRIVATE_KEY=your_private_key  # 64-character hex string without 0x prefix
 
-# Choose an API provider and add the API_KEY
-OPENAI_API_KEY=                # OpenAI API key
-ANTHROPIC_API_KEY=             # For Claude (optional)
 
-# Client Configuration
-DISCORD_APPLICATION_ID=        # Discord bot ID
-DISCORD_API_TOKEN=             # Discord bot token
-TELEGRAM_BOT_TOKEN=            # Telegram bot token
-TWITTER_USERNAME=              # Twitter username
-TWITTER_PASSWORD=              # Twitter password
-TWITTER_EMAIL=                 # Twitter email
+# LLM Provider (choose one)
+OPENAI_API_KEY=                    # OpenAI API key
+ANTHROPIC_API_KEY=                 # For Claude (optional)
+
+# Client Configuration (optional)
+DISCORD_APPLICATION_ID=            # Discord bot ID
+DISCORD_API_TOKEN=                 # Discord bot token
+TELEGRAM_BOT_TOKEN=                # Telegram bot token
 ```
 
 ### Running the Agent
@@ -240,11 +244,11 @@ pnpm build
 # Start a single agent (Recommended for testing)
 pnpm start --characters="characters/demo-agent.character.json"
 
-# Start demo agents (3)
-pnpm start --characters="characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/web3-advisor-agent.character.json"
+# Start demo agents (7) (Private+Internal)
+pnpm start --characters="characters/demo-agent.character.json,characters/meme-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json,characters/crosschain-agent.character.json,characters/analytics-agent.character.json"
 
-# Start all agents
-pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/cross-chain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json"
+# Start all agents (13) (Public+Private+Internal)
+pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/crosschain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json"
 ```
 
 ### Running the Web Client
@@ -269,29 +273,36 @@ Tell me about Sonic Chain.
 ### Market Data
 ```
 Get prices for ETH, BTC, MNT, and S
-Show me TVL metrics for Mantle and Sonic
-What are the top protocols on Mantle by TVL?
+What's Uniswap's TVL on Arbitrum?
+Show TVL for Uniswap, Aave, and Curve
+Show me global DeFi stats
+Show me top pools on Arbitrum
 ```
 
 ### Wallet Operations
 ```
-Show me my wallet balances across all chains
-Show my portfolio
+Show me my Mantle wallet address and balances
+Show me detailed positions in my portfolio for 0xfb0eb7294e39bb7b0aa6c7ec294be2c968656fb0 across all chains
 ```
 
-### Token Transfers
+### Multichain Token Transfers
 ```
-Send 0.1 MNT to 0x123...
-Send 0.01 S to 0x456...
-Transfer 0.001 BTC to bc1q...
+Send 0.1 MNT to 0xF12d64817029755853bc74a585EcD162f63c5f84 on Mantle
+Send 0.01 S to 0xF12d64817029755853bc74a585EcD162f63c5f84 on Sonic
+Transfer 0.001 USDC on Arbitrum to 0xF12d64817029755853bc74a585EcD162f63c5f84
 ```
 
-### DeFi Operations
+### Multichain DeFi Operations
 ```
-Swap 0.1 MNT for USDC on Merchant Moe
-Supply 0.1 USDC to Lendle
-Borrow 0.01 USDT from Silo Finance
-Bridge 0.1 USDC from Mantle to Sonic using Wormhole
+Swap 0.1 MNT for USDC on Merchant Moe on Mantle
+Supply 0.1 USDC to Lendle on Mantle
+Stake 0.1 S with Beets LST on Sonic
+```
+
+### Cross-Chain Operations
+```
+Transfer 0.01 USDC from Polygon to Arbitrum via Circle Bridge
+Send 0.01 USDC from Arbitrum to Polygon using Circle Bridge
 ```
 
 ## 🔍 Important Notes
@@ -300,6 +311,7 @@ Bridge 0.1 USDC from Mantle to Sonic using Wormhole
 - Always double-check addresses and amounts before executing transactions
 - For cross-chain operations, verify that the bridge supports the tokens and chains you're using
 - Private keys are stored locally and never transmitted to external servers
+- Some features are still in development or simulation mode
 
 ## 🛠️ Development
 
@@ -320,65 +332,59 @@ hivefi/
 │   ├── packages/
 │   │   └── plugin-hivefi/     # Main superplugin
 │   │       ├── src/
-│   │       │   ├── index.ts   # Agent-specific action selection
+│   │       │   ├── index.ts   # Main plugin entry point
 │   │       │   ├── analytics/ # Analytics module
-│   │       │   │   └── actions/
-│   │       │   │       ├── coingecko/
-│   │       │   │       ├── defillama/
-│   │       │   │       ├── portfolio/
-│   │       │   │       ├── geckoterminal/
-│   │       │   │       ├── tokenterminal/
-│   │       │   │       └── dexscreener/
+│   │       │   │   ├── index.ts # Analytics module entry point
+│   │       │   │   ├── coingecko/ # CoinGecko integration
+│   │       │   │   ├── defillama/ # DefiLlama integration
+│   │       │   │   ├── geckoterminal/ # GeckoTerminal integration
+│   │       │   │   └── utils/ # Shared analytics utilities
 │   │       │   ├── crosschain/ # Cross-chain module
-│   │       │   │   └── actions/
-│   │       │   │       ├── wormhole/
-│   │       │   │       └── debridge/
+│   │       │   │   ├── index.ts # Cross-chain module entry point
+│   │       │   │   └── wormhole/ # Wormhole bridge integration
 │   │       │   ├── mantle/    # Mantle module
-│   │       │   │   ├── actions/
-│   │       │   │   │   ├── mantle/        # General actions
-│   │       │   │   │   ├── merchant-moe/  # DEX
-│   │       │   │   │   ├── init-capital/  # Lending
-│   │       │   │   │   ├── lendle/        # Lending
-│   │       │   │   │   ├── pendle/        # Yield farming
-│   │       │   │   │   └── agni/          # Exchange
-│   │       │   │   └── providers/
-│   │       │   │       └── mantle-wallet.ts
+│   │       │   │   ├── index.ts # Mantle module entry point
+│   │       │   │   ├── actions/ # Mantle-specific actions
+│   │       │   │   ├── providers/ # Mantle-specific providers
+│   │       │   │   ├── types/ # Mantle-specific types
+│   │       │   │   ├── templates/ # Response templates
+│   │       │   │   └── config/ # Configuration
 │   │       │   ├── sonic/     # Sonic module
-│   │       │   │   ├── actions/
-│   │       │   │   │   ├── sonic/         # General actions
-│   │       │   │   │   ├── silo-finance/  # Lending
-│   │       │   │   │   ├── beets/         # DEX, staking, yield
-│   │       │   │   │   ├── swapx/         # DEX
-│   │       │   │   │   ├── shadow-exchange/ # DEX
-│   │       │   │   │   ├── aave/          # Lending
-│   │       │   │   │   ├── beefy/         # Yield farming
-│   │       │   │   │   └── uniswap/       # DEX
-│   │       │   │   └── providers/
-│   │       │   │       └── sonic-wallet.ts
-│   │       │   ├── multichain/   # MultiChain module
-│   │       │   │   ├── actions/
-│   │       │   │   │   ├── aave/          # Cross-chain lending
-│   │       │   │   │   ├── uniswap/       # Cross-chain DEX
-│   │       │   │   │   ├── beefy/         # Cross-chain yield
-│   │       │   │   │   ├── compound/      # Cross-chain lending
-│   │       │   │   │   └── aggregators/   # DEX aggregators
-│   │       │   │   └── providers/
-│   │       │   │       └── multichain-wallet.ts
-│   │       │   ├── predictions/ # Predictions module
-│   │       │   ├── kol/        # KOL module
-│   │       │   ├── alpha/      # Alpha module
-│   │       │   ├── nftdeployer/ # NFT Deployer module
-│   │       │   ├── tokendeployer/ # Token Deployer module
-│   │       │   └── meme/       # Meme module
-│   │       ├── templates/      # Response templates
-│   │       ├── types/          # TypeScript type definitions
-│   │       └── utils/          # Utility functions
-│   └── characters/             # Agent character files
-├── n8n/                        # n8n workflows
-│   ├── coordinator/            # Coordinator agent workflows
-│   └── templates/              # Reusable workflow templates
-└── README.md                   # Project overview
+│   │       │   │   ├── index.ts # Sonic module entry point
+│   │       │   │   ├── actions/ # Sonic-specific actions
+│   │       │   │   ├── providers/ # Sonic-specific providers
+│   │       │   │   ├── types/ # Sonic-specific types
+│   │       │   │   ├── templates/ # Response templates
+│   │       │   │   └── config/ # Configuration
+│   │       │   └── multichain/ # MultiChain module
+│   │       │       ├── index.ts # MultiChain module entry point
+│   │       │       ├── constants.ts # Chain configurations
+│   │       │       ├── types.ts # Type definitions
+│   │       │       ├── actions/ # Core actions
+│   │       │       ├── providers/ # Wallet providers
+│   │       │       ├── utils/ # Utility functions
+│   │       │       └── portfolio/ # Portfolio management
+│   └── characters/            # Agent character files
+└── README.md                  # Project overview
 ```
+
+## 📊 Current Status and Roadmap
+
+### Implemented Features
+- Analytics module with CoinGecko, DefiLlama, and GeckoTerminal integrations
+- Cross-chain module with Wormhole bridge support
+- Mantle and Sonic chain-specific modules
+- MultiChain module with basic wallet operations and native token transfers
+- Web interface with portfolio dashboard
+
+### In Progress
+- Protocol integrations (Uniswap, Aave, Beefy)
+
+### Planned Features
+- Additional bridge integrations (DeBridge)
+- Advanced market analysis tools
+- Social and community tools
+- Development tools for token and NFT deployment
 
 ## 🤝 Contributing
 

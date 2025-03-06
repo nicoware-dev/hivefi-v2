@@ -108,7 +108,6 @@ export class MultichainWalletProvider {
             const chainConfig = getChainConfig(chainId);
             return `${chainConfig.name}: ${balance.value} ${balance.symbol}`;
           } catch (error) {
-            console.error(`Error fetching balance for ${chainId}:`, error);
             return `${chainId}: Error fetching balance`;
           }
         })

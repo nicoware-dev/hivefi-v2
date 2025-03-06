@@ -1,7 +1,5 @@
 import { elizaLogger, IAgentRuntime } from '@elizaos/core';
 
-const logger = elizaLogger.child({ module: 'CircleProvider' });
-
 /**
  * Check if a message is a Circle USDC transfer request
  * @param text The message text
@@ -35,13 +33,6 @@ function isCircleTransferRequest(text: string): boolean {
                         normalizedText.includes('avalanche') || 
                         normalizedText.includes('base');
   
-  // Log the results
-  logger.info(`[isCircleTransferRequest] Text: "${text}"`);
-  logger.info(`[isCircleTransferRequest] hasCircleKeyword: ${hasCircleKeyword}`);
-  logger.info(`[isCircleTransferRequest] hasUSDCKeyword: ${hasUSDCKeyword}`);
-  logger.info(`[isCircleTransferRequest] hasTransferKeyword: ${hasTransferKeyword}`);
-  logger.info(`[isCircleTransferRequest] hasFromToPattern: ${hasFromToPattern}`);
-  logger.info(`[isCircleTransferRequest] mentionsChains: ${mentionsChains}`);
   
   // Final result
   const result = hasUSDCKeyword && 
@@ -50,7 +41,6 @@ function isCircleTransferRequest(text: string): boolean {
                 mentionsChains &&
                 (hasCircleKeyword || normalizedText.includes('usdc'));
   
-  logger.info(`[isCircleTransferRequest] Final result: ${result}`);
   
   return result;
 }
@@ -82,8 +72,6 @@ function isCircleRedeemRequest(text: string): boolean {
   const chainPatterns = chainKeywords.map(keyword => new RegExp(`${keyword} (ethereum|polygon|arbitrum|optimism|avalanche|base|solana|sui|aptos)`, 'i'));
   const hasChainSpecification = chainPatterns.some(pattern => pattern.test(normalizedText));
   
-  // Log the detection results
-  logger.info(`Circle redeem detection - Redeem keywords: ${hasRedeemKeyword}, USDC keywords: ${hasUsdcKeyword}, Transaction ID: ${hasTransactionId}, Chain specification: ${hasChainSpecification}`);
   
   // Return true if the message has redeem keywords, USDC keywords, and mentions a transaction ID
   // Or if it explicitly mentions redeeming from Circle or CCTP

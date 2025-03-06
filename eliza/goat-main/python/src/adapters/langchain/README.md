@@ -1,1 +1,0 @@
-## Goat SDK Langchain Adapter

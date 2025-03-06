@@ -27,9 +27,8 @@ Learn how to deploy and maintain your own instance of HiveFi in a production env
 
 - Docker 20.10+
 - Docker Compose 2.0+
-- Node.js 18+
+- Node.js 23+
 - pnpm 8+
-- n8n 1.0+
 - PostgreSQL 14+
 - Redis 6+
 
@@ -51,16 +50,16 @@ Learn how to deploy and maintain your own instance of HiveFi in a production env
 └────────┬──────┘               └───────┬────────┘
          │                              │
          │         ┌──────────┐         │
-         ├────────►│   n8n    │◄───────┤
-         │         │ Workflow │         │
+         ├────────►│  Redis   │◄───────┤
+         │         │  Cache   │         │
          │         └────┬─────┘         │
 ┌────────▼──────┐      │         ┌─────▼─────────┐
-│  PostgreSQL   │      │         │    Redis      │
-│  Database     │      │         │    Cache      │
+│  PostgreSQL   │      │         │   Agent       │
+│  Database     │      │         │   Service     │
 └───────────────┘      │         └───────────────┘
                        │
               ┌────────▼────────┐
-              │  Agent Runner   │
+              │  Load Balancer  │
               │   Service       │
               └─────────────────┘
 ```
@@ -81,7 +80,7 @@ cd hivefi
 pnpm install
 
 # Install global tools
-npm install -g n8n pm2
+npm install -g pm2
 ```
 
 ### 3. Setup Database
@@ -116,36 +115,47 @@ sudo systemctl restart redis
 
 ### Environment Variables
 
-```bash
-# .env.production
+Create a `.env.production` file with the following variables:
+
+```env
+# Node Environment
 NODE_ENV=production
 PORT=3000
 
-# Database
+# Required for blockchain operations
+EVM_PRIVATE_KEY=your_private_key  # 64-character hex string without 0x prefix
+MANTLE_RPC_URL=https://rpc.mantle.xyz
+SONIC_RPC_URL=https://mainnet.sonic.org/rpc
+EVM_RPC_URL=your_preferred_rpc_url  # For multichain operations
+
+# API Keys for analytics
+COINGECKO_API_KEY=your_api_key     # For CoinGecko API
+DEFILLAMA_API_KEY=your_api_key     # For DefiLlama API
+
+# LLM Provider (choose one)
+OPENAI_API_KEY=your_openai_key     # OpenAI API key
+ANTHROPIC_API_KEY=your_anthropic_key  # For Claude (optional)
+
+# Database Configuration
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=hivefi
 POSTGRES_USER=hivefi
 POSTGRES_PASSWORD=your-password
 
-# Redis
+# Redis Configuration
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=your-redis-password
 
-# n8n
-N8N_PROTOCOL=https
-N8N_HOST=workflow.yourdomain.com
-N8N_PORT=5678
-N8N_ENCRYPTION_KEY=your-encryption-key
-
-# API Keys
-HIVEFI_API_KEY=your-api-key
-BLOCKCHAIN_API_KEY=your-blockchain-api-key
-
 # Security
 JWT_SECRET=your-jwt-secret
 COOKIE_SECRET=your-cookie-secret
+
+# Client Configuration (optional)
+DISCORD_APPLICATION_ID=            # Discord bot ID
+DISCORD_API_TOKEN=                 # Discord bot token
+TELEGRAM_BOT_TOKEN=                # Telegram bot token
 ```
 
 ### Nginx Configuration
@@ -182,21 +192,6 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 }
-
-# n8n
-server {
-    listen 80;
-    server_name workflow.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:5678;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
 ```
 
 ## Deployment
@@ -226,14 +221,6 @@ services:
     ports:
       - "3001:3001"
     env_file: .env.production
-
-  n8n:
-    image: n8nio/n8n
-    ports:
-      - "5678:5678"
-    env_file: .env.production
-    volumes:
-      - ~/.n8n:/home/node/.n8n
 
   postgres:
     image: postgres:14
