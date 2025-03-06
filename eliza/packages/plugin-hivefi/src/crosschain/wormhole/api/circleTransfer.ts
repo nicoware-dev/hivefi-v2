@@ -215,9 +215,35 @@ export async function transferCircleUSDC(runtime: IAgentRuntime, params: Transfe
         throw new Error(`Your wallet doesn't have any ${originalSourceChain} tokens to pay for gas fees. Please fund your wallet with some ${originalSourceChain} tokens first.`);
       }
       
-      // Check USDC balance
-      const usdcBalance = await getBalance(runtime, sourceChain, signerAddress, tokenAddress);
-      logger.info(`USDC balance on ${sourceChain}: ${usdcBalance}`);
+      // Check USDC balance - pass 'USDC' as the token address to use the known address mapping
+      let usdcBalance;
+      let balanceCheckRetries = 0;
+      const maxBalanceRetries = 3;
+      
+      while (balanceCheckRetries < maxBalanceRetries) {
+        try {
+          usdcBalance = await getBalance(runtime, sourceChain, signerAddress, 'USDC');
+          logger.info(`USDC balance on ${sourceChain}: ${usdcBalance}`);
+          break; // If successful, exit the retry loop
+        } catch (error: any) {
+          balanceCheckRetries++;
+          logger.warn(`USDC balance check attempt ${balanceCheckRetries} failed: ${error.message}`);
+          
+          if (balanceCheckRetries >= maxBalanceRetries) {
+            logger.error(`Failed to check USDC balance after ${maxBalanceRetries} attempts`);
+            throw new Error(`Failed to check your USDC balance: ${error.message}`);
+          }
+          
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * balanceCheckRetries));
+        }
+      }
+      
+      // If we couldn't get the balance, use a default of 0
+      if (!usdcBalance) {
+        usdcBalance = '0';
+        logger.warn(`Using default USDC balance of 0 due to balance check failures`);
+      }
       
       // Convert amount to a number for comparison
       const amountNum = parseFloat(params.amount);
