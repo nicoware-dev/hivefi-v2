@@ -9,6 +9,7 @@ import { getWormholeInstance } from './instance';
 import { getWormholeChain, isWormholeSupported } from '../config';
 import { CircleTransfer as CircleTransferSDK, circle } from '@wormhole-foundation/sdk-connect';
 import { getExplorerLink } from '../utils/explorer';
+import axios from 'axios';
 
 const logger = elizaLogger.child({ module: 'CircleTransfer' });
 
@@ -138,6 +139,7 @@ function getPrivateKey(runtime: IAgentRuntime): string {
 async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams): Promise<{
   txHash: string;
   explorerLink: string;
+  messageHash: string;
   sourceChain?: string;
   destinationChain?: string;
   amount?: string;
@@ -324,6 +326,18 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         const approveReceipt = await approveTx.wait();
         logger.info(`Approval transaction mined with status: ${approveReceipt?.status}`);
         
+        // Add a delay to ensure the approval is fully confirmed on the blockchain
+        logger.info(`Waiting an additional 5 seconds for approval to be fully confirmed...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        // Double-check the allowance after approval to ensure it's properly set
+        const updatedAllowance = await usdcContract.allowance(ethersWallet.address, tokenMessengerAddress);
+        logger.info(`Updated allowance after approval: ${updatedAllowance}, needed: ${amountBigInt}`);
+        
+        if (updatedAllowance < amountBigInt) {
+          throw new Error(`Approval transaction was mined but allowance is still insufficient. Please try again.`);
+        }
+        
         approveTxHash = approveTx.hash;
       } else {
         logger.info(`Sufficient allowance already exists, skipping approval`);
@@ -366,6 +380,18 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       const txHash = depositTx.hash;
       logger.info(`Circle transfer initiated with transaction hash: ${txHash}`);
       
+      // Extract message bytes and calculate message hash
+      const messageBytes = extractMessageBytesFromReceipt(depositReceipt);
+      let messageHash = '';
+      if (messageBytes) {
+        messageHash = calculateMessageHash(messageBytes);
+        logger.info(`Calculated message hash: ${messageHash}`);
+      } else {
+        logger.warn('Could not extract message bytes to calculate message hash');
+        // Use txHash as fallback for the API URL
+        messageHash = txHash;
+      }
+      
       // Store the transfer receipt for tracking
       const receipt = {
         type: 'circle',
@@ -376,6 +402,8 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         timestamp: Date.now(),
         status: 'initiated',
         txHash: txHash,
+        messageHash: messageHash,
+        messageBytes: messageBytes,
         sourceAddress: signerAddress,
         destinationAddress: signerAddress,
         tokenAddress: tokenAddress
@@ -390,6 +418,7 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       return { 
         txHash, 
         explorerLink,
+        messageHash,
         sourceChain: originalSourceChain,
         destinationChain: originalDestChain,
         amount: params.amount,
@@ -627,36 +656,29 @@ function extractMessageBytesFromReceipt(receipt: any): string | null {
  */
 async function fetchCircleAttestation(messageHash: string): Promise<any> {
   try {
-    logger.info(`Fetching attestation from Circle API for message hash ${messageHash}`);
-    
-    // Use the Circle API to fetch attestation data
-    // Note: This is the mainnet API endpoint
     const apiUrl = `https://iris-api.circle.com/attestations/${messageHash}`;
-    
     logger.info(`Circle API URL: ${apiUrl}`);
     
-    // Make the API request
-    const response = await fetch(apiUrl);
-    const responseData = await response.json();
-    
+    const response = await axios.get(apiUrl);
     logger.info(`Circle API response status: ${response.status}`);
     
-    if (!response.ok) {
-      logger.error(`Circle API error: ${JSON.stringify(responseData)}`);
-      throw new Error(`Circle API error: ${responseData.message || 'Unknown error'}`);
+    if (response.status === 200) {
+      logger.info(`Successfully fetched attestation from Circle API`);
+      logger.info(`Got attestation: ${JSON.stringify(response.data)}`);
+      return response.data;
+    } else {
+      logger.error(`Error fetching attestation: ${response.statusText}`);
+      return null;
     }
-    
-    // Check if we have attestation data
-    if (!responseData.attestation) {
-      logger.error(`No attestation found for message hash ${messageHash}`);
-      throw new Error(`No attestation found for message hash ${messageHash}. The transaction may still be processing.`);
-    }
-    
-    logger.info(`Successfully fetched attestation from Circle API`);
-    return responseData;
   } catch (error: any) {
-    logger.error(`Error fetching attestation from Circle API: ${error.message}`);
-    throw new Error(`Failed to fetch attestation from Circle API: ${error.message}`);
+    // Handle 404 as pending
+    if (error.response && error.response.status === 404) {
+      logger.info(`Attestation not found (404), treating as pending`);
+      return { attestation: null, status: 'pending_confirmations' };
+    }
+    
+    logger.error(`Error fetching attestation: ${error.message}`);
+    return null;
   }
 }
 
@@ -701,6 +723,7 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
   chain?: string;
   status?: string;
   message?: string;
+  messageHash?: string;
 }> {
   // Check if we have a transaction ID
   if (!params.transactionId) {
@@ -719,18 +742,26 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
   logger.info(`Transfer receipt for ${params.transactionId}: ${JSON.stringify(receipt)}`);
 
   // Use the chain from the parameters
-  const destChainName = params.chain;
-  logger.info(`Using chain for redemption: ${destChainName}`);
+  const destChain = params.chain;
+  logger.info(`Using chain for redemption: ${destChain}`);
 
   try {
     // Normalize chain name
-    const normalizedChain = normalizeChainName(destChainName);
+    const normalizedChain = normalizeChainName(destChain);
     logger.info(`Normalized destination chain: ${normalizedChain}`);
-    logger.info(`Original destination chain: ${destChainName}`);
+    logger.info(`Original destination chain: ${destChain}`);
 
     // Get signer for destination chain
-    const signer = await getSigner(runtime, normalizedChain);
+    const signer = await getSigner(runtime, destChain);
     logger.info(`Got signer with address: ${signer.address()}`);
+
+    // Get the underlying ethers wallet for direct contract interactions
+    // This is needed because our custom signer doesn't support direct contract calls
+    const privateKey = getPrivateKey(runtime);
+    const providerUrl = getChainRpcUrl(destChain);
+    const provider = new ethers.JsonRpcProvider(providerUrl);
+    const ethersWallet = new ethers.Wallet(privateKey, provider);
+    logger.info(`Created ethers wallet with address: ${ethersWallet.address} for direct contract interactions`);
 
     // Initialize Wormhole SDK
     const wh = await getWormholeInstance();
@@ -782,7 +813,7 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
         type: 'circle',
         sourceTxHash: params.transactionId,
         sourceChain: sourceChainName,
-        destinationChain: destChainName,
+        destinationChain: destChain,
         status: 'pending',
         timestamp: Date.now()
       };
@@ -834,102 +865,90 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     }
     
     // Fetch attestation from Circle API
-    const attestationData = await fetchCircleAttestation(messageHash);
-    logger.info(`Got attestation: ${safeSerialize(attestationData)}`);
+    const attestationResponse = await fetchCircleAttestation(messageHash);
+    logger.info(`Got attestation: ${JSON.stringify(attestationResponse)}`);
     
-    // Extract the attestation signature from the response
-    const attestationSignature = attestationData.attestation;
-    if (!attestationSignature) {
-      throw new Error(`No attestation signature found in Circle API response`);
+    // Check if attestation is ready
+    if (!attestationResponse || attestationResponse.status !== 'complete' || !attestationResponse.attestation) {
+      const pendingMessage = `Attestation is not ready yet. Current status: ${attestationResponse?.status || 'unknown'}. Please wait a few minutes and try again.`;
+      logger.info(pendingMessage);
+      
+      return {
+        txHash: params.transactionId,
+        explorerLink: getExplorerLink(destChain, params.transactionId),
+        chain: destChain,
+        status: 'pending',
+        message: pendingMessage,
+        messageHash: messageHash
+      };
     }
     
-    // Get the message transmitter contract address for the destination chain
-    const messageTransmitterAddress = getMessageTransmitterAddress(params.chain || 'arbitrum');
-    logger.info(`Message transmitter address for ${params.chain}: ${messageTransmitterAddress}`);
+    // Get the attestation signature
+    const attestation = attestationResponse.attestation;
+    logger.info(`Using attestation: ${attestation.substring(0, 64)}...`);
     
-    // Create a contract instance for the message transmitter
-    // Make sure we're using a proper signer that can send transactions
-    const provider = new ethers.JsonRpcProvider(getChainRpcUrl(destChainName));
-    const privateKey = getPrivateKey(runtime);
-    const walletSigner = new ethers.Wallet(privateKey, provider);
+    // Get the message transmitter contract address
+    const messageTransmitterAddress = getMessageTransmitterAddress(destChain);
+    logger.info(`Message transmitter address for ${destChain}: ${messageTransmitterAddress}`);
     
+    // Create the message transmitter contract instance
     const messageTransmitterContract = new ethers.Contract(
       messageTransmitterAddress,
       [
         'function receiveMessage(bytes memory message, bytes memory attestation) external returns (bool)'
       ],
-      walletSigner
+      ethersWallet
     );
     
+    // Estimate gas for the transaction
+    let gasLimit;
     try {
-      // Estimate gas for the transaction
-      const gasEstimate = await messageTransmitterContract.receiveMessage.estimateGas(
+      const estimatedGas = await messageTransmitterContract.receiveMessage.estimateGas(
         messageBytes,
-        attestationSignature
-      ).catch((error: any) => {
-        logger.error(`Error estimating gas: ${error.message}`);
-        // Use a default gas limit if estimation fails
-        return BigInt(1000000);
-      });
-      
-      // Add a 20% buffer to the gas estimate
-      const gasLimit = BigInt(Math.floor(Number(gasEstimate) * 1.2));
-      
-      logger.info(`Estimated gas: ${gasEstimate}, using gas limit: ${gasLimit}`);
-      
-      // Call the receiveMessage function on the message transmitter contract
-      logger.info(`Sending transaction to redeem USDC on ${destChainName}...`);
+        attestation
+      );
+      logger.info(`Estimated gas: ${estimatedGas}, using gas limit: ${Math.floor(Number(estimatedGas) * 1.2)}`);
+      gasLimit = Math.floor(Number(estimatedGas) * 1.2); // Add 20% buffer
+    } catch (error: any) {
+      logger.error(`Error estimating gas: ${error.message}`);
+      // Use a default gas limit if estimation fails
+      gasLimit = 1200000;
+      logger.info(`Estimated gas: 1000000, using gas limit: ${gasLimit}`);
+    }
+    
+    // Send the transaction
+    logger.info(`Sending transaction to redeem USDC on ${destChain}...`);
+    try {
       const tx = await messageTransmitterContract.receiveMessage(
         messageBytes,
-        attestationSignature,
+        attestation,
         { gasLimit }
       );
-      
-      logger.info(`Transaction sent with hash: ${tx.hash}`);
+      logger.info(`Redemption transaction sent with hash: ${tx.hash}`);
       
       // Wait for the transaction to be mined
-      logger.info(`Waiting for transaction to be mined...`);
+      logger.info(`Waiting for redemption transaction to be mined...`);
       const receipt = await tx.wait();
+      logger.info(`Redemption transaction mined with status: ${receipt?.status}`);
       
-      logger.info(`Transaction mined with status: ${receipt?.status}`);
-      
-      // Return the transaction hash and explorer link
-      const txHash = tx.hash;
-      const explorerLink = getExplorerLink(destChainName, txHash);
-      
-      // Update the receipt status
-      if (updatedReceipt) {
-        updatedReceipt.status = 'redeemed';
-        storeTransferReceipt(params.transactionId, updatedReceipt);
+      // Update the transfer receipt with the redemption transaction hash
+      const transferReceipt = getTransferReceipt(params.transactionId);
+      if (transferReceipt) {
+        transferReceipt.status = 'redeemed';
+        transferReceipt.redemptionTxHash = tx.hash;
+        storeTransferReceipt(params.transactionId, transferReceipt);
       }
       
       return {
-        txHash,
-        explorerLink,
-        chain: destChainName,
-        status: 'redeemed',
-        message: `Successfully redeemed USDC on ${destChainName}`
+        txHash: tx.hash,
+        explorerLink: getExplorerLink(destChain, tx.hash),
+        chain: destChain,
+        status: 'success',
+        message: `Successfully redeemed USDC on ${destChain}`
       };
     } catch (error: any) {
       logger.error(`Error redeeming Circle USDC: ${error.message}`);
-      logger.error(error);
-      
-      let errorMessage = `Failed to redeem Circle USDC: ${error.message}`;
-      
-      // Add more context to the error message
-      if (error.message.includes('attestation')) {
-        errorMessage += `. This could be because the attestation is not yet available. Please wait a few minutes and try again.`;
-      } else if (error.message.includes('gas')) {
-        errorMessage += `. You may need more native tokens on ${params.chain} to pay for gas.`;
-      } else if (error.message.includes('message bytes')) {
-        errorMessage += `. This may not be a valid Circle USDC transfer transaction.`;
-      } else if (error.message.includes('Transaction receipt not found')) {
-        errorMessage += `. The transaction may not be confirmed yet or may not exist on ${sourceChainName}.`;
-      } else if (error.message.includes('exceeded maximum retry limit')) {
-        errorMessage = `Failed to connect to blockchain node. Please try again later.`;
-      }
-      
-      throw new Error(errorMessage);
+      throw new Error(`Failed to redeem Circle USDC: ${error.message}`);
     }
   } catch (error: any) {
     logger.error(`Error redeeming Circle USDC: ${error.message}`);

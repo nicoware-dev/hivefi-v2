@@ -1,6 +1,7 @@
 import { elizaLogger, IAgentRuntime, Action, ActionExample, Memory, State, HandlerCallback } from '@elizaos/core';
 import { redeemCircleUSDC, getTransferReceipt, storeTransferReceipt } from '../api/circleTransfer';
 import { extractChain, extractTransactionId } from '../utils';
+import { WormholeChain } from '../types';
 
 const logger = elizaLogger.child({ module: 'CircleRedeemAction' });
 
@@ -62,20 +63,19 @@ export const circleRedeemAction: Action = {
     logger.info(`Extracted transaction ID: ${transactionId}`);
     
     // Extract destination chain
-    let destinationChain = extractChain(text);
+    let destinationChain = extractChain(text) as WormholeChain;
     logger.info(`Extracted chain: ${destinationChain}`);
     
     // Extract source chain if specified
-    let sourceChain = 'ethereum'; // Default to ethereum
+    let sourceChain = 'ethereum' as WormholeChain; // Default to ethereum
     
-    // Check for "from X to Y" pattern
-    const fromToPattern = /from\s+(\w+)\s+to\s+(\w+)/i;
-    const fromToMatch = text.match(fromToPattern);
-    
-    if (fromToMatch && fromToMatch.length >= 3) {
-      sourceChain = fromToMatch[1].toLowerCase();
+    // Extract source and destination chains from the message
+    const fromToMatch = text.match(/from\s+(\w+)\s+to\s+(\w+)/i);
+    if (fromToMatch) {
+      // Convert to WormholeChain type
+      sourceChain = fromToMatch[1].toLowerCase() as WormholeChain;
       // Update destination chain from the pattern as well
-      destinationChain = fromToMatch[2].toLowerCase();
+      destinationChain = fromToMatch[2].toLowerCase() as WormholeChain;
       logger.info(`Extracted source chain from message: ${sourceChain}`);
       logger.info(`Updated destination chain from message: ${destinationChain}`);
     }
@@ -119,42 +119,90 @@ export const circleRedeemAction: Action = {
       logger.info(`Created new receipt with source chain ${sourceChain}: ${JSON.stringify(receipt)}`);
     }
     
+    // Call the redeem function
     try {
-      // Call the redeemCircleUSDC function with the extracted parameters
       const result = await redeemCircleUSDC(runtime, {
         chain: destinationChain,
-        transactionId: transactionId,
-        token: 'USDC',
+        transactionId,
         sourceChain: sourceChain // Pass the source chain to the redeem function
       });
       
-      // Update the state with the last Circle transfer
-      state.lastCircleTransfer = {
-        txHash: transactionId,
-        sourceChain: sourceChain,
-        destinationChain: destinationChain,
-        amount: receipt?.amount || '0.01',
-        token: 'USDC'
-      };
+      // If the attestation is not ready yet, provide a helpful message
+      if (result.status === 'pending') {
+        // Get the message hash from the result or use the transaction ID as fallback
+        const messageHashForLink = result.messageHash || transactionId;
+        
+        callback?.({
+          text: `The attestation for your Circle USDC transfer is not ready yet. This is normal and typically takes 5-10 minutes.\n\nTransaction ID: ${transactionId}\nSource Chain: ${sourceChain}\nDestination Chain: ${destinationChain}\n\nYou can check the status at: https://iris-api.circle.com/attestations/${messageHashForLink}\n\nPlease try redeeming again in a few minutes by saying:\n"Redeem my USDC transfer from ${sourceChain} to ${destinationChain} with transaction ID ${transactionId}"`
+        });
+        
+        return {
+          type: 'text',
+          content: `The attestation for your Circle USDC transfer is not ready yet. This is normal and typically takes 5-10 minutes.\n\nTransaction ID: ${transactionId}\nSource Chain: ${sourceChain}\nDestination Chain: ${destinationChain}\n\nYou can check the status at: https://iris-api.circle.com/attestations/${messageHashForLink}\n\nPlease try redeeming again in a few minutes by saying:\n"Redeem my USDC transfer from ${sourceChain} to ${destinationChain} with transaction ID ${transactionId}"`,
+          state: {
+            lastCircleTransfer: {
+              txHash: transactionId,
+              sourceChain: sourceChain,
+              destinationChain: destinationChain,
+              messageHash: messageHashForLink
+            }
+          }
+        };
+      }
       
-      // Return a success message
+      // If redemption was successful, provide a success message
+      callback?.({
+        text: `✅ Successfully redeemed your USDC transfer!\n\n💰 Transaction: ${result.txHash}\n🔗 Explorer: ${result.explorerLink}\n\nYour USDC should now be available in your wallet on ${destinationChain}.`
+      });
+      
+      // Update the state with the last Circle transfer
+      if (state) {
+        state.lastCircleTransfer = {
+          txHash: transactionId,
+          sourceChain: sourceChain,
+          destinationChain: destinationChain,
+          status: 'redeemed'
+        };
+      }
+      
       return {
-        text: `Let's proceed with redeeming your USDC transfer from the Circle Bridge using the provided transaction ID ${transactionId} on the ${destinationChain} network. This will finalize the transfer and make the USDC available in your destination wallet. Please hold on while I process the redemption.`,
-        followUp: {
-          text: `I've successfully submitted the redemption transaction for your USDC transfer. You can track it here: ${result.explorerLink}\n\nTransaction hash: ${result.txHash}\n\n${result.message || 'The USDC redemption transaction has been submitted successfully. It may take a few minutes to complete.'}`,
-          data: result
+        type: 'text',
+        content: `✅ Successfully redeemed your USDC transfer!\n\n💰 Transaction: ${result.txHash}\n🔗 Explorer: ${result.explorerLink}\n\nYour USDC should now be available in your wallet on ${destinationChain}.`,
+        state: {
+          lastCircleTransfer: {
+            txHash: transactionId,
+            sourceChain: sourceChain,
+            destinationChain: destinationChain,
+            status: 'redeemed'
+          }
         }
       };
     } catch (error: any) {
       logger.error(`Error redeeming Circle USDC transfer: ${error.message}`);
       
-      // Return an error message
+      // Check if the error is related to the attestation not being ready
+      if (error.message.includes('attestation') || error.message.includes('not ready') || error.message.includes('pending')) {
+        callback?.({
+          text: `The attestation for your Circle USDC transfer is not ready yet. This is normal and typically takes 5-10 minutes.\n\nTransaction ID: ${transactionId}\nSource Chain: ${sourceChain}\nDestination Chain: ${destinationChain}\n\nPlease try redeeming again in a few minutes by saying:\n"Redeem my USDC transfer from ${sourceChain} to ${destinationChain} with transaction ID ${transactionId}"`
+        });
+        
+        return {
+          type: 'text',
+          content: `The attestation for your Circle USDC transfer is not ready yet. This is normal and typically takes 5-10 minutes.\n\nTransaction ID: ${transactionId}\nSource Chain: ${sourceChain}\nDestination Chain: ${destinationChain}\n\nPlease try redeeming again in a few minutes by saying:\n"Redeem my USDC transfer from ${sourceChain} to ${destinationChain} with transaction ID ${transactionId}"`,
+          state: {
+            lastCircleTransfer: {
+              txHash: transactionId,
+              sourceChain: sourceChain,
+              destinationChain: destinationChain
+            }
+          }
+        };
+      }
+      
+      // For other errors, return a generic error message
       return {
-        text: `Let's proceed with redeeming your USDC transfer from the Circle Bridge using the provided transaction ID ${transactionId} on the ${destinationChain} network. This will finalize the transfer and make the USDC available in your destination wallet. Please hold on while I process the redemption.`,
-        followUp: {
-          text: `There was an error redeeming your Circle USDC transfer on ${destinationChain}: ${error.message}. Please try again later or contact support.`,
-          data: { error: error.message }
-        }
+        type: 'text',
+        content: `There was an error redeeming your Circle USDC transfer: ${error.message}`
       };
     }
   },
