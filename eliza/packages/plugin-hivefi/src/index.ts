@@ -2,7 +2,7 @@ import type { Plugin } from "@elizaos/core";
 import { mantleActions } from "./mantle";
 import { sonicActions } from "./sonic";
 import { analyticsActions } from "./analytics";
-import { multichainActions } from "./multichain";
+import { multichainActions, multichainProviders } from "./multichain";
 import { crosschainActions, crosschainProviders } from "./crosschain";
 
 /**
@@ -19,7 +19,8 @@ const plugin: Plugin = {
     ...crosschainActions
   ],
   providers: [
-    ...crosschainProviders
+    ...crosschainProviders,
+    ...multichainProviders
   ]
 };
 

@@ -133,16 +133,16 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
     }
     // Default to EVM wallet for other chains
     else {
-      logger.info(`No specific handler for chain ${chainName}, defaulting to EVM wallet`);
-      wallet = new ethers.Wallet(privateKey);
-      address = wallet.address;
-      logger.info(`Created default wallet with address: ${address} for chain ${chainName}`);
-      
-      // Connect to a default provider
+    logger.info(`No specific handler for chain ${chainName}, defaulting to EVM wallet`);
+    wallet = new ethers.Wallet(privateKey);
+    address = wallet.address;
+    logger.info(`Created default wallet with address: ${address} for chain ${chainName}`);
+    
+    // Connect to a default provider
       provider = new ethers.JsonRpcProvider('https://rpc.ankr.com/eth');
       wallet = wallet.connect(provider);
-      
-      logger.info(`Connected default wallet to provider for ${chainName}`);
+    
+    logger.info(`Connected default wallet to provider for ${chainName}`);
     }
     
     // Create a custom signer that matches what the Wormhole SDK expects

@@ -11,6 +11,7 @@ export const circleTransferAction: Action = {
   name: 'CIRCLE_USDC_TRANSFER',
   description: 'Transfer USDC between chains using Circle Bridge',
   similes: [
+    'CIRCLE_USDC_TRANSFER',
     'Cross-chain USDC transfer via Circle Bridge',
     'Bridge USDC between blockchains using Circle',
     'Move USDC across different networks with CCTP',
@@ -145,13 +146,13 @@ export const circleTransferAction: Action = {
       
       // Send success message with transaction details
       callback?.({
-        text: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\nOnce the transfer is complete, you can check its status by saying "Check my Circle transfer status" or "Redeem my USDC on ${destChain} from Circle Bridge".`
+        text: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\n You can check the status of your crosschain transfer on https://iris-api.circle.com/attestations/${result.messageHash} \n\n ⚠️ Important: Circle transfers require a two-step process. After the transfer completes (5-10 minutes), you'll need to redeem your USDC on ${destChain} by saying:\n"Redeem my USDC transfer from ${sourceChain} to ${destChain} with transaction ID ${result.txHash}"`
       });
       
       // Store the transfer information in the state for later use
       return {
         type: 'text',
-        content: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\nOnce the transfer is complete, you can check its status by saying "Check my Circle transfer status" or "Redeem my USDC on ${destChain} from Circle Bridge".`,
+        content: `✅ Successfully initiated USDC transfer via Circle Bridge!\n\n💰 Amount: ${amount} USDC\n🔄 From: ${sourceChain}\n🏁 To: ${destChain}\n\n🔗 Transaction: ${result.explorerLink}\n📝 Hash: ${result.txHash}\n\n⏱️ Estimated completion time: 5-10 minutes\n\n You can check the status of your crosschain transfer on https://iris-api.circle.com/attestations/${result.messageHash} \n\n ⚠️ Important: Circle transfers require a two-step process. After the transfer completes (5-10 minutes), you'll need to redeem your USDC on ${destChain} by saying:\n"Redeem my USDC transfer from ${sourceChain} to ${destChain} with transaction ID ${result.txHash}"`,
         state: {
           lastCircleTransfer: {
             txHash: result.txHash,
