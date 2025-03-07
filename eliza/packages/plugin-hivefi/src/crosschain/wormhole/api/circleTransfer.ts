@@ -155,7 +155,7 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
     throw new Error('Circle Bridge only supports USDC transfers');
   }
   
-  logger.info(`Transferring ${params.amount} USDC from ${params.sourceChain} to ${params.destinationChain} via Circle Bridge`);
+  ////logger.info(`Transferring ${params.amount} USDC from ${params.sourceChain} to ${params.destinationChain} via Circle Bridge`);
   
   // Store original chain names for reference
   const originalSourceChain = params.sourceChain.toLowerCase();
@@ -175,12 +175,12 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
     const sourceChain = normalizeChainName(params.sourceChain);
     const destChain = normalizeChainName(params.destinationChain);
     
-    logger.info(`Normalized chains: ${sourceChain} -> ${destChain}`);
-    logger.info(`Original chains: ${originalSourceChain} -> ${originalDestChain}`);
+    ////logger.info(`Normalized chains: ${sourceChain} -> ${destChain}`);
+    ////logger.info(`Original chains: ${originalSourceChain} -> ${originalDestChain}`);
     
     // Get signer for source chain
     const signer = await getSigner(runtime, sourceChain);
-    logger.info(`Got signer with address: ${signer.address()}`);
+    ////logger.info(`Got signer with address: ${signer.address()}`);
     
     // Get the underlying ethers wallet for direct contract interactions
     // This is needed because our custom signer doesn't support direct contract calls
@@ -188,16 +188,16 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
     const providerUrl = getChainRpcUrl(sourceChain);
     const provider = new ethers.JsonRpcProvider(providerUrl);
     const ethersWallet = new ethers.Wallet(privateKey, provider);
-    logger.info(`Created ethers wallet with address: ${ethersWallet.address} for direct contract interactions`);
+    ////logger.info(`Created ethers wallet with address: ${ethersWallet.address} for direct contract interactions`);
     
     // Initialize Wormhole SDK
     const wh = await getWormholeInstance();
-    logger.info(`Initialized Wormhole SDK`);
+    ////logger.info(`Initialized Wormhole SDK`);
     
     // Get Wormhole chain names
     const wormholeSourceChain = getWormholeChain(sourceChain);
     const wormholeDestChain = getWormholeChain(destChain);
-    logger.info(`Wormhole chains: ${wormholeSourceChain} -> ${wormholeDestChain}`);
+    ////logger.info(`Wormhole chains: ${wormholeSourceChain} -> ${wormholeDestChain}`);
     
     // Check if both chains are supported by Circle
     // This is different from Wormhole support - we need to check Circle support specifically
@@ -214,11 +214,11 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       throw new Error(`USDC not supported on ${originalSourceChain}`);
     }
     
-    logger.info(`Using USDC token address: ${tokenAddress}`);
+    ////logger.info(`Using USDC token address: ${tokenAddress}`);
     
     // Get source and destination addresses
     const signerAddress = signer.address();
-    logger.info(`Using signer address: ${signerAddress}`);
+    ////logger.info(`Using signer address: ${signerAddress}`);
     
     // Create UniversalAddress instances for source and destination
     const cleanAddress = signerAddress.startsWith('0x') ? signerAddress.slice(2) : signerAddress;
@@ -235,8 +235,8 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       address: universalAddress
     };
     
-    logger.info(`Created source address: ${safeSerialize(sourceAddress)}`);
-    logger.info(`Created destination address: ${safeSerialize(destAddress)}`);
+    //logger.info(`Created source address: ${safeSerialize(sourceAddress)}`);
+    //logger.info(`Created destination address: ${safeSerialize(destAddress)}`);
     
     try {
       // Get the Wormhole SDK instance
@@ -249,12 +249,12 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       // Parse amount to bigint with appropriate decimals
       const tokenDecimals = getTokenDecimals('USDC');
       const amountBigInt = BigInt(Math.floor(parseFloat(params.amount) * (10 ** tokenDecimals)));
-      logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
+      //logger.info(`Parsed amount: ${amountBigInt} (${tokenDecimals} decimals)`);
       
       // Before initiating the transfer, check if the wallet has enough funds for gas
       // Get the wallet balance for gas
       const nativeBalance = await getBalance(runtime, sourceChain, signerAddress);
-      logger.info(`Native token balance on ${sourceChain}: ${nativeBalance}`);
+      //logger.info(`Native token balance on ${sourceChain}: ${nativeBalance}`);
       
       // If native balance is 0, throw a more helpful error
       if (nativeBalance === '0' || nativeBalance === '0.0') {
@@ -263,7 +263,7 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       
       // Check USDC balance
       const usdcBalance = await getBalance(runtime, sourceChain, signerAddress, 'USDC');
-      logger.info(`USDC balance on ${sourceChain}: ${usdcBalance}`);
+      //logger.info(`USDC balance on ${sourceChain}: ${usdcBalance}`);
       
       // Convert amount to a number for comparison
       const amountNum = parseFloat(params.amount);
@@ -283,14 +283,14 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         nativeGas: undefined
       };
       
-      logger.info(`Created transfer params: ${safeSerialize(transferParams)}`);
+      //logger.info(`Created transfer params: ${safeSerialize(transferParams)}`);
       
       // Instead of using the SDK's CircleTransfer class, we'll implement the transfer manually
       // This gives us more control over the process and allows us to handle approvals and transfers separately
       
       // 1. First, get the token contract for USDC
       const usdcTokenAddress = getTokenAddress(sourceChain, 'USDC');
-      logger.info(`Using USDC token address: ${usdcTokenAddress}`);
+      //logger.info(`Using USDC token address: ${usdcTokenAddress}`);
       
       if (!usdcTokenAddress) {
         throw new Error(`USDC token address not found for chain ${sourceChain}`);
@@ -307,32 +307,32 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       
       // 2. Get the TokenMessenger contract address
       const tokenMessengerAddress = getTokenMessengerAddress(sourceChain);
-      logger.info(`Using TokenMessenger address: ${tokenMessengerAddress}`);
+      //logger.info(`Using TokenMessenger address: ${tokenMessengerAddress}`);
       
       // 3. Check if we already have sufficient allowance
       const currentAllowance = await usdcContract.allowance(ethersWallet.address, tokenMessengerAddress);
-      logger.info(`Current allowance: ${currentAllowance}, needed: ${amountBigInt}`);
+      //logger.info(`Current allowance: ${currentAllowance}, needed: ${amountBigInt}`);
       
       let approveTxHash = '';
       
       // 4. If allowance is insufficient, approve the TokenMessenger to spend USDC
       if (currentAllowance < amountBigInt) {
-        logger.info(`Approving TokenMessenger to spend ${amountBigInt} USDC`);
+        //logger.info(`Approving TokenMessenger to spend ${amountBigInt} USDC`);
         const approveTx = await usdcContract.approve(tokenMessengerAddress, amountBigInt);
-        logger.info(`Approval transaction sent with hash: ${approveTx.hash}`);
+        //logger.info(`Approval transaction sent with hash: ${approveTx.hash}`);
         
         // Wait for the approval transaction to be mined
-        logger.info(`Waiting for approval transaction to be mined...`);
+        //logger.info(`Waiting for approval transaction to be mined...`);
         const approveReceipt = await approveTx.wait();
-        logger.info(`Approval transaction mined with status: ${approveReceipt?.status}`);
+        //logger.info(`Approval transaction mined with status: ${approveReceipt?.status}`);
         
         // Add a delay to ensure the approval is fully confirmed on the blockchain
-        logger.info(`Waiting an additional 5 seconds for approval to be fully confirmed...`);
+        //logger.info(`Waiting an additional 5 seconds for approval to be fully confirmed...`);
         await new Promise(resolve => setTimeout(resolve, 5000));
         
         // Double-check the allowance after approval to ensure it's properly set
         const updatedAllowance = await usdcContract.allowance(ethersWallet.address, tokenMessengerAddress);
-        logger.info(`Updated allowance after approval: ${updatedAllowance}, needed: ${amountBigInt}`);
+        //logger.info(`Updated allowance after approval: ${updatedAllowance}, needed: ${amountBigInt}`);
         
         if (updatedAllowance < amountBigInt) {
           throw new Error(`Approval transaction was mined but allowance is still insufficient. Please try again.`);
@@ -340,7 +340,7 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         
         approveTxHash = approveTx.hash;
       } else {
-        logger.info(`Sufficient allowance already exists, skipping approval`);
+        //logger.info(`Sufficient allowance already exists, skipping approval`);
       }
       
       // 5. Create the TokenMessenger contract instance
@@ -354,15 +354,15 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
       
       // 6. Get the destination domain ID for the target chain
       const destinationDomain = getCircleDomain(destChain);
-      logger.info(`Destination domain for ${destChain}: ${destinationDomain}`);
+      //logger.info(`Destination domain for ${destChain}: ${destinationDomain}`);
       
       // 7. Format the recipient address as bytes32 (padded with zeros)
       // The recipient address needs to be formatted as bytes32 with 12 bytes of padding
       const mintRecipientBytes32 = '0x000000000000000000000000' + signerAddress.slice(2);
-      logger.info(`Mint recipient bytes32: ${mintRecipientBytes32}`);
+      //logger.info(`Mint recipient bytes32: ${mintRecipientBytes32}`);
       
       // 8. Call depositForBurn to initiate the transfer
-      logger.info(`Calling depositForBurn with amount: ${amountBigInt}, destinationDomain: ${destinationDomain}, mintRecipient: ${mintRecipientBytes32}, burnToken: ${usdcTokenAddress}`);
+      ////logger.info(`Calling depositForBurn with amount: ${amountBigInt}, destinationDomain: ${destinationDomain}, mintRecipient: ${mintRecipientBytes32}, burnToken: ${usdcTokenAddress}`);
       const depositTx = await tokenMessengerContract.depositForBurn(
         amountBigInt,
         destinationDomain,
@@ -370,22 +370,22 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
         usdcTokenAddress
       );
       
-      logger.info(`Deposit transaction sent with hash: ${depositTx.hash}`);
+      ////logger.info(`Deposit transaction sent with hash: ${depositTx.hash}`);
       
       // Wait for the deposit transaction to be mined
-      logger.info(`Waiting for deposit transaction to be mined...`);
+      ////logger.info(`Waiting for deposit transaction to be mined...`);
       const depositReceipt = await depositTx.wait();
-      logger.info(`Deposit transaction mined with status: ${depositReceipt?.status}`);
+      ////logger.info(`Deposit transaction mined with status: ${depositReceipt?.status}`);
       
       const txHash = depositTx.hash;
-      logger.info(`Circle transfer initiated with transaction hash: ${txHash}`);
+      ////logger.info(`Circle transfer initiated with transaction hash: ${txHash}`);
       
       // Extract message bytes and calculate message hash
       const messageBytes = extractMessageBytesFromReceipt(depositReceipt);
       let messageHash = '';
       if (messageBytes) {
         messageHash = calculateMessageHash(messageBytes);
-        logger.info(`Calculated message hash: ${messageHash}`);
+        //logger.info(`Calculated message hash: ${messageHash}`);
       } else {
         logger.warn('Could not extract message bytes to calculate message hash');
         // Use txHash as fallback for the API URL
@@ -459,7 +459,7 @@ async function transferCircleUSDC(runtime: IAgentRuntime, params: TransferParams
  * @returns The status of the transfer
  */
 export async function checkCircleTransferStatus(txHash: string): Promise<{status: string, message: string}> {
-  logger.info(`Checking status of Circle transfer with ID: ${txHash}`);
+  //logger.info(`Checking status of Circle transfer with ID: ${txHash}`);
   
   try {
     // Get the transfer receipt
@@ -481,7 +481,7 @@ export async function checkCircleTransferStatus(txHash: string): Promise<{status
       };
     }
     
-    logger.info(`Found Circle transfer receipt: ${safeSerialize(transferReceipt)}`);
+    //logger.info(`Found Circle transfer receipt: ${safeSerialize(transferReceipt)}`);
     
     // If the receipt already shows it as redeemed, return that status
     if (transferReceipt.status === 'redeemed') {
@@ -607,7 +607,7 @@ function extractMessageBytesFromReceipt(receipt: any): string | null {
       );
       
       if (depositForBurnLog) {
-        logger.info('Found DepositForBurn event, but no MessageSent event. This transaction may need to be processed by Circle before it can be redeemed.');
+        //logger.info('Found DepositForBurn event, but no MessageSent event. This transaction may need to be processed by Circle before it can be redeemed.');
         return null;
       }
       
@@ -634,13 +634,13 @@ function extractMessageBytesFromReceipt(receipt: any): string | null {
         ? messageBytes 
         : ethers.hexlify(messageBytes);
       
-      logger.info(`Successfully extracted message bytes: ${messageBytesHex.substring(0, 66)}...`);
+      //logger.info(`Successfully extracted message bytes: ${messageBytesHex.substring(0, 66)}...`);
       return messageBytesHex;
     } catch (decodeError: any) {
       logger.error(`Error decoding message bytes: ${decodeError.message}`);
       
       // Fallback to using the raw data if decoding fails
-      logger.info('Falling back to using raw data from the event');
+      //logger.info('Falling back to using raw data from the event');
       return messageSentLog.data;
     }
   } catch (error: any) {
@@ -657,14 +657,14 @@ function extractMessageBytesFromReceipt(receipt: any): string | null {
 async function fetchCircleAttestation(messageHash: string): Promise<any> {
   try {
     const apiUrl = `https://iris-api.circle.com/attestations/${messageHash}`;
-    logger.info(`Circle API URL: ${apiUrl}`);
+    //logger.info(`Circle API URL: ${apiUrl}`);
     
     const response = await axios.get(apiUrl);
-    logger.info(`Circle API response status: ${response.status}`);
+    //logger.info(`Circle API response status: ${response.status}`);
     
     if (response.status === 200) {
-      logger.info(`Successfully fetched attestation from Circle API`);
-      logger.info(`Got attestation: ${JSON.stringify(response.data)}`);
+      //logger.info(`Successfully fetched attestation from Circle API`);
+      //logger.info(`Got attestation: ${JSON.stringify(response.data)}`);
       return response.data;
     } else {
       logger.error(`Error fetching attestation: ${response.statusText}`);
@@ -673,7 +673,7 @@ async function fetchCircleAttestation(messageHash: string): Promise<any> {
   } catch (error: any) {
     // Handle 404 as pending
     if (error.response && error.response.status === 404) {
-      logger.info(`Attestation not found (404), treating as pending`);
+      //logger.info(`Attestation not found (404), treating as pending`);
       return { attestation: null, status: 'pending_confirmations' };
     }
     
@@ -735,25 +735,25 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     throw new Error('Destination chain is required for redemption');
   }
 
-  logger.info(`Redeeming Circle USDC transfer on ${params.chain} with transaction ID ${params.transactionId}`);
+  //logger.info(`Redeeming Circle USDC transfer on ${params.chain} with transaction ID ${params.transactionId}`);
 
   // Get the transfer receipt
   const receipt = getTransferReceipt(params.transactionId);
-  logger.info(`Transfer receipt for ${params.transactionId}: ${JSON.stringify(receipt)}`);
+  //logger.info(`Transfer receipt for ${params.transactionId}: ${JSON.stringify(receipt)}`);
 
   // Use the chain from the parameters
   const destChain = params.chain;
-  logger.info(`Using chain for redemption: ${destChain}`);
+  //logger.info(`Using chain for redemption: ${destChain}`);
 
   try {
     // Normalize chain name
     const normalizedChain = normalizeChainName(destChain);
-    logger.info(`Normalized destination chain: ${normalizedChain}`);
-    logger.info(`Original destination chain: ${destChain}`);
+    //logger.info(`Normalized destination chain: ${normalizedChain}`);
+    //logger.info(`Original destination chain: ${destChain}`);
 
     // Get signer for destination chain
     const signer = await getSigner(runtime, destChain);
-    logger.info(`Got signer with address: ${signer.address()}`);
+    //logger.info(`Got signer with address: ${signer.address()}`);
 
     // Get the underlying ethers wallet for direct contract interactions
     // This is needed because our custom signer doesn't support direct contract calls
@@ -761,38 +761,38 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     const providerUrl = getChainRpcUrl(destChain);
     const provider = new ethers.JsonRpcProvider(providerUrl);
     const ethersWallet = new ethers.Wallet(privateKey, provider);
-    logger.info(`Created ethers wallet with address: ${ethersWallet.address} for direct contract interactions`);
+    //logger.info(`Created ethers wallet with address: ${ethersWallet.address} for direct contract interactions`);
 
     // Initialize Wormhole SDK
     const wh = await getWormholeInstance();
-    logger.info(`Initialized Wormhole SDK`);
+    //logger.info(`Initialized Wormhole SDK`);
 
     // Get Wormhole chain name
     const wormholeChain = getWormholeChain(normalizedChain);
-    logger.info(`Wormhole chain: ${wormholeChain}`);
+    //logger.info(`Wormhole chain: ${wormholeChain}`);
 
     // Get chain context
     const chainContext = wh.getChain(wormholeChain);
-    logger.info(`Got chain context for ${wormholeChain}`);
+    //logger.info(`Got chain context for ${wormholeChain}`);
 
     // Determine source chain - use from receipt if available, or from params, or default to ethereum
     const sourceChainName = params.sourceChain || (receipt?.sourceChain) || 'ethereum';
-    logger.info(`Using source chain for transaction: ${sourceChainName}`);
+    //logger.info(`Using source chain for transaction: ${sourceChainName}`);
     
     // Normalize source chain name
     const normalizedSourceChain = normalizeChainName(sourceChainName);
-    logger.info(`Normalized source chain: ${normalizedSourceChain}`);
+    //logger.info(`Normalized source chain: ${normalizedSourceChain}`);
     
     // Get Wormhole source chain name
     const wormholeSourceChain = getWormholeChain(normalizedSourceChain);
-    logger.info(`Wormhole source chain: ${wormholeSourceChain}`);
+    //logger.info(`Wormhole source chain: ${wormholeSourceChain}`);
 
     // Fetch transaction receipt from source chain
-    logger.info(`Fetching transaction receipt from ${sourceChainName} for transaction ${params.transactionId}`);
+    //logger.info(`Fetching transaction receipt from ${sourceChainName} for transaction ${params.transactionId}`);
     
     // Get RPC URL for source chain
     const sourceRpcUrl = getChainRpcUrl(sourceChainName);
-    logger.info(`Using RPC URL for ${sourceChainName}: ${sourceRpcUrl}`);
+    //logger.info(`Using RPC URL for ${sourceChainName}: ${sourceRpcUrl}`);
     
     // Create provider for source chain
     const sourceProvider = new ethers.JsonRpcProvider(sourceRpcUrl);
@@ -804,7 +804,7 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
       throw new Error(`Transaction receipt not found for ${params.transactionId} on ${sourceChainName}. The transaction may not be confirmed yet.`);
     }
     
-    logger.info(`Found transaction receipt for ${params.transactionId} on ${sourceChainName}`);
+    //logger.info(`Found transaction receipt for ${params.transactionId} on ${sourceChainName}`);
     
     // Create a new receipt if one doesn't exist
     let updatedReceipt = receipt;
@@ -826,7 +826,7 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     if (updatedReceipt && updatedReceipt.messageBytes) {
       // Use message bytes from receipt if available
       messageBytes = updatedReceipt.messageBytes;
-      logger.info(`Using message bytes from receipt: ${messageBytes}`);
+      //logger.info(`Using message bytes from receipt: ${messageBytes}`);
     } else {
       // Extract message bytes from transaction logs
       messageBytes = extractMessageBytesFromReceipt(txReceipt);
@@ -836,7 +836,7 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
         throw new Error(`Could not extract message bytes from transaction ${params.transactionId}. This may not be a valid Circle transfer or the transaction may still be processing. For CCTP transfers, you need to wait for Circle to process the transaction before you can redeem it, which typically takes 5-10 minutes.`);
       }
       
-      logger.info(`Extracted message bytes: ${messageBytes}`);
+      //logger.info(`Extracted message bytes: ${messageBytes}`);
       
       // Update receipt with message bytes
       if (updatedReceipt) {
@@ -851,11 +851,11 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     if (updatedReceipt && updatedReceipt.messageHash) {
       // Use message hash from receipt if available
       messageHash = updatedReceipt.messageHash;
-      logger.info(`Using message hash from receipt: ${messageHash}`);
+      //logger.info(`Using message hash from receipt: ${messageHash}`);
     } else {
       // Calculate message hash
       messageHash = calculateMessageHash(messageBytes);
-      logger.info(`Calculated message hash: ${messageHash}`);
+      //logger.info(`Calculated message hash: ${messageHash}`);
       
       // Update receipt with message hash
       if (updatedReceipt) {
@@ -866,12 +866,12 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     
     // Fetch attestation from Circle API
     const attestationResponse = await fetchCircleAttestation(messageHash);
-    logger.info(`Got attestation: ${JSON.stringify(attestationResponse)}`);
+    //logger.info(`Got attestation: ${JSON.stringify(attestationResponse)}`);
     
     // Check if attestation is ready
     if (!attestationResponse || attestationResponse.status !== 'complete' || !attestationResponse.attestation) {
       const pendingMessage = `Attestation is not ready yet. Current status: ${attestationResponse?.status || 'unknown'}. Please wait a few minutes and try again.`;
-      logger.info(pendingMessage);
+      //logger.info(pendingMessage);
       
       return {
         txHash: params.transactionId,
@@ -885,11 +885,11 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
     
     // Get the attestation signature
     const attestation = attestationResponse.attestation;
-    logger.info(`Using attestation: ${attestation.substring(0, 64)}...`);
+    //logger.info(`Using attestation: ${attestation.substring(0, 64)}...`);
     
     // Get the message transmitter contract address
     const messageTransmitterAddress = getMessageTransmitterAddress(destChain);
-    logger.info(`Message transmitter address for ${destChain}: ${messageTransmitterAddress}`);
+    //logger.info(`Message transmitter address for ${destChain}: ${messageTransmitterAddress}`);
     
     // Create the message transmitter contract instance
     const messageTransmitterContract = new ethers.Contract(
@@ -907,29 +907,29 @@ async function redeemCircleUSDC(runtime: IAgentRuntime, params: RedeemParams): P
         messageBytes,
         attestation
       );
-      logger.info(`Estimated gas: ${estimatedGas}, using gas limit: ${Math.floor(Number(estimatedGas) * 1.2)}`);
+      //logger.info(`Estimated gas: ${estimatedGas}, using gas limit: ${Math.floor(Number(estimatedGas) * 1.2)}`);
       gasLimit = Math.floor(Number(estimatedGas) * 1.2); // Add 20% buffer
     } catch (error: any) {
       logger.error(`Error estimating gas: ${error.message}`);
       // Use a default gas limit if estimation fails
       gasLimit = 1200000;
-      logger.info(`Estimated gas: 1000000, using gas limit: ${gasLimit}`);
+      //logger.info(`Estimated gas: 1000000, using gas limit: ${gasLimit}`);
     }
     
     // Send the transaction
-    logger.info(`Sending transaction to redeem USDC on ${destChain}...`);
+    //logger.info(`Sending transaction to redeem USDC on ${destChain}...`);
     try {
       const tx = await messageTransmitterContract.receiveMessage(
         messageBytes,
         attestation,
         { gasLimit }
       );
-      logger.info(`Redemption transaction sent with hash: ${tx.hash}`);
+      //logger.info(`Redemption transaction sent with hash: ${tx.hash}`);
       
       // Wait for the transaction to be mined
-      logger.info(`Waiting for redemption transaction to be mined...`);
+      //logger.info(`Waiting for redemption transaction to be mined...`);
       const receipt = await tx.wait();
-      logger.info(`Redemption transaction mined with status: ${receipt?.status}`);
+      //logger.info(`Redemption transaction mined with status: ${receipt?.status}`);
       
       // Update the transfer receipt with the redemption transaction hash
       const transferReceipt = getTransferReceipt(params.transactionId);

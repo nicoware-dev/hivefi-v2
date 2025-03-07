@@ -60,7 +60,7 @@ const CHAIN_CONFIG = {
         chainId: 42161,
         name: 'Arbitrum One',
         rpcUrls: [
-            'https://arb1.arbitrum.io/rpc',
+            'https://rpc.ankr.com/arbitrum',
             'https://arbitrum-one.publicnode.com'
         ]
     }
@@ -314,7 +314,7 @@ export const claim: Action = {
             const arbitrumWalletClient = createWalletClient({
                 account: provider.getAccount(),
                 chain: arbitrum,
-                transport: http('https://arb1.arbitrum.io/rpc')
+                transport: http('https://rpc.ankr.com/arbitrum')
             });
 
             const claimAbi = [{

@@ -81,7 +81,7 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - 🤖 Multi-Agent System (MAS) architecture
 - 🔅 Integrated website & web app
 - 🔗 Support for multiple LLM providers (OpenAI, Anthropic, etc.)
-- 📚 Knowledge base with DeFi expertise
+- 📚 RAG Knowledge base with DeFi expertise
 - 💰 Real-time prices using CoinGecko API
 - 🚀 Real-time TVL using DefiLlama API
 - 📊 DEX analytics via GeckoTerminal
@@ -393,12 +393,6 @@ hivefi/
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-Please read our [Contributing Guidelines](CONTRIBUTING.md) for more details.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

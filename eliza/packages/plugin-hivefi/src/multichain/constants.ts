@@ -15,10 +15,10 @@ export const CHAIN_CONFIGS: Record<string, ChainConfig> = {
   arbitrum: {
     id: "42161",
     name: "Arbitrum",
-    rpcUrl: "https://arb1.arbitrum.io/rpc",
+    rpcUrl: "https://rpc.ankr.com/arbitrum",
     explorerUrl: "https://arbiscan.io",
     nativeCurrency: {
-      name: "Ether",
+      name: "Ethereum",
       symbol: "ETH",
       decimals: 18,
     },
