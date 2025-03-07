@@ -2,28 +2,35 @@
 
 <div align="center">
   <img src="assets/logo/logo.svg" alt="HiveFi Logo" width="200"/>
-  <h3>Revolutionizing Multichain DeFi with AI-Powered Agent Swarms</h3>
+  <h3>Revolutionizing Multichain DeFAI with AI-Powered Agent Swarms</h3>
   <p>Simplify your DeFi experience across multiple blockchains with the power of Multi-Agent Systems (MAS)</p>
   <p align="center">
-    <a href="https://discord.gg/hivefiai">
+    <a href="https://discord.gg/APAKDaUYAM">
       <img src="https://img.shields.io/badge/Discord-Join%20Us-blue?style=for-the-badge&logo=discord" alt="Discord" />
     </a>
-    <a href="https://x.com/hivefi_ai">
+    <a href="https://x.com/hivefi_agent">
       <img src="https://img.shields.io/badge/X-Follow%20Us-blue?style=for-the-badge&logo=x" alt="X" />
     </a>
     <a href="https://www.youtube.com/watch?v=demo-video">
       <img src="https://img.shields.io/badge/YouTube-Demo%20Video-red?style=for-the-badge&logo=youtube" alt="Demo Video" />
     </a>
-    <a href="https://linktr.ee/hivefi">
+    <a href="https://linktr.ee/HiveFi">
       <img src="https://img.shields.io/badge/Linktree-Visit%20Us-green?style=for-the-badge&logo=linktree" alt="Linktree" />
     </a>
-    <a href="https://hivefi.vercel.app/">
+    <a href="https://hivefi-one.vercel.app/">
       <img src="https://img.shields.io/badge/Website-Visit%20App-purple?style=for-the-badge&logo=vercel" alt="Website" />
+    </a>
+    <a href="https://hivefi-1.gitbook.io/hivefi/">
+      <img src="https://img.shields.io/badge/Gitbook-Visit%20Docs-blue?style=for-the-badge&logo=gitbook" alt="Documentation" />
     </a>
   </p>
 </div>
 
 ---
+
+> **🆕 Latest Updates:** Check out our [CHANGELOG.md](./CHANGELOG.md) to see all the latest features, improvements, and bug fixes!
+
+
 
 ## 📚 Table of Contents
 
@@ -81,7 +88,7 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - 🤖 Multi-Agent System (MAS) architecture
 - 🔅 Integrated website & web app
 - 🔗 Support for multiple LLM providers (OpenAI, Anthropic, etc.)
-- 📚 Knowledge base with DeFi expertise
+- 📚 RAG Knowledge base with DeFi expertise
 - 💰 Real-time prices using CoinGecko API
 - 🚀 Real-time TVL using DefiLlama API
 - 📊 DEX analytics via GeckoTerminal
@@ -101,7 +108,6 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 #### Cross-Chain Module
 - 🌉 Bridge operations via Wormhole
 - 🔄 Cross-chain transaction monitoring
-- 💧 Liquidity tracking
 - 🛣️ Route optimization
 - ✅ Status verification
 
@@ -110,32 +116,33 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - 💸 Token transfers
 - 💱 DEX operations (Merchant Moe, Agni Finance)
 - 💸 Lending operations (Lendle, Init Capital)
-- 🌾 Yield farming (Pendle)
-- 💧 Protocol interactions
 
 #### Sonic Chain
 - 💰 Wallet management
 - 💸 Token transfers
 - 💱 DEX operations (Beets, SwapX, Shadow Exchange)
 - 💸 Lending operations (Silo Finance, Aave)
-- 🌾 Yield optimization (Beefy)
-- 💧 Protocol integrations
+- 🌾 Sonic Staking (Beets LST)
+- 🔄 Token Bridges (deBridge)
 
 #### MultiChain Module
+- 🔗 Supported Chains: Ethereum, Polygon, Arbitrum, Base, Optimism, BNB Chain, Avalanche, etc. (More coming soon)
 - 💰 Wallet operations
 - 💸 Native token transfers
 - 💱 ERC-20 token transfers
-- 💼 Portfolio management
-- 🔑 Chain-specific wallet access
+- 💼 Portfolio management (Zerion API)
+- 🔄 Support for top multi chain protocols (Uniswap, Aave, Beefy,etc.) (WIP)
 
 ### 🖥️ Web App Features
 - 🚀 Landing page
 - 📄 Agents directory
 - 🤖 Chat with agent swarm through web interface
-- 👛 Multichain wallet connector
-- 📊 Portfolio & analytics dashboard
-- 📝 Transaction history
-- ⚙️ Settings and preferences
+- 👛 Multichain wallet connector + Account Abstraction (Privy)
+- 📊 Portfolio & analytics dashboards
+- 📝 Chat history
+- 💬 Example Prompts
+- ⚙️ Settings and preferences (WIP)
+- 🔄 Transaction history (WIP)
 
 <div align="center">
   <img src="assets/webapp.png" alt="HiveFi Web Interface" width="800"/>
@@ -206,8 +213,8 @@ While self-hosting is a DIY approach, we provide:
 
 ```bash
 # Clone the repository
-git clone https://github.com/hivefi/hivefi
-cd hivefi
+git clone https://github.com/nicoware-dev/hivefi-v2
+cd hivefi-v2
 
 # Install dependencies
 pnpm install
@@ -393,12 +400,6 @@ hivefi/
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-Please read our [Contributing Guidelines](CONTRIBUTING.md) for more details.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

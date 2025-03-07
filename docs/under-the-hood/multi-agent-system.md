@@ -6,32 +6,7 @@ HiveFi's Multi-Agent System (MAS) is designed to provide intelligent, coordinate
 
 ## Agent System Architecture
 
-```
-┌─────────── Agent Swarm Architecture ───────────┐
-│                                                │
-│  ┌─────────── Internal Agents ──────────────┐  │
-│  │ ┌─────────┐  ┌────────┐  ┌────────┐     │  │
-│  │ │Interface│  │Action  │  │Response│     │  │
-│  │ │  Layer  │──│Executor│──│Handler │     │  │
-│  │ └─────────┘  └────────┘  └────────┘     │  │
-│  └──────────────────────────────────────────┘  │
-│                                                │
-│  ┌─────────── Public Agents ───────────────┐   │
-│  │ ┌─────────┐  ┌────────┐  ┌─────────┐   │   │
-│  │ │User     │  │Task    │  │Protocol │   │   │
-│  │ │Interface│──│Manager │──│Adapter  │   │   │
-│  │ └─────────┘  └────────┘  └─────────┘   │   │
-│  └─────────────────────────────────────────┘   │
-│                                                │
-│  ┌─────────── Private Agents ──────────────┐   │
-│  │ ┌─────────┐  ┌────────┐  ┌────────┐    │   │
-│  │ │Task     │  │Chain   │  │State   │    │   │
-│  │ │Router   │──│Manager │──│Sync    │    │   │
-│  │ └─────────┘  └────────┘  └────────┘    │   │
-│  └──────────────────────────────────────────┘  │
-│                                                │
-└────────────────────────────────────────────────┘
-```
+![Agent System Architecture](./architecture.png)
 
 ## Agent Categories
 
@@ -146,207 +121,28 @@ Private agents are available only in custom deployments.
   - Status tracking
   - Error handling
 
-## Communication Patterns
+## Agent Orchestration Workflows (n8n)
 
-### 1. Inter-Agent Communication
+### Core Workflows
+- `HiveFi_Coordinator_Agent.json` - Main coordinator workflow for agent orchestration
+- `HiveFi_Eliza_Agent.json` - Tool definitions for eliza agent interactions
+- `HiveFi_Sales_Agent.json` - Tool definitions for sales agent interactions
 
-```
-┌─── Agent A ───┐     ┌─── Agent B ───┐
-│               │     │               │
-│  ┌─────────┐  │     │  ┌─────────┐  │
-│  │Message  │──┼─────┼─►│Message  │  │
-│  │Producer │  │     │  │Consumer │  │
-│  └─────────┘  │     │  └─────────┘  │
-│               │     │               │
-└───────────────┘     └───────────────┘
-```
+### Agent Integration Workflows (Same Eliza Agent Tool with different API urls)
+-  Anlytics Agent: Analytics and reporting workflow
+-  Sonic Agent: Sonic chain operations workflow
+-  Mantle Agent: Mantle chain operations workflow
+-  Multichain Agent: Multichain protocols operations workflow
+-  Crosschain Agent: Cross-chain operations workflow
 
-### 2. Message Types
+## Coordinator Agent Architecture
 
-#### Command Messages
-```typescript
-interface CommandMessage {
-  type: 'COMMAND';
-  action: string;
-  parameters: Record<string, any>;
-  priority: number;
-  timestamp: number;
-}
-```
+![HiveFi n8n Workflow Diagram](./n8n-architecture.png)
 
-#### Event Messages
-```typescript
-interface EventMessage {
-  type: 'EVENT';
-  eventType: string;
-  data: any;
-  source: string;
-  timestamp: number;
-}
-```
 
-#### Response Messages
-```typescript
-interface ResponseMessage {
-  type: 'RESPONSE';
-  requestId: string;
-  status: 'SUCCESS' | 'ERROR';
-  data: any;
-  timestamp: number;
-}
-```
+## Eliza Agent Workflow
 
-## Coordination Mechanisms
-
-### 1. Task Distribution
-
-```
-User Request → Coordinator Agent
-     ↓
-Task Analysis & Decomposition
-     ↓
-Task Assignment to Specialized Agents
-     ↓
-Parallel Execution & Monitoring
-     ↓
-Result Aggregation & Response
-```
-
-### 2. State Management
-
-- **Shared State**
-  - Portfolio data
-  - Market information
-  - Transaction status
-  
-- **Agent State**
-  - Task queue
-  - Operation status
-  - Resource usage
-
-### 3. Error Handling
-
-```typescript
-try {
-  // Agent operation
-  const result = await executeTask();
-  
-  if (!result.success) {
-    // Primary error handling
-    await handleError(result.error);
-  }
-} catch (error) {
-  // Fallback error handling
-  await escalateError(error);
-}
-```
-
-## Performance Considerations
-
-### 1. Resource Management
-
-- CPU allocation
-- Memory limits
-- Network bandwidth
-- Storage quotas
-- Operation timeouts
-
-### 2. Optimization Techniques
-
-- Message batching
-- Response caching
-- Load balancing
-- Priority queuing
-- Resource pooling
-
-### 3. Monitoring Metrics
-
-- Response times
-- Success rates
-- Error frequency
-- Resource usage
-- Queue lengths
-
-## Security Model
-
-### 1. Access Control
-
-- Role-based permissions
-- Action validation
-- Resource limits
-- API key management
-- Rate limiting
-
-### 2. Data Protection
-
-- Message encryption
-- Secure storage
-- Audit logging
-- Key rotation
-- Data validation
-
-### 3. Operation Safety
-
-- Transaction validation
-- Gas estimation
-- Slippage protection
-- Timeout handling
-- Rollback procedures
-
-## Development Guidelines
-
-### 1. Agent Implementation
-
-```typescript
-class BaseAgent {
-  async initialize(): Promise<void> {
-    // Setup code
-  }
-  
-  async processMessage(message: Message): Promise<Response> {
-    // Message handling
-  }
-  
-  async cleanup(): Promise<void> {
-    // Cleanup code
-  }
-}
-```
-
-### 2. Message Handling
-
-```typescript
-async function handleMessage(message: Message): Promise<Response> {
-  // Validate message
-  if (!isValidMessage(message)) {
-    throw new Error('Invalid message format');
-  }
-  
-  // Process message
-  const result = await processMessage(message);
-  
-  // Return response
-  return {
-    success: true,
-    data: result
-  };
-}
-```
-
-### 3. Error Handling
-
-```typescript
-async function handleError(error: Error): Promise<void> {
-  // Log error
-  logger.error('Operation failed:', error);
-  
-  // Attempt recovery
-  await attemptRecovery();
-  
-  // Notify monitoring
-  await notifyMonitoring(error);
-}
-```
+![HiveFi Eliza Agent Workflow](./eliza-agent-workflow.png)
 
 ## Next Steps
 

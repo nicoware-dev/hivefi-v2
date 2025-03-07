@@ -66,7 +66,7 @@ function getPrivateKey(runtime: IAgentRuntime): string {
  * @returns A signer object compatible with the Wormhole SDK
  */
 export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any> {
-  logger.info(`Getting signer for chain: ${typeof chain === 'string' ? chain : chain?.chain || 'unknown'}`);
+  //logger.info(`Getting signer for chain: ${typeof chain === 'string' ? chain : chain?.chain || 'unknown'}`);
   
   try {
     // Get private key from runtime settings
@@ -85,7 +85,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
     // If chain is a string, use it directly, otherwise extract the chain property
     const chainName = typeof chain === 'string' ? chain : (chain?.chain || 'Ethereum');
     
-    logger.info(`Creating wallet for chain: ${chainName}`);
+    //logger.info(`Creating wallet for chain: ${chainName}`);
     
     // For EVM-compatible chains, create an ethers wallet
     const evmChains = [
@@ -100,7 +100,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       
       wallet = new ethers.Wallet(privateKey);
       address = wallet.address;
-      logger.info(`Created EVM wallet with address: ${address} for chain ${chainName}`);
+      //logger.info(`Created EVM wallet with address: ${address} for chain ${chainName}`);
       
       // Map chain names to provider URLs - using production mainnet RPCs
       const providerMap: Record<string, string> = {
@@ -109,7 +109,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
         'Bsc': 'https://bscrpc.com',
         'Avalanche': 'https://rpc.ankr.com/avalanche',
         'Fantom': 'https://rpcapi.fantom.network',
-        'Arbitrum': 'https://arb1.arbitrum.io/rpc',
+        'Arbitrum': 'https://rpc.ankr.com/arbitrum',
         'Optimism': 'https://mainnet.optimism.io',
         'Base': 'https://mainnet.base.org',
         'Mantle': 'https://rpc.mantle.xyz'
@@ -118,11 +118,11 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       // Get provider URL for the chain
       const providerUrl = providerMap[chainName] || providerMap[chainName.toLowerCase()] || 'https://rpc.ankr.com/eth';
       
-      logger.info(`Using provider URL: ${providerUrl} for chain ${chainName}`);
+      //logger.info(`Using provider URL: ${providerUrl} for chain ${chainName}`);
       provider = new ethers.JsonRpcProvider(providerUrl);
       wallet = wallet.connect(provider);
       
-      logger.info(`Connected wallet to provider for ${chainName}`);
+      //logger.info(`Connected wallet to provider for ${chainName}`);
     }
     // For Solana
     else if (chainName === 'Solana') {
@@ -133,16 +133,16 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
     }
     // Default to EVM wallet for other chains
     else {
-    logger.info(`No specific handler for chain ${chainName}, defaulting to EVM wallet`);
+    //logger.info(`No specific handler for chain ${chainName}, defaulting to EVM wallet`);
     wallet = new ethers.Wallet(privateKey);
     address = wallet.address;
-    logger.info(`Created default wallet with address: ${address} for chain ${chainName}`);
+    //logger.info(`Created default wallet with address: ${address} for chain ${chainName}`);
     
     // Connect to a default provider
       provider = new ethers.JsonRpcProvider('https://rpc.ankr.com/eth');
       wallet = wallet.connect(provider);
     
-    logger.info(`Connected default wallet to provider for ${chainName}`);
+    //logger.info(`Connected default wallet to provider for ${chainName}`);
     }
     
     // Create a custom signer that matches what the Wormhole SDK expects
@@ -156,18 +156,18 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       // Required method for SignAndSendSigner interface
       // Takes an array of unsigned transactions, signs them, sends them, and returns transaction hashes
       signAndSend: async (txs: any[]) => {
-        logger.info(`Signing and sending ${txs.length} transactions for ${chainName}`);
+        //logger.info(`Signing and sending ${txs.length} transactions for ${chainName}`);
         
         const txHashes: string[] = [];
         
         // Get the current nonce for the wallet
         let currentNonce = await provider.getTransactionCount(address, 'latest');
-        logger.info(`Starting nonce for ${address}: ${currentNonce}`);
+        //logger.info(`Starting nonce for ${address}: ${currentNonce}`);
         
         for (const tx of txs) {
           try {
             // Use safe serialization for logging
-            logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
+            //logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
             
             // Extract transaction details from the Wormhole transaction format
             const transaction = tx.transaction || tx;
@@ -184,18 +184,18 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
             };
             
             // Use safe serialization for logging
-            logger.info(`Signing EVM transaction with nonce ${currentNonce}: ${safeSerialize(ethersTransaction)}`);
+            //logger.info(`Signing EVM transaction with nonce ${currentNonce}: ${safeSerialize(ethersTransaction)}`);
             
             // Sign and send the transaction
             const txResponse = await wallet.sendTransaction(ethersTransaction);
-            logger.info(`Transaction sent with hash: ${txResponse.hash}`);
+            //logger.info(`Transaction sent with hash: ${txResponse.hash}`);
             
             // Add the transaction hash to the result array
             txHashes.push(txResponse.hash);
             
             // Increment the nonce for the next transaction
             currentNonce++;
-            logger.info(`Incremented nonce to ${currentNonce} for next transaction`);
+            //logger.info(`Incremented nonce to ${currentNonce} for next transaction`);
           } catch (error: any) {
             logger.error(`Error signing/sending transaction: ${error.message}`);
             throw error;
@@ -208,14 +208,14 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
       // Optional method for SignOnlySigner interface
       // Takes an array of unsigned transactions and returns signed transactions
       sign: async (txs: any[]) => {
-        logger.info(`Signing ${txs.length} transactions for ${chainName}`);
+        //logger.info(`Signing ${txs.length} transactions for ${chainName}`);
         
         const signedTxs: any[] = [];
         
         for (const tx of txs) {
           try {
             // Use safe serialization for logging
-            logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
+            //logger.info(`Preparing to sign transaction: ${safeSerialize(tx)}`);
             
             // Extract transaction details from the Wormhole transaction format
             const transaction = tx.transaction || tx;
@@ -231,11 +231,11 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
             };
             
             // Use safe serialization for logging
-            logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
+            //logger.info(`Signing EVM transaction: ${safeSerialize(ethersTransaction)}`);
             
             // Sign the transaction
             const signedTx = await wallet.signTransaction(ethersTransaction);
-            logger.info(`Transaction signed: ${signedTx.substring(0, 66)}...`);
+            //logger.info(`Transaction signed: ${signedTx.substring(0, 66)}...`);
             
             // Add the signed transaction to the result array
             signedTxs.push(signedTx);
@@ -265,7 +265,7 @@ export async function getSigner(runtime: IAgentRuntime, chain: any): Promise<any
  * @returns The balance as a string
  */
 export async function getBalance(runtime: IAgentRuntime, chain: any, address: string, tokenAddress?: string): Promise<string> {
-  logger.info(`Getting balance for address ${address} on chain ${typeof chain === 'string' ? chain : (chain?.chain || 'unknown')}`);
+  //logger.info(`Getting balance for address ${address} on chain ${typeof chain === 'string' ? chain : (chain?.chain || 'unknown')}`);
   
   try {
     const chainName = typeof chain === 'string' ? chain : (chain?.chain || 'Ethereum');
@@ -277,7 +277,7 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
       'Bsc': 'https://bscrpc.com',
       'Avalanche': 'https://rpc.ankr.com/avalanche',
       'Fantom': 'https://rpcapi.fantom.network',
-      'Arbitrum': 'https://arb1.arbitrum.io/rpc',
+      'Arbitrum': 'https://rpc.ankr.com/arbitrum',
       'Optimism': 'https://mainnet.optimism.io',
       'Base': 'https://mainnet.base.org',
       'Mantle': 'https://rpc.mantle.xyz'
@@ -285,7 +285,7 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
     
     // Get provider URL for the chain
     const providerUrl = providerMap[chainName] || providerMap[chainName.toLowerCase()] || 'https://rpc.ankr.com/eth';
-    logger.info(`Using provider URL: ${providerUrl} for balance check`);
+    //logger.info(`Using provider URL: ${providerUrl} for balance check`);
     
     // Add retry logic for provider connection
     let provider;
@@ -316,7 +316,7 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
     
     if (tokenAddress && tokenAddress !== 'native') {
       // For ERC20 tokens
-      logger.info(`Checking ERC20 token balance for address ${address} with token contract ${tokenAddress}`);
+      //logger.info(`Checking ERC20 token balance for address ${address} with token contract ${tokenAddress}`);
       
       // USDC token addresses for each chain
       const usdcAddresses: Record<string, string> = {
@@ -333,7 +333,7 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
       if (tokenAddress.toLowerCase() === 'usdc' || tokenAddress.toLowerCase().includes('usdc')) {
         const usdcAddress = usdcAddresses[chainName];
         if (usdcAddress) {
-          logger.info(`Using known USDC address for ${chainName}: ${usdcAddress}`);
+          //logger.info(`Using known USDC address for ${chainName}: ${usdcAddress}`);
           tokenAddress = usdcAddress;
           isUSDC = true;
         }
@@ -346,14 +346,14 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
       ];
       
       try {
-        logger.info(`Creating contract instance for token at ${tokenAddress}`);
+        //logger.info(`Creating contract instance for token at ${tokenAddress}`);
         const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, provider);
         
         // Get token symbol for logging
         let symbol = 'Unknown';
         try {
           symbol = await tokenContract.symbol();
-          logger.info(`Token symbol: ${symbol}`);
+          //logger.info(`Token symbol: ${symbol}`);
           if (symbol === 'USDC') {
             isUSDC = true;
           }
@@ -361,13 +361,13 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
           logger.warn(`Could not get token symbol: ${error.message}`);
         }
         
-        logger.info(`Fetching balance of ${symbol} token at address ${tokenAddress} for wallet ${address}`);
+        //logger.info(`Fetching balance of ${symbol} token at address ${tokenAddress} for wallet ${address}`);
         
         // Add detailed logging for the balanceOf call
         let balance;
         try {
           balance = await tokenContract.balanceOf(address);
-          logger.info(`Raw balance result: ${balance.toString()}`);
+          //logger.info(`Raw balance result: ${balance.toString()}`);
         } catch (error: any) {
           logger.error(`Error in balanceOf call: ${error.message}`);
           logger.error(`Error details: ${JSON.stringify(error)}`);
@@ -378,21 +378,21 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
         let decimals;
         try {
           decimals = await tokenContract.decimals();
-          logger.info(`Token decimals: ${decimals}`);
+          //logger.info(`Token decimals: ${decimals}`);
         } catch (error: any) {
           logger.error(`Error getting token decimals: ${error.message}`);
           // Default to 6 for USDC if we can't get decimals
           decimals = isUSDC ? 6 : 18;
-          logger.info(`Using default decimals: ${decimals}`);
+          //logger.info(`Using default decimals: ${decimals}`);
         }
         
         // Convert to human-readable format
         const formattedBalance = ethers.formatUnits(balance, decimals);
-        logger.info(`Token balance for ${symbol}: ${formattedBalance}`);
+        //logger.info(`Token balance for ${symbol}: ${formattedBalance}`);
         
         // Special handling for USDC on Arbitrum - if balance is 0 but we know from Arbiscan that it should be non-zero
         if (isUSDC && chainName === 'Arbitrum' && formattedBalance === '0.0' && address === '0xfB0eb7294e39Bb7B0aA6C7eC294be2C968656fb0') {
-          logger.info(`Special case: Using hardcoded USDC balance for testing on Arbitrum`);
+          //logger.info(`Special case: Using hardcoded USDC balance for testing on Arbitrum`);
           return '0.4366'; // Hardcoded value from Arbiscan for testing
         }
         
@@ -402,7 +402,7 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
         
         // Special handling for USDC on Arbitrum - fallback to hardcoded value for testing
         if (isUSDC && chainName === 'Arbitrum' && address === '0xfB0eb7294e39Bb7B0aA6C7eC294be2C968656fb0') {
-          logger.info(`Fallback: Using hardcoded USDC balance for testing on Arbitrum`);
+          //logger.info(`Fallback: Using hardcoded USDC balance for testing on Arbitrum`);
           return '0.4366'; // Hardcoded value from Arbiscan for testing
         }
         
@@ -410,16 +410,16 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
       }
     } else {
       // For native tokens
-      logger.info(`Checking native token balance for address ${address}`);
+      //logger.info(`Checking native token balance for address ${address}`);
       const balance = await provider.getBalance(address);
       const formattedBalance = ethers.formatEther(balance);
-      logger.info(`Native balance: ${formattedBalance}`);
+      //logger.info(`Native balance: ${formattedBalance}`);
       return formattedBalance;
     }
   } catch (error: any) {
     logger.error(`Error getting balance for ${address} on ${typeof chain === 'string' ? chain : (chain?.chain || 'unknown')}:`, error);
     // Return 0 instead of throwing to make the function more robust
-    logger.info(`Returning 0 balance due to error`);
+    //logger.info(`Returning 0 balance due to error`);
     return '0';
   }
 }
@@ -431,12 +431,12 @@ export async function getBalance(runtime: IAgentRuntime, chain: any, address: st
  * @returns The address
  */
 export async function getAddress(runtime: IAgentRuntime, chain: any): Promise<string> {
-  logger.info(`Getting address for chain ${chain.chain}`);
+  //logger.info(`Getting address for chain ${chain.chain}`);
   
   try {
     const signer = await getSigner(runtime, chain);
     const address = signer.address();
-    logger.info(`Using address: ${address}`);
+    //logger.info(`Using address: ${address}`);
     
     return address;
   } catch (error: any) {
@@ -453,7 +453,7 @@ export async function getAddress(runtime: IAgentRuntime, chain: any): Promise<st
  * @returns The signed transaction
  */
 export async function signTransaction(runtime: IAgentRuntime, chain: string, transaction: any): Promise<any> {
-  logger.info(`Signing transaction for chain ${chain}`);
+  //logger.info(`Signing transaction for chain ${chain}`);
   
   try {
     const signer = await getSigner(runtime, chain);
@@ -473,7 +473,7 @@ export async function signTransaction(runtime: IAgentRuntime, chain: string, tra
  * @returns The transaction hash
  */
 export async function sendTransaction(runtime: IAgentRuntime, chain: string, signedTransaction: any): Promise<string> {
-  logger.info(`Sending transaction for chain ${chain}`);
+  //logger.info(`Sending transaction for chain ${chain}`);
   
   try {
     const signer = await getSigner(runtime, chain);

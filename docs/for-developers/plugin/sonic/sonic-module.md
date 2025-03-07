@@ -20,20 +20,6 @@ The Sonic Module includes the following key components:
 
 Transfers native S tokens on the Sonic Chain network.
 
-```typescript
-// Example usage
-await sonicAgent.execute('SEND_S_SONIC', {
-  to: '0x1234567890123456789012345678901234567890',
-  amount: '0.1'
-});
-```
-
-**Similes**: `SEND_SONIC`, `SEND_S_SONIC_CHAIN`, `TRANSFER_S_SONIC`
-
-**Parameters**:
-- `to`: Recipient address (0x format)
-- `amount`: Amount of S to send
-
 **Example Prompts for Testing**:
 ```
 Send 0.01 S to 0x1234567890123456789012345678901234567890
@@ -47,22 +33,6 @@ Transfer 0.05 S to 0xabcdef1234567890abcdef1234567890abcdef12
 #### SEND_TOKEN_SONIC
 
 Transfers ERC20 tokens on the Sonic Chain network.
-
-```typescript
-// Example usage
-await sonicAgent.execute('SEND_TOKEN_SONIC', {
-  to: '0x1234567890123456789012345678901234567890',
-  token: 'USDC',
-  amount: '10'
-});
-```
-
-**Similes**: `TRANSFER_TOKEN_SONIC`, `MOVE_TOKEN_SONIC`, `SEND_ERC20_SONIC`
-
-**Parameters**:
-- `to`: Recipient address (0x format)
-- `token`: Token symbol (e.g., 'USDC', 'WETH')
-- `amount`: Amount of tokens to send
 
 **Example Prompts for Testing**:
 ```
@@ -78,18 +48,6 @@ Transfer 5 USDT to 0xabcdef1234567890abcdef1234567890abcdef12 on Sonic Chain
 
 Retrieves wallet balances and portfolio information on Sonic Chain.
 
-```typescript
-// Example usage
-const portfolio = await sonicAgent.execute('PORTFOLIO_SONIC');
-```
-
-**Similes**: `BALANCE_SONIC`, `WALLET_SONIC`, `HOLDINGS_SONIC`
-
-**Returns**:
-- Array of token balances with USD values
-- Native S token balance
-- ERC20 token balances
-
 **Example Prompts for Testing**:
 ```
 Show my Sonic wallet balance
@@ -104,23 +62,6 @@ What tokens do I have on Sonic Chain?
 
 Swaps tokens using the Beets DEX on Sonic Chain.
 
-```typescript
-// Example usage
-await sonicAgent.execute('SWAP_BEETS_SONIC', {
-  fromToken: 'S',
-  toToken: 'USDC',
-  amount: '0.1',
-  slippage: 0.5 // Optional, default is 0.5%
-});
-```
-
-**Similes**: `TRADE_BEETS_SONIC`, `EXCHANGE_BEETS_SONIC`, `SWAP_TOKENS_BEETS_SONIC`
-
-**Parameters**:
-- `fromToken`: Source token symbol
-- `toToken`: Destination token symbol
-- `amount`: Amount to swap
-- `slippage`: (Optional) Maximum slippage percentage
 
 **Example Prompts for Testing**:
 ```
@@ -134,21 +75,6 @@ Exchange 0.05 S for USDT on Beets DEX
 
 Adds liquidity to Beets DEX pools on Sonic Chain.
 
-```typescript
-// Example usage
-await sonicAgent.execute('ADD_LIQUIDITY_BEETS_SONIC', {
-  pool: 'S-USDC',
-  amount0: '0.1',
-  amount1: '10'
-});
-```
-
-**Similes**: `PROVIDE_LIQUIDITY_BEETS_SONIC`, `JOIN_POOL_BEETS_SONIC`, `DEPOSIT_LP_BEETS_SONIC`
-
-**Parameters**:
-- `pool`: Pool identifier (e.g., 'S-USDC')
-- `amount0`: Amount of first token
-- `amount1`: Amount of second token
 
 **Example Prompts for Testing**:
 ```
@@ -164,19 +90,6 @@ Provide 0.1 S and 10 USDC to Beets liquidity pool
 
 Deposits assets into Silo Finance lending protocol on Sonic Chain.
 
-```typescript
-// Example usage
-await sonicAgent.execute('DEPOSIT_SILO_SONIC', {
-  token: 'USDC',
-  amount: '100'
-});
-```
-
-**Similes**: `SUPPLY_SILO_SONIC`, `LEND_SILO_SONIC`, `PROVIDE_SILO_SONIC`
-
-**Parameters**:
-- `token`: Token symbol to deposit
-- `amount`: Amount to deposit
 
 **Example Prompts for Testing**:
 ```
@@ -190,19 +103,6 @@ Supply 50 USDT to Silo Finance on Sonic
 
 Borrows assets from Silo Finance lending protocol on Sonic Chain.
 
-```typescript
-// Example usage
-await sonicAgent.execute('BORROW_SILO_SONIC', {
-  token: 'USDC',
-  amount: '50'
-});
-```
-
-**Similes**: `LOAN_SILO_SONIC`, `TAKE_LOAN_SILO_SONIC`, `GET_LOAN_SILO_SONIC`
-
-**Parameters**:
-- `token`: Token symbol to borrow
-- `amount`: Amount to borrow
 
 **Example Prompts for Testing**:
 ```
@@ -216,20 +116,6 @@ Take a loan of 25 USDT from Silo Finance on Sonic
 
 Repays borrowed assets to Silo Finance lending protocol on Sonic Chain.
 
-```typescript
-// Example usage
-await sonicAgent.execute('REPAY_SILO_SONIC', {
-  token: 'USDC',
-  amount: '50'
-});
-```
-
-**Similes**: `PAY_BACK_SILO_SONIC`, `RETURN_LOAN_SILO_SONIC`, `SETTLE_DEBT_SILO_SONIC`
-
-**Parameters**:
-- `token`: Token symbol to repay
-- `amount`: Amount to repay
-
 **Example Prompts for Testing**:
 ```
 Repay 50 USDC to Silo
@@ -242,19 +128,6 @@ Pay back 25 USDT loan on Silo Finance
 
 Withdraws deposited assets from Silo Finance lending protocol on Sonic Chain.
 
-```typescript
-// Example usage
-await sonicAgent.execute('WITHDRAW_SILO_SONIC', {
-  token: 'USDC',
-  amount: '50'
-});
-```
-
-**Similes**: `REMOVE_SILO_SONIC`, `TAKE_OUT_SILO_SONIC`, `RETRIEVE_SILO_SONIC`
-
-**Parameters**:
-- `token`: Token symbol to withdraw
-- `amount`: Amount to withdraw
 
 **Example Prompts for Testing**:
 ```
@@ -271,7 +144,6 @@ The Sonic module requires the following environment variables:
 ```env
 # Required for Sonic Chain operations
 EVM_PRIVATE_KEY=your_private_key
-SONIC_RPC_URL=https://mainnet.sonic.org/rpc
 ```
 
 ## Module Structure
@@ -299,27 +171,6 @@ sonic/
 ├── templates/                  # Response templates
 ├── types/                      # TypeScript type definitions
 └── index.ts                    # Module entry point
-```
-
-## Usage in HiveFi Plugin
-
-The Sonic module is integrated into the HiveFi plugin in the main `index.ts` file:
-
-```typescript
-import type { Plugin } from "@elizaos/core";
-import { MantleActions } from "./mantle/actions";
-import { sonicActions } from "./sonic";
-
-export const hivefiPlugin: Plugin = {
-    name: "hivefi",
-    description: "HiveFi Plugin for Eliza - Multichain DeFAI Agent Swarm",
-    actions: [
-        ...MantleActions, // Spread all Mantle actions
-        ...sonicActions, // Spread all Sonic actions
-        // TODO: Add MultiChain actions
-    ],
-    // ... other plugin configuration
-};
 ```
 
 ## Error Handling

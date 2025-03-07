@@ -42,22 +42,14 @@ export function isTransferRequest(text: string): boolean {
                              normalizedText.includes('bsc') || 
                              normalizedText.includes('binance');
   
-  // Log the detection results for debugging
-  console.log(`[isTransferRequest] Text: "${text}"`);
-  console.log(`[isTransferRequest] hasWormholeKeyword: ${hasWormholeKeyword}`);
-  console.log(`[isTransferRequest] hasTransferKeyword: ${hasTransferKeyword}`);
-  console.log(`[isTransferRequest] hasFromToPattern: ${hasFromToPattern}`);
-  console.log(`[isTransferRequest] mentionsChains: ${mentionsChains}`);
-  console.log(`[isTransferRequest] mentionsMantleOrBSC: ${mentionsMantleOrBSC}`);
+
   
   // Determine if this is a transfer request
   // Must have Wormhole keyword AND (transfer keyword OR from-to pattern) AND mention chains
   const isTransfer = hasWormholeKeyword && 
                     (hasTransferKeyword || hasFromToPattern) && 
                     (mentionsChains || mentionsMantleOrBSC);
-  
-  console.log(`[isTransferRequest] Final result: ${isTransfer}`);
-  
+    
   return isTransfer;
 }
 

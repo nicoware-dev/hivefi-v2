@@ -11,7 +11,7 @@ export const RPC_ENDPOINTS: Record<string, string> = {
   // Ethereum and L2s
   'ethereum': 'https://rpc.ankr.com/eth',
   'ethereum-sepolia': 'https://eth-sepolia.public.blastapi.io',
-  'arbitrum': 'https://arb1.arbitrum.io/rpc',
+  'arbitrum': 'https://rpc.ankr.com/arbitrum',
   'optimism': 'https://mainnet.optimism.io',
   'base': 'https://mainnet.base.org',
   'mantle': 'https://rpc.mantle.xyz',
@@ -86,7 +86,7 @@ export function getChainConfig(): Record<string, { rpc: string }> {
     'Moonbeam': { rpc: 'https://rpc.ankr.com/moonbeam' },
     'Sui': { rpc: 'https://rpc.mainnet.sui.io' },
     'Aptos': { rpc: 'https://fullnode.mainnet.aptoslabs.com/v1' },
-    'Arbitrum': { rpc: 'https://arb1.arbitrum.io/rpc' },
+    'Arbitrum': { rpc: 'https://rpc.ankr.com/arbitrum' },
     'Optimism': { rpc: 'https://mainnet.optimism.io' },
     'Base': { rpc: 'https://mainnet.base.org' },
     'Mantle': { rpc: 'https://rpc.mantle.xyz' },

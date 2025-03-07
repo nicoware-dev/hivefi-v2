@@ -21,20 +21,6 @@ The Mantle Module includes the following key components:
 
 Transfers native MNT tokens on the Mantle Network.
 
-```typescript
-// Example usage
-await mantleAgent.execute('SEND_MNT', {
-  to: '0x1234567890123456789012345678901234567890',
-  amount: '0.1'
-});
-```
-
-**Similes**: `SEND_MANTLE`, `SEND_MNT_MANTLE`, `SEND_MNT_MANTLE_NETWORK`
-
-**Parameters**:
-- `to`: Recipient address (0x format)
-- `amount`: Amount of MNT to send
-
 **Example Prompts for Testing**:
 ```
 Send 0.01 MNT to 0x1234567890123456789012345678901234567890
@@ -48,22 +34,6 @@ Transfer 0.05 MNT to 0xabcdef1234567890abcdef1234567890abcdef12
 #### SEND_TOKEN_MANTLE
 
 Transfers ERC20 tokens on the Mantle Network.
-
-```typescript
-// Example usage
-await mantleAgent.execute('SEND_TOKEN_MANTLE', {
-  to: '0x1234567890123456789012345678901234567890',
-  token: 'USDC',
-  amount: '10'
-});
-```
-
-**Similes**: `TRANSFER_TOKEN_MANTLE`, `MOVE_TOKEN_MANTLE`, `SEND_ERC20_MANTLE`
-
-**Parameters**:
-- `to`: Recipient address (0x format)
-- `token`: Token symbol (e.g., 'USDC', 'USDT')
-- `amount`: Amount of tokens to send
 
 **Example Prompts for Testing**:
 ```
@@ -79,17 +49,6 @@ Transfer 5 USDT to 0xabcdef1234567890abcdef1234567890abcdef12 on Mantle network
 
 Retrieves wallet balances and portfolio information on Mantle Network.
 
-```typescript
-// Example usage
-const portfolio = await mantleAgent.execute('PORTFOLIO_MANTLE');
-```
-
-**Similes**: `BALANCE_MANTLE`, `WALLET_MANTLE`, `HOLDINGS_MANTLE`
-
-**Returns**:
-- Array of token balances with USD values
-- Native MNT token balance
-- ERC20 token balances
 
 **Example Prompts for Testing**:
 ```
@@ -105,23 +64,6 @@ What tokens do I have on Mantle?
 
 Swaps tokens using the Merchant Moe DEX on Mantle Network.
 
-```typescript
-// Example usage
-await mantleAgent.execute('SWAP_MERCHANT_MANTLE', {
-  fromToken: 'MNT',
-  toToken: 'USDC',
-  amount: '0.1',
-  slippage: 0.5 // Optional, default is 0.5%
-});
-```
-
-**Similes**: `TRADE_MERCHANT_MANTLE`, `EXCHANGE_MERCHANT_MANTLE`, `SWAP_TOKENS_MERCHANT_MANTLE`
-
-**Parameters**:
-- `fromToken`: Source token symbol
-- `toToken`: Destination token symbol
-- `amount`: Amount to swap
-- `slippage`: (Optional) Maximum slippage percentage
 
 **Example Prompts for Testing**:
 ```
@@ -137,19 +79,6 @@ Exchange 0.05 MNT for USDT on Mantle
 
 Deposits assets into Lendle lending protocol on Mantle Network.
 
-```typescript
-// Example usage
-await mantleAgent.execute('DEPOSIT_LENDLE_MANTLE', {
-  token: 'USDC',
-  amount: '100'
-});
-```
-
-**Similes**: `SUPPLY_LENDLE_MANTLE`, `LEND_TOKENS_LENDLE`, `PROVIDE_LIQUIDITY_LENDLE`
-
-**Parameters**:
-- `token`: Token symbol to deposit
-- `amount`: Amount to deposit
 
 **Example Prompts for Testing**:
 ```
@@ -163,19 +92,6 @@ Supply 50 USDT to Lendle on Mantle
 
 Borrows assets from Lendle lending protocol on Mantle Network.
 
-```typescript
-// Example usage
-await mantleAgent.execute('BORROW_LENDLE_MANTLE', {
-  token: 'USDC',
-  amount: '50'
-});
-```
-
-**Similes**: `LOAN_LENDLE_MANTLE`, `TAKE_LOAN_LENDLE`, `GET_LOAN_LENDLE`
-
-**Parameters**:
-- `token`: Token symbol to borrow
-- `amount`: Amount to borrow
 
 **Example Prompts for Testing**:
 ```
@@ -189,20 +105,6 @@ Take a loan of 25 USDT from Lendle on Mantle
 
 Repays borrowed assets to Lendle lending protocol on Mantle Network.
 
-```typescript
-// Example usage
-await mantleAgent.execute('REPAY_LENDLE_MANTLE', {
-  token: 'USDC',
-  amount: '50'
-});
-```
-
-**Similes**: `PAY_BACK_LENDLE_MANTLE`, `RETURN_LOAN_LENDLE`, `SETTLE_DEBT_LENDLE`
-
-**Parameters**:
-- `token`: Token symbol to repay
-- `amount`: Amount to repay
-
 **Example Prompts for Testing**:
 ```
 Repay 50 USDC to Lendle
@@ -214,20 +116,6 @@ Pay back 25 USDT loan on Lendle
 #### WITHDRAW_LENDLE_MANTLE
 
 Withdraws deposited assets from Lendle lending protocol on Mantle Network.
-
-```typescript
-// Example usage
-await mantleAgent.execute('WITHDRAW_LENDLE_MANTLE', {
-  token: 'USDC',
-  amount: '50'
-});
-```
-
-**Similes**: `REMOVE_LENDLE_MANTLE`, `TAKE_OUT_LENDLE`, `RETRIEVE_LENDLE`
-
-**Parameters**:
-- `token`: Token symbol to withdraw
-- `amount`: Amount to withdraw
 
 **Example Prompts for Testing**:
 ```
@@ -243,18 +131,6 @@ Remove 25 USDT from Lendle on Mantle
 
 Stakes MNT tokens to receive METH (Mantle Staked ETH) tokens.
 
-```typescript
-// Example usage
-await mantleAgent.execute('STAKE_METH_MANTLE', {
-  amount: '1.0'
-});
-```
-
-**Similes**: `STAKE_MNT_MANTLE`, `STAKE_MANTLE`, `STAKE_FOR_METH`
-
-**Parameters**:
-- `amount`: Amount of MNT to stake
-
 **Example Prompts for Testing**:
 ```
 Stake 1.0 MNT for METH
@@ -267,19 +143,6 @@ Stake 0.5 MNT on Mantle
 
 Unstakes METH tokens to receive MNT tokens.
 
-```typescript
-// Example usage
-await mantleAgent.execute('UNSTAKE_METH_MANTLE', {
-  amount: '1.0',
-  minMntAmount: '0.95' // Optional, minimum MNT to receive
-});
-```
-
-**Similes**: `UNSTAKE_MANTLE`, `REDEEM_METH`, `CONVERT_METH_TO_MNT`
-
-**Parameters**:
-- `amount`: Amount of METH to unstake
-- `minMntAmount`: (Optional) Minimum amount of MNT to receive
 
 **Example Prompts for Testing**:
 ```
@@ -296,7 +159,6 @@ The Mantle module requires the following environment variables:
 ```env
 # Required for Mantle Network operations
 EVM_PRIVATE_KEY=your_private_key
-MANTLE_RPC_URL=https://rpc.mantle.xyz
 ```
 
 ## Module Structure
@@ -330,27 +192,6 @@ mantle/
 ├── templates/                  # Response templates
 ├── types/                      # TypeScript type definitions
 └── index.ts                    # Module entry point
-```
-
-## Usage in HiveFi Plugin
-
-The Mantle module is integrated into the HiveFi plugin in the main `index.ts` file:
-
-```typescript
-import type { Plugin } from "@elizaos/core";
-import { MantleActions } from "./mantle/actions";
-import { sonicActions } from "./sonic";
-
-export const hivefiPlugin: Plugin = {
-    name: "hivefi",
-    description: "HiveFi Plugin for Eliza - Multichain DeFAI Agent Swarm",
-    actions: [
-        ...MantleActions, // Spread all Mantle actions
-        ...sonicActions, // Spread all Sonic actions
-        // TODO: Add MultiChain actions
-    ],
-    // ... other plugin configuration
-};
 ```
 
 ## Error Handling

@@ -1,156 +1,69 @@
-# HiveFi Self-Hosting Guide
+# HiveFi Self-Hosting & Deployment Guide
 
-Learn how to deploy and maintain your own instance of HiveFi in a production environment.
-
-## Table of Contents
-- [Prerequisites](#prerequisites)
-- [Architecture Overview](#architecture-overview)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Deployment](#deployment)
-- [Monitoring](#monitoring)
-- [Maintenance](#maintenance)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
+HiveFi is built to be fully self-hosted, giving you complete control over your data and operations. Follow this guide to set up and run your own instance of HiveFi on your server or local machine. For a quick overview of what you'll be running, check out our [System Overview](../under-the-hood/system-overview.md) or see our [Features](./features.md) list.
 
 ## Prerequisites
 
-### System Requirements
+- **Server/Cloud Instance or Local Machine:** (e.g., AWS, DigitalOcean, or your own PC)
+- **Node.js:** Version 23+ installed
+- **Git:** To clone the repository
+- **pnpm:** Install globally with `npm install -g pnpm`
+- **Basic Knowledge:** Familiarity with TypeScript/Node.js is recommended
+- **API Keys:** For MultiversX operations (e.g., EVM_PRIVATE_KEY, OPENAI_API_KEY, etc.)
 
-- **CPU**: 4+ cores
-- **RAM**: 8GB+ (16GB recommended)
-- **Storage**: 100GB+ SSD
-- **OS**: Ubuntu 20.04 LTS or newer
-- **Network**: Static IP, 100Mbps+
 
-### Software Requirements
+## 🏠 Self-Hosting
 
-- Docker 20.10+
-- Docker Compose 2.0+
-- Node.js 23+
-- pnpm 8+
-- PostgreSQL 14+
-- Redis 6+
+HiveFi is and will always be open source! We strongly encourage users to self-host their own instance of HiveFi. This gives you full control over your data and agents.
 
-## Architecture Overview
+### Requirements for Self-Hosting
+- Server or cloud instance (e.g., AWS, DigitalOcean, or your local machine)
+- API keys for required services
+- Basic knowledge of TypeScript/Node.js for customization
 
-### Component Stack
+### Support
+While self-hosting is a DIY approach, we provide:
+- Detailed documentation
+- Community support via Discord
+- GitHub issues for bug reports
+- Basic setup guidance
 
-```
-                   ┌─────────────┐
-                   │   Nginx     │
-                   │   Proxy     │
-                   └─────┬───────┘
-                         │
-         ┌───────────────┴───────────────┐
-         │                               │
-┌────────▼──────┐               ┌───────▼────────┐
-│  HiveFi API   │               │  HiveFi Web    │
-│   Service     │               │     App        │
-└────────┬──────┘               └───────┬────────┘
-         │                              │
-         │         ┌──────────┐         │
-         ├────────►│  Redis   │◄───────┤
-         │         │  Cache   │         │
-         │         └────┬─────┘         │
-┌────────▼──────┐      │         ┌─────▼─────────┐
-│  PostgreSQL   │      │         │   Agent       │
-│  Database     │      │         │   Service     │
-└───────────────┘      │         └───────────────┘
-                       │
-              ┌────────▼────────┐
-              │  Load Balancer  │
-              │   Service       │
-              └─────────────────┘
-```
+## 🚀 Quick Start
 
-## Installation
+### Prerequisites
 
-### 1. Clone Repository
+- [Node.js 23+](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+- [Git](https://git-scm.com/downloads)
+- [pnpm](https://pnpm.io/installation)
+
+> **Note for Windows Users:** [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install-manual) and [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/) are required.
+
+### Installation
 
 ```bash
-git clone https://github.com/hivefi/hivefi.git
-cd hivefi
-```
+# Clone the repository
+git clone https://github.com/nicoware-dev/hivefi-v2
+cd hivefi-v2
 
-### 2. Install Dependencies
-
-```bash
-# Install project dependencies
+# Install dependencies
 pnpm install
 
-# Install global tools
-npm install -g pm2
+# Copy environment file
+cp .env.example .env
 ```
 
-### 3. Setup Database
+### Configuration
 
-```bash
-# Create PostgreSQL database
-sudo -u postgres psql
-
-CREATE DATABASE hivefi;
-CREATE USER hivefi WITH ENCRYPTED PASSWORD 'your-password';
-GRANT ALL PRIVILEGES ON DATABASE hivefi TO hivefi;
-\q
-```
-
-### 4. Install Redis
-
-```bash
-# Install Redis
-sudo apt update
-sudo apt install redis-server
-
-# Configure Redis
-sudo nano /etc/redis/redis.conf
-# Set supervised systemd
-# Set requirepass your-redis-password
-
-# Restart Redis
-sudo systemctl restart redis
-```
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env.production` file with the following variables:
+Edit `.env` file and add your credentials:
 
 ```env
-# Node Environment
-NODE_ENV=production
-PORT=3000
-
 # Required for blockchain operations
 EVM_PRIVATE_KEY=your_private_key  # 64-character hex string without 0x prefix
-MANTLE_RPC_URL=https://rpc.mantle.xyz
-SONIC_RPC_URL=https://mainnet.sonic.org/rpc
-EVM_RPC_URL=your_preferred_rpc_url  # For multichain operations
 
-# API Keys for analytics
-COINGECKO_API_KEY=your_api_key     # For CoinGecko API
-DEFILLAMA_API_KEY=your_api_key     # For DefiLlama API
 
 # LLM Provider (choose one)
-OPENAI_API_KEY=your_openai_key     # OpenAI API key
-ANTHROPIC_API_KEY=your_anthropic_key  # For Claude (optional)
-
-# Database Configuration
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=hivefi
-POSTGRES_USER=hivefi
-POSTGRES_PASSWORD=your-password
-
-# Redis Configuration
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=your-redis-password
-
-# Security
-JWT_SECRET=your-jwt-secret
-COOKIE_SECRET=your-cookie-secret
+OPENAI_API_KEY=                    # OpenAI API key
+ANTHROPIC_API_KEY=                 # For Claude (optional)
 
 # Client Configuration (optional)
 DISCORD_APPLICATION_ID=            # Discord bot ID
@@ -158,276 +71,62 @@ DISCORD_API_TOKEN=                 # Discord bot token
 TELEGRAM_BOT_TOKEN=                # Telegram bot token
 ```
 
-### Nginx Configuration
-
-```nginx
-# /etc/nginx/sites-available/hivefi
-
-# API Service
-server {
-    listen 80;
-    server_name api.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-
-# Web App
-server {
-    listen 80;
-    server_name app.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-## Deployment
-
-### Using Docker Compose
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-
-services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    ports:
-      - "3000:3000"
-    env_file: .env.production
-    depends_on:
-      - postgres
-      - redis
-
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    ports:
-      - "3001:3001"
-    env_file: .env.production
-
-  postgres:
-    image: postgres:14
-    ports:
-      - "5432:5432"
-    env_file: .env.production
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:6
-    ports:
-      - "6379:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-
-volumes:
-  postgres_data:
-  redis_data:
-```
-
-### Deploy with Docker
+### Running the Agent
 
 ```bash
-# Build and start services
-docker-compose up -d
-
-# Check service status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-```
-
-### Manual Deployment
-
-```bash
-# Build API
-cd api
-pnpm build
-pm2 start dist/main.js --name hivefi-api
-
-# Build Web App
-cd ../web
-pnpm build
-pm2 start server.js --name hivefi-web
-
-# Start n8n
-n8n start --tunnel
-```
-
-## Monitoring
-
-### Health Checks
-
-```bash
-# API Health Check
-curl https://api.yourdomain.com/health
-
-# n8n Health Check
-curl https://workflow.yourdomain.com/healthz
-```
-
-### Logging
-
-```bash
-# View API logs
-pm2 logs hivefi-api
-
-# View Web App logs
-pm2 logs hivefi-web
-
-# View n8n logs
-tail -f ~/.n8n/n8n.log
-```
-
-### Metrics
-
-```bash
-# Install Prometheus & Grafana
-docker-compose -f monitoring/docker-compose.yml up -d
-
-# Access Grafana
-open http://localhost:3000
-```
-
-## Maintenance
-
-### Backup
-
-```bash
-# Backup database
-pg_dump -U hivefi hivefi > backup.sql
-
-# Backup n8n data
-cp -r ~/.n8n/data backup/n8n
-
-# Backup Redis
-redis-cli -a your-redis-password save
-cp /var/lib/redis/dump.rdb backup/redis/
-```
-
-### Updates
-
-```bash
-# Update HiveFi
-git pull
-pnpm install
+# Build the project
 pnpm build
 
-# Update n8n
-npm update -g n8n
+# Start a single agent (Recommended for testing)
+pnpm start --characters="characters/demo-agent.character.json"
 
-# Restart services
-pm2 restart all
+# Start demo agents (7) (Private+Internal)
+pnpm start --characters="characters/demo-agent.character.json,characters/meme-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json,characters/crosschain-agent.character.json,characters/analytics-agent.character.json"
+
+# Start all agents (13) (Public+Private+Internal)
+pnpm start --characters="characters/meme-agent.character.json,characters/sales-agent.character.json,characters/demo-agent.character.json,characters/alpha-agent.character.json,characters/predictions-agent.character.json,characters/kol-agent.character.json,characters/web3-advisor-agent.character.json,characters/token-deployer-agent.character.json,characters/nft-deployer-agent.character.json,characters/coordinator-agent.character.json,characters/analytics-agent.character.json,characters/crosschain-agent.character.json,characters/mantle-agent.character.json,characters/sonic-agent.character.json,characters/multichain-agent.character.json"
 ```
 
-## Security
+### Running the Web Client
 
-### SSL/TLS
+In a new terminal, run the following command:
 
 ```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# Get certificates
-sudo certbot --nginx -d api.yourdomain.com
-sudo certbot --nginx -d app.yourdomain.com
-sudo certbot --nginx -d workflow.yourdomain.com
+cd eliza/client
+pnpm run dev
 ```
 
-### Firewall
+## Deployment Options
 
-```bash
-# Configure UFW
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow 22/tcp
-sudo ufw enable
-```
+Ready to get HiveFi up and running? We've got several ways to deploy, depending on what works best for you. Let's walk through your options!
 
-### Security Headers
+### Running Locally 🏠
 
-```nginx
-# Add to Nginx configuration
-add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-add_header X-Frame-Options "SAMEORIGIN" always;
-add_header X-XSS-Protection "1; mode=block" always;
-add_header X-Content-Type-Options "nosniff" always;
-add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-```
+- **On Your Own Machine**  
+  Perfect for testing things out or getting familiar with the platform. Just follow our standard setup steps, and you'll be up and running in no time. It's also great for development and learning the ropes!
 
-## Troubleshooting
+## Cloud Deployment ☁️
 
-### Common Issues
+Want your HiveFi instance running 24/7? Here are some cloud options we recommend:
 
-1. **Database Connection Issues**
-```bash
-# Check PostgreSQL status
-sudo systemctl status postgresql
+- **DigitalOcean** 🌊  
+  A budget-friendly choice that's easy to set up. Want to make things even smoother? Try using CapRover on DigitalOcean - it makes management a breeze!
 
-# Check connection
-psql -U hivefi -h localhost -d hivefi
-```
+- **Google Cloud Platform (GCP)** 🌐  
+  Already using other Google services? GCP might be your best bet. It comes with lots of helpful tools built right in.
 
-2. **Redis Connection Issues**
-```bash
-# Check Redis status
-sudo systemctl status redis
+- **Amazon Web Services (AWS)** 📦  
+  Perfect for production setups, especially if you're expecting heavy traffic. AWS gives you all the scalability you could need.
 
-# Test connection
-redis-cli ping
-```
+- **Railway** 🚂  
+  Great for developers who want a simple deployment experience. It's particularly handy for smaller projects or when you're prototyping.
 
-3. **n8n Issues**
-```bash
-# Check n8n status
-pm2 status
+## Managing Your Setup
 
-# Reset n8n
-rm -rf ~/.n8n/database.sqlite
-n8n start
-```
+No matter which platform you pick, you'll use the same configuration tools we cover in our docs. Our modular design means you can make changes or add features without disrupting what's already working.
 
-### Debug Mode
+Need more detailed instructions? Check out:
+- The [Eliza docs](https://elizaos.github.io/eliza/docs/guides/remote-deployment/) for in-depth deployment guides
+- This handy [YouTube tutorial](https://www.youtube.com/watch?v=15-cvpGCHIA) showing how to deploy with DigitalOcean CapRover
 
-```bash
-# Enable API debug mode
-DEBUG=* pm2 restart hivefi-api
-
-# Enable n8n debug mode
-n8n start --debug
-```
-
-### Support Resources
-
-1. Check our [GitHub Issues](https://github.com/hivefi/hivefi/issues)
-2. Join our [Discord](https://discord.gg/hivefiai) #self-hosting channel
-3. Review the [API Documentation](../api-reference/index.md)
-4. Contact our support team
-
-## Next Steps
-
-1. Set up monitoring and alerting
-2. Configure automated backups
-3. Implement CI/CD pipelines
-4. Join our self-hosting community
-
-Need more help? Check out our [Plugin Development Guide](plugin-guide.md) and [n8n Workflows Guide](n8n-workflows.md).
+Happy deploying! 🚀

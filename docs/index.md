@@ -15,7 +15,7 @@ Start your journey with HiveFi:
 Understand how HiveFi works:
 - [**System Overview**](under-the-hood/system-overview.md) - See how everything fits together
 - [**Multi-Agent System**](under-the-hood/multi-agent-system.md) - Meet our AI agent swarm
-- [**Agents Directory**](under-the-hood/agents-directory.md) - Learn about each agent's role
+- [**Agents Directory**](under-the-hood/agents-directory.md) - Learn about each agent's roles and capabilities
 - [**Integrations**](under-the-hood/integrations.md) - Explore supported protocols and services
 
 ### For Developers 👩‍💻
