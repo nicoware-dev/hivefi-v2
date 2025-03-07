@@ -124,9 +124,9 @@ HiveFi integrates with:
 
 ### How do I get help?
 Several support channels available:
-- [Documentation](https://docs.hivefi.ai)
-- [Discord Community](https://discord.gg/hivefiai)
-- [GitHub Issues](https://github.com/hivefi/hivefi/issues)
+- [Documentation](https://hivefi-1.gitbook.io/hivefi/)
+- [Discord Community](https://discord.gg/APAKDaUYAM)
+- [GitHub Issues](https://github.com/nicoware-dev/hivefi-v2/issues)
 - Email Support: support@hivefi.ai
 
 ### What are the support hours?
@@ -230,11 +230,11 @@ Yes! You can:
 - [Technical Docs](../for-developers/quick-start.md)
 - [API Reference](../api-reference/index.md)
 - [Plugin Guide](../for-developers/plugin-guide.md)
-- [GitHub Wiki](https://github.com/hivefi/hivefi/wiki)
+- [GitHub Wiki](https://github.com/nicoware-dev/hivefi-v2/wiki)
 
 ## Next Steps
 
 - Read our [User Guide](../getting-started/user-guide.md)
 - Explore [Features](../getting-started/features.md)
 - Join our [Community](community.md)
-- Contact [Support](mailto:support@hivefi.ai)
+- Contact [Support](mailto:nicoware.dev@gmail.com)

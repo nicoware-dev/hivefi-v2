@@ -397,7 +397,6 @@ export const priceProvider = createProvider({
 
 - Check our [GitHub Issues](https://github.com/hivefi/hivefi/issues)
 - Join our [Discord](https://discord.gg/hivefiai) #plugin-dev channel
-- Review the [API Documentation](../api-reference/index.md)
 - Contact our developer support team
 
 ## Next Steps

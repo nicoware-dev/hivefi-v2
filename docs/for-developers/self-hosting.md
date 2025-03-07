@@ -420,8 +420,7 @@ n8n start --debug
 
 1. Check our [GitHub Issues](https://github.com/hivefi/hivefi/issues)
 2. Join our [Discord](https://discord.gg/hivefiai) #self-hosting channel
-3. Review the [API Documentation](../api-reference/index.md)
-4. Contact our support team
+3. Contact our support team
 
 ## Next Steps
 

@@ -1,5 +1,17 @@
 # HiveFi Knowledge Base
 
+## Links & Resources
+
+- [HiveFi Website](https://hivefi-one.vercel.app/)
+- [HiveFi Documentation](https://hivefi-1.gitbook.io/hivefi/)
+- [HiveFi GitHub](https://github.com/nicoware-dev/hivefi-v2)
+- [HiveFi Discord Server](https://discord.gg/APAKDaUYAM)
+- [HiveFi Twitter](https://x.com/hivefi_agent)
+- [HiveFi Sales Agent Telegram](https://t.me/HiveFiSales_bot)
+- [HiveFi Demo Agent Telegram](https://t.me/HiveFiDemo_bot)
+- [HiveFi Telegram Group](https://t.me/+XbB1Ddcs52czZmIx)
+
+
 HiveFi is an open-source Multi-Agent System (MAS) designed for multichain DeFi operations, providing automated cross-chain operations through intelligent agent swarms. HiveFi combines AI technology with blockchain automation to offer efficient, secure, and scalable DeFi solutions across multiple networks including Mantle, Sonic, and MultiChain protocols.
 
 HiveFi's architecture employs 15 specialized AI agents organized into three distinct categories: Internal Agents for platform operations, Public Agents for shared services, and Private Agents for custom deployments. Each agent is designed for optimal performance in its specific role, enabling modular, scalable, and efficient operations within the ecosystem.

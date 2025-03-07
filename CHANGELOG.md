@@ -2,8 +2,6 @@
 
 All notable changes to the HiveFi project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.0.2] - 2025-03-06 - Sozu Hack Not Denver
 
@@ -14,6 +12,7 @@ HiveFi v0.0.2 represents a major evolution from a Mantle-specific solution to a 
 ### Key Improvements
 
 #### Backend / Agents
+- Upgraded to latest version of Eliza agent framework [v0.25.9](https://github.com/elizaOS/eliza/releases/tag/v0.25.9)
 - Coordinator Agent implementation with n8n for agent orchestration
 - Modular superplugin architecture with chain and purpose specific modules (analytics, crosschain, multichain, sonic, mantle, etc.)
 - RAG (Retrieval-Augmented Generation) for improved and extended knowledge base
@@ -26,6 +25,7 @@ HiveFi v0.0.2 represents a major evolution from a Mantle-specific solution to a 
 - MultiChain module with GOAT SDK for operations across protocols deployed on multiple EVM chains
 - Sales Agent for Telegram (built with n8n)
 
+
 #### Frontend / Web Application
 - Enhanced UX with better loading states and error handling
 - Analytics dashboard
@@ -36,7 +36,7 @@ HiveFi v0.0.2 represents a major evolution from a Mantle-specific solution to a 
 
 
 ### Other Improvements
-- Comprehensive documentation with GitBook integration
+- Comprehensive documentation on [GitBook](https://hivefi-1.gitbook.io/hivefi/)
 
 
 

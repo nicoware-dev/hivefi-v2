@@ -128,20 +128,19 @@ HiveFi offers a range of services designed to meet different user needs and requ
 ## Support Options
 
 ### Community Support
-- [Discord Server](https://discord.gg/hivefiai)
-- [GitHub Discussions](https://github.com/hivefi/hivefi/discussions)
-- [Documentation](https://docs.hivefi.ai)
+- [Discord Server](https://discord.gg/APAKDaUYAM)
+- [GitHub Discussions](https://github.com/nicoware-dev/hivefi-v2/discussions)
+- [Documentation](https://hivefi-1.gitbook.io/hivefi/)
 - [FAQ](faq.md)
 
 ### Technical Support
-- Email: support@hivefi.ai
+- Email: nicoware.dev@gmail.com
 - Technical Docs: [Developer Guide](../for-developers/quick-start.md)
-- API Docs: [API Reference](../api-reference/index.md)
 - [Self-Hosting Guide](../for-developers/self-hosting.md)
 
 ### Enterprise Support
-- Email: enterprise@hivefi.ai
-- Custom Solutions: [Contact Us](https://hivefi.ai/contact)
+- Email: nicoware.dev@gmail.com
+- Custom Solutions
 - Technical Consulting
 - Training Programs
 
@@ -168,20 +167,14 @@ HiveFi offers a range of services designed to meet different user needs and requ
 ## Contact Information
 
 ### General Inquiries
-- Email: info@hivefi.ai
-- Twitter: [@hivefi_ai](https://twitter.com/hivefi_ai)
-- Discord: [HiveFi Community](https://discord.gg/hivefiai)
-
-### Support
-- Technical: support@hivefi.ai
-- Enterprise: enterprise@hivefi.ai
-- Security: security@hivefi.ai
+- Email: nicoware.dev@gmail.com
+- Twitter: [@hivefi_agent](https://x.com/hivefi_agent)
+- Discord: [HiveFi Community](https://discord.gg/APAKDaUYAM)
 
 ### Social Media
-- Twitter: [@hivefi_ai](https://twitter.com/hivefi_ai)
-- Discord: [Join Server](https://discord.gg/hivefiai)
-- GitHub: [hivefi/hivefi](https://github.com/hivefi/hivefi)
-- LinkedIn: [HiveFi](https://linkedin.com/company/hivefi)
+- Twitter: [@hivefi_agent](https://x.com/hivefi_agent)
+- Discord: [Join Server](https://discord.gg/APAKDaUYAM)
+- GitHub: [nicoware-dev/hivefi-v2](https://github.com/nicoware-dev/hivefi-v2)
 
 ## Next Steps
 

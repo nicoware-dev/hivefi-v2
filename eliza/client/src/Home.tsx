@@ -86,7 +86,7 @@ function Home() {
                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                     <Button
                                         size="lg"
-                                        onClick={() => handleExternalLink('https://t.me/hivefidemo_bot')}
+                                        onClick={() => handleExternalLink('https://t.me/HiveFiDemo_bot')}
                                         style={{ backgroundColor: '#7f00ff', color: 'white' }}
                                         className="hover:bg-[#7f00ff]/90 flex items-center gap-2 w-full sm:w-auto"
                                     >
@@ -96,7 +96,7 @@ function Home() {
                                     <Button
                                         size="lg"
                                         variant="outline"
-                                        onClick={() => handleExternalLink('https://docs.hivefi.ai')}
+                                        onClick={() => handleExternalLink('https://hivefi-1.gitbook.io/hivefi/')}
                                         className="border-[#27272A] hover:bg-[#7f00ff]/10 hover:border-[#7f00ff]/50 text-white w-full sm:w-auto"
                                     >
                                         Learn More
@@ -281,7 +281,7 @@ function Home() {
                                 price: "Free",
                                 description: "Unlimited. Full control over your data and agents",
                                 buttonText: "View Documentation",
-                                href: "https://github.com/hivefi/hivefi",
+                                href: "https://github.com/nicoware-dev/hivefi-v2",
                                 featured: true
                             },
                             {
@@ -364,7 +364,7 @@ function Home() {
                                 variant="outline"
                                 size="lg"
                                 className="border-[#27272A] hover:bg-[#7f00ff]/10 hover:border-[#7f00ff]/50 hover:text-[#7f00ff] transition-all duration-300 w-full sm:w-auto"
-                                onClick={() => handleExternalLink('https://github.com/hivefi/hivefi')}
+                                onClick={() => handleExternalLink('https://github.com/nicoware-dev/hivefi-v2')}
                             >
                                 <img src={githubIcon} alt="GitHub" className="mr-2 h-4 w-4 opacity-60 group-hover:opacity-100 transition-opacity" />
                                 Contribute on GitHub
@@ -373,7 +373,7 @@ function Home() {
                                 variant="outline"
                                 size="lg"
                                 className="border-[#27272A] hover:bg-[#7f00ff]/10 hover:border-[#7f00ff]/50 hover:text-[#7f00ff] transition-all duration-300 w-full sm:w-auto"
-                                onClick={() => handleExternalLink('https://discord.gg/hivefiai')}
+                                onClick={() => handleExternalLink('https://discord.gg/APAKDaUYAM')}
                             >
                                 <img src={discordIcon} alt="Discord" className="mr-2 h-4 w-4 opacity-60 group-hover:opacity-100 transition-opacity" />
                                 Join Our Discord
@@ -391,7 +391,7 @@ function Home() {
                         </p>
                     </div>
                     <div className="flex justify-center gap-8">
-                        <a href="https://x.com/hivefi_ai" target="_blank" rel="noopener noreferrer" className="group">
+                        <a href="https://x.com/hivefi_agent" target="_blank" rel="noopener noreferrer" className="group">
                             <Card className="bg-[#121212] border-[#27272A] hover:bg-[#1a1a1a] transition-colors p-6">
                                 <div className="flex flex-col items-center space-y-4">
                                     <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-[#7f00ff] ring-offset-2 ring-offset-[#121212] group-hover:ring-4 transition-all duration-300">
@@ -444,7 +444,7 @@ function Home() {
                             <Button
                                 size="lg"
                                 className="bg-[#7f00ff] text-white hover:bg-[#7f00ff]/90"
-                                onClick={() => handleExternalLink('https://t.me/hivefisales_bot')}
+                                onClick={() => handleExternalLink('https://t.me/HiveFiSales_bot')}
                             >
                                 <img src={telegramIcon} alt="Telegram" className="mr-2 h-5 w-5" />
                                 Chat with Sales Agent
@@ -479,7 +479,7 @@ function Home() {
                             <h4 className="text-sm font-semibold text-foreground text-center">Social</h4>
                             <div className="flex flex-col items-center gap-4 mt-4">
                                 <a
-                                    href="https://t.me/hivefiai"
+                                    href="https://t.me/+XbB1Ddcs52czZmIx"
                                     className="w-6 h-6 flex items-center justify-center"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -487,7 +487,7 @@ function Home() {
                                     <img src={telegramIcon} alt="Telegram" className="w-full h-full opacity-60 hover:opacity-100 transition-opacity" />
                                 </a>
                                 <a
-                                    href="https://discord.gg/hivefiai"
+                                    href="https://discord.gg/APAKDaUYAM"
                                     className="w-6 h-6 flex items-center justify-center"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -495,7 +495,7 @@ function Home() {
                                     <img src={discordIcon} alt="Discord" className="w-full h-full opacity-60 hover:opacity-100 transition-opacity" />
                                 </a>
                                 <a
-                                    href="https://github.com/hivefi/hivefi"
+                                    href="https://github.com/nicoware-dev/hivefi-v2"
                                     className="w-6 h-6 flex items-center justify-center"
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -503,7 +503,7 @@ function Home() {
                                     <img src={githubIcon} alt="GitHub" className="w-full h-full opacity-60 hover:opacity-100 transition-opacity" />
                                 </a>
                                 <a
-                                    href="https://linktr.ee/hivefi"
+                                    href="https://linktr.ee/HiveFi"
                                     className="w-6 h-6 flex items-center justify-center"
                                     target="_blank"
                                     rel="noopener noreferrer"

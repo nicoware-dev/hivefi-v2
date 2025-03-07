@@ -265,22 +265,18 @@ Visit our [GitHub Repository](https://github.com/hivefi/hivefi)
 ### 3. Brand Resources
 
 #### Assets
-- [Logo Kit](https://hivefi.ai/brand-kit)
-- [Media Kit](https://hivefi.ai/media-kit)
-- [Brand Guidelines](branding.md)
-- [Press Kit](https://hivefi.ai/press-kit)
-- [Social Media Templates](https://hivefi.ai/social-kit)
+- [All Assets, Logos, Banners and Agent Images](https://github.com/nicoware-dev/hivefi-v2/tree/main/assets)
 
 ## Community Support
 
 ### Getting Help
 
 #### Technical Support
-- [Discord #support](https://discord.gg/hivefiai)
-- [GitHub Issues](https://github.com/hivefi/hivefi/issues)
-- [Documentation](https://docs.hivefi.ai)
+- [Discord #support](https://discord.gg/APAKDaUYAM)
+- [GitHub Issues](https://github.com/nicoware-dev/hivefi-v2/issues)
+- [Documentation](https://hivefi-1.gitbook.io/hivefi/)
 - [FAQ](faq.md)
-- Email: support@hivefi.ai
+- Email: nicoware.dev@gmail.com
 
 #### Community Support
 - Discord community

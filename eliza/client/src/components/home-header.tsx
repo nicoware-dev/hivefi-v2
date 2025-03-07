@@ -25,7 +25,7 @@ export function HomeHeader() {
         { name: "Pricing", path: "#pricing" },
         { name: "Contact", path: "#contact" },
         { name: "Contribute", path: "#opensource" },
-        { name: "Docs", path: "https://docs.hivefi.ai" }
+        { name: "Docs", path: "https://hivefi-1.gitbook.io/hivefi/" }
     ];
 
     return (
