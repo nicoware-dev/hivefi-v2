@@ -106,7 +106,7 @@ HiveFi offers a range of services designed to meet different user needs and requ
 
 ### 1. Public Access
 
-1. Visit [app.hivefi.ai](https://app.hivefi.ai)
+1. Visit [hivefi-one.vercel.app](https://hivefi-one.vercel.app)
 2. Connect your wallet
 3. Access public agents
 4. Start using features

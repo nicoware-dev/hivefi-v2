@@ -19,11 +19,12 @@ Get up and running with HiveFi development in minutes! This guide will help you 
 
 ```bash
 # Clone the repository
-git clone https://github.com/hivefi/hivefi
-cd hivefi
+git clone https://github.com/nicoware-dev/hivefi-v2
+cd hivefi-v2/eliza
 
 # Install dependencies
-pnpm install
+pnpm install --no-frozen-lockfile
+pnpm build
 
 # Copy environment file
 cp .env.example .env
@@ -38,14 +39,7 @@ Configure your `.env` file with the following:
 
 ```env
 # Required for blockchain operations
-EVM_PRIVATE_KEY=your_private_key  # 64-character hex string without 0x prefix
-MANTLE_RPC_URL=https://rpc.mantle.xyz
-SONIC_RPC_URL=https://mainnet.sonic.org/rpc
-EVM_RPC_URL=your_preferred_rpc_url  # For multichain operations
-
-# API Keys for analytics
-COINGECKO_API_KEY=your_api_key     # For CoinGecko API
-DEFILLAMA_API_KEY=your_api_key     # For DefiLlama API
+EVM_PRIVATE_KEY=your_private_key  
 
 # LLM Provider (choose one)
 OPENAI_API_KEY=                    # OpenAI API key
@@ -55,10 +49,6 @@ ANTHROPIC_API_KEY=                 # For Claude (optional)
 DISCORD_APPLICATION_ID=            # Discord bot ID
 DISCORD_API_TOKEN=                 # Discord bot token
 TELEGRAM_BOT_TOKEN=                # Telegram bot token
-
-# Development Settings
-NODE_ENV=development
-DEBUG=true
 ```
 
 ## Project Structure
@@ -109,71 +99,23 @@ Once your agent is running, you can try these example commands:
 To learn more about HiveFi's capabilities, explore our documentation:
 
 - [Analytics Module](../for-developers/plugin/analytics/analytics-module.md)
-- [Cross-Chain Operations](../for-developers/plugin/crosschain-module.md)
-- [Mantle Module](../for-developers/plugin/mantle-module.md)
-- [Sonic Module](../for-developers/plugin/sonic-module.md)
+- [Cross-Chain Operations](../for-developers/plugin/crosschain/crosschain-module.md)
+- [Mantle Module](../for-developers/plugin/mantle/mantle-module.md)
+- [Sonic Module](../for-developers/plugin/sonic/sonic-module.md)
 
 ## Next Steps
 
-1. Explore the [Plugin Guide](plugin-guide.md) for detailed plugin development
+1. Explore the [Plugin Guide](./plugin/plugin-guide.md) for detailed plugin development
 2. Learn about [n8n Workflows](n8n-workflows.md) for automation
 3. Check out [Self-Hosting](self-hosting.md) for deployment options
-4. Join our [Discord](https://discord.gg/hivefiai) developer community
+4. Join our [Discord](https://discord.gg/APAKDaUYAM) developer community
 
-## Troubleshooting
-
-### Common Issues
-
-1. **Connection Issues**
-   ```bash
-   # Check network configuration
-   ping api.hivefi.ai
-   # Verify environment variables
-   echo $MANTLE_RPC_URL
-   ```
-
-2. **Build Errors**
-   ```bash
-   # Clean install
-   pnpm clean
-   pnpm install
-   # Rebuild
-   pnpm build
-   ```
-
-3. **Agent Errors**
-   ```bash
-   # Enable debug logging
-   DEBUG=true pnpm start
-   # Check agent logs
-   tail -f logs/agent.log
-   ```
 
 ### Getting Help
 
-- Check our [GitHub Issues](https://github.com/hivefi/hivefi/issues)
+- Check our [GitHub Issues](https://github.com/nicoware-dev/hivefi-v2/issues)
 - Join the #dev-support channel on Discord
 - Review the [FAQ](../resources/faq.md)
 - Contact our developer support team
 
-## Best Practices
-
-1. **Code Quality**
-   - Follow TypeScript best practices
-   - Write comprehensive tests
-   - Document your code
-   - Use ESLint and Prettier
-
-2. **Security**
-   - Never commit API keys
-   - Validate all inputs
-   - Handle errors gracefully
-   - Follow security guidelines
-
-3. **Performance**
-   - Implement caching
-   - Optimize API calls
-   - Monitor resource usage
-   - Profile your code
-
-Ready to dive deeper? Check out our [Plugin Guide](plugin-guide.md) for detailed development documentation!
+Ready to learn more? Check out our [Plugin Guide](./plugin/plugin-guide.md) for detailed development documentation!

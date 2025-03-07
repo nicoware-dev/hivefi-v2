@@ -23,7 +23,6 @@ HiveFi stands out from traditional DeFi tools for several reasons:
 - **Intelligent Automation**: Our AI agents handle complex operations while you focus on strategy
 - **Cross-Chain Support**: Manage assets across multiple blockchains from a single interface
 - **Natural Interaction**: Communicate with agents using natural language
-- **Security First**: Built with security best practices and extensive testing
 - **Community Driven**: Open-source platform with active community involvement
 
 ## Key Benefits
@@ -50,33 +49,5 @@ HiveFi leverages the Wormhole bridge protocol to enable seamless cross-chain ope
 - **Asset Tracking**: Monitor cross-chain assets in a unified portfolio view
 - **Bridge Operations**: Execute bridge transactions with simple natural language commands
 - **Status Verification**: Track the status of cross-chain transfers in real-time
-
-## Success Stories
-
-### Cross-Chain DeFi Management
-Users have successfully automated their cross-chain DeFi strategies, managing assets across Mantle, Sonic, and MultiChain protocols with minimal effort.
-
-### Automated Trading
-Traders are using HiveFi's AI agents to execute complex trading strategies across multiple DEXes simultaneously.
-
-### Portfolio Optimization
-Investors are leveraging our analytics agents to optimize their portfolios and discover new yield opportunities.
-
-## Getting Started Steps
-
-1. **Installation**
-   - Check out our [installation guide](installation.md)
-   - Set up your development environment
-   - Configure your API keys
-
-2. **First Steps**
-   - Connect your wallets
-   - Explore available agents
-   - Try basic commands
-
-3. **Going Further**
-   - Set up automated strategies
-   - Explore cross-chain operations
-   - Join our community
 
 Ready to start? Head over to our [User Guide](user-guide.md) for detailed instructions! 

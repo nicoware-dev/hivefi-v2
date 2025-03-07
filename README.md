@@ -108,7 +108,6 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 #### Cross-Chain Module
 - 🌉 Bridge operations via Wormhole
 - 🔄 Cross-chain transaction monitoring
-- 💧 Liquidity tracking
 - 🛣️ Route optimization
 - ✅ Status verification
 
@@ -117,32 +116,33 @@ Our platform leverages a Multi-Agent System architecture where each agent specia
 - 💸 Token transfers
 - 💱 DEX operations (Merchant Moe, Agni Finance)
 - 💸 Lending operations (Lendle, Init Capital)
-- 🌾 Yield farming (Pendle)
-- 💧 Protocol interactions
 
 #### Sonic Chain
 - 💰 Wallet management
 - 💸 Token transfers
 - 💱 DEX operations (Beets, SwapX, Shadow Exchange)
 - 💸 Lending operations (Silo Finance, Aave)
-- 🌾 Yield optimization (Beefy)
-- 💧 Protocol integrations
+- 🌾 Sonic Staking (Beets LST)
+- 🔄 Token Bridges (deBridge)
 
 #### MultiChain Module
+- 🔗 Supported Chains: Ethereum, Polygon, Arbitrum, Base, Optimism, BNB Chain, Avalanche, etc. (More coming soon)
 - 💰 Wallet operations
 - 💸 Native token transfers
 - 💱 ERC-20 token transfers
-- 💼 Portfolio management
-- 🔑 Chain-specific wallet access
+- 💼 Portfolio management (Zerion API)
+- 🔄 Support for top multi chain protocols (Uniswap, Aave, Beefy,etc.) (WIP)
 
 ### 🖥️ Web App Features
 - 🚀 Landing page
 - 📄 Agents directory
 - 🤖 Chat with agent swarm through web interface
-- 👛 Multichain wallet connector
-- 📊 Portfolio & analytics dashboard
-- 📝 Transaction history
-- ⚙️ Settings and preferences
+- 👛 Multichain wallet connector + Account Abstraction (Privy)
+- 📊 Portfolio & analytics dashboards
+- 📝 Chat history
+- 💬 Example Prompts
+- ⚙️ Settings and preferences (WIP)
+- 🔄 Transaction history (WIP)
 
 <div align="center">
   <img src="assets/webapp.png" alt="HiveFi Web Interface" width="800"/>

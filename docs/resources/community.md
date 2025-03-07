@@ -12,7 +12,7 @@ Our primary community hub where you can:
 - Participate in events
 - Connect with developers
 
-[Join our Discord](https://discord.gg/hivefiai)
+[Join our Discord](https://discord.gg/APAKDaUYAM)
 
 ### Social Media
 
@@ -23,16 +23,7 @@ Our primary community hub where you can:
 - Market insights
 - Educational content
 
-Follow us [@hivefi_ai](https://twitter.com/hivefi_ai)
-
-#### LinkedIn
-- Project milestones
-- Team updates
-- Industry insights
-- Partnership announcements
-- Career opportunities
-
-Connect on [LinkedIn](https://linkedin.com/company/hivefi)
+Follow us [@hivefi_agent](https://x.com/hivefi_agent)
 
 ### Development
 
@@ -43,7 +34,7 @@ Connect on [LinkedIn](https://linkedin.com/company/hivefi)
 - Pull requests
 - Documentation
 
-Visit our [GitHub Repository](https://github.com/hivefi/hivefi)
+Visit our [GitHub Repository](https://github.com/nicoware-dev/hivefi-v2)
 
 ## Getting Involved
 
@@ -237,7 +228,6 @@ Visit our [GitHub Repository](https://github.com/hivefi/hivefi)
 - [Developer Docs](../for-developers/quick-start.md)
 - [API Reference](../api-reference/index.md)
 - [FAQ](faq.md)
-- [Tutorials](https://learn.hivefi.ai)
 
 #### Learning Materials
 - Video tutorials
@@ -249,11 +239,10 @@ Visit our [GitHub Repository](https://github.com/hivefi/hivefi)
 ### 2. Development Resources
 
 #### Technical Resources
-- [GitHub Wiki](https://github.com/hivefi/hivefi/wiki)
+- [GitHub Wiki](https://github.com/nicoware-dev/hivefi-v2/wiki)
 - [Developer Guide](../for-developers/quick-start.md)
 - [Plugin Guide](../for-developers/plugin-guide.md)
 - [Architecture Docs](../under-the-hood/system-overview.md)
-- [API Docs](../api-reference/index.md)
 
 #### Tools and SDKs
 - Development tools
@@ -278,33 +267,11 @@ Visit our [GitHub Repository](https://github.com/hivefi/hivefi)
 - [FAQ](faq.md)
 - Email: nicoware.dev@gmail.com
 
-#### Community Support
-- Discord community
-- Forum discussions
-- Community calls
-- Local meetups
-- Social media
-
-### Feedback Channels
-
-#### Feature Requests
-- GitHub issues
-- Discord suggestions
-- Community calls
-- Feedback forms
-- Direct contact
-
-#### Bug Reports
-- GitHub issues
-- Technical support
-- Security reports
-- Performance issues
-- UI/UX feedback
 
 ## Next Steps
 
-1. [Join Discord](https://discord.gg/hivefiai)
-2. Follow [@hivefi_ai](https://twitter.com/hivefi_ai)
-3. Star on [GitHub](https://github.com/hivefi/hivefi)
+1. [Join Discord](https://discord.gg/APAKDaUYAM)
+2. Follow [@hivefi_agent](https://x.com/hivefi_agent)
+3. Star on [GitHub](https://github.com/nicoware-dev/hivefi-v2)
 4. Read the [FAQ](faq.md)
 5. Explore [Services](services.md)

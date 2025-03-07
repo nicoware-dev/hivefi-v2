@@ -2,148 +2,92 @@
 
 Discover the powerful features that make HiveFi the ultimate platform for AI-powered DeFi automation. Our comprehensive suite of features is designed to make DeFi operations simpler, more efficient, and accessible to everyone.
 
-## Core Features
+## ✨ Features
 
-### AI Agent Swarm 🤖
-- Multi-agent system with 15 specialized AI agents
-- Natural language processing capabilities
-- Intelligent task delegation and coordination
-- Automated decision-making and risk management
-- Real-time market analysis and insights
+### Core Features
 
-### Cross-Chain Operations 🌐
-- Seamless transactions across multiple blockchains
-- Unified portfolio management
-- Automated bridge operations
-- Cross-chain asset tracking
-- Integrated security measures
+- 💬 Natural language processing
+- 🤖 Multi-Agent System (MAS) architecture
+- 🔅 Integrated website & web app
+- 🔗 Support for multiple LLM providers (OpenAI, Anthropic, etc.)
+- 📚 RAG Knowledge base with DeFi expertise
+- 💰 Real-time prices using CoinGecko API
+- 🚀 Real-time TVL using DefiLlama API
+- 📊 DEX analytics via GeckoTerminal
+- 📈 Data visualization and analytics
+- 🚀 Highly extensible superplugin architecture
 
-### Smart Automation 🔄
-- Automated trading strategies
-- Yield farming optimization
-- Portfolio rebalancing
-- Risk management
-- Custom automation workflows
+### Blockchain Features
 
-## Blockchain Integrations
+#### Analytics Module
+- 📊 Real-time price data via CoinGecko
+- 📈 DEX analytics via GeckoTerminal
+- 💹 TVL tracking via DefiLlama
+- 💼 Portfolio analytics and tracking
+- 📉 Protocol performance metrics
+- 📊 Market trend analysis
 
-### Mantle Network
-- Complete wallet management
-- DEX integrations (Merchant Moe, Agni)
-- Lending platforms (Lendle, Init Capital)
-- Yield farming (Pendle)
-- Native token and asset support
+#### Cross-Chain Module
+- 🌉 Bridge operations via Wormhole
+- 🔄 Cross-chain transaction monitoring
+- 🛣️ Route optimization
+- ✅ Status verification
 
-### Sonic Chain
-- Full wallet integration
-- DEX support (Beets, SwapX, Shadow Exchange)
-- Lending protocols (Silo Finance, Aave)
-- Yield optimization (Beefy)
-- Comprehensive token support
+#### Mantle Network
+- 💰 Wallet management
+- 💸 Token transfers
+- 💱 DEX operations (Merchant Moe, Agni Finance)
+- 💸 Lending operations (Lendle, Init Capital)
 
-### MultiChain Protocols
-- Cross-chain protocol operations
-- Lending & borrowing on Aave
-- Trading on Uniswap and 1inch
-- Yield farming on Beefy
-- Protocol analytics and comparison
+#### Sonic Chain
+- 💰 Wallet management
+- 💸 Token transfers
+- 💱 DEX operations (Beets, SwapX, Shadow Exchange)
+- 💸 Lending operations (Silo Finance, Aave)
+- 🌾 Sonic Staking (Beets LST)
+- 🔄 Token Bridges (deBridge)
 
-## AI Agent Capabilities
+#### MultiChain Module
+- 🔗 Supported Chains: Ethereum, Polygon, Arbitrum, Base, Optimism, BNB Chain, Avalanche, etc. (More coming soon)
+- 💰 Wallet operations
+- 💸 Native token transfers
+- 💱 ERC-20 token transfers
+- 💼 Portfolio management (Zerion API)
+- 🔄 Support for top multi chain protocols (Uniswap, Aave, Beefy,etc.) (WIP)
 
-### Internal Agents
-- **Demo Agent**: Platform demonstration and education
-- **Meme Agent**: Social media content creation
-- **Sales Agent**: Customer relations and support
+### 🖥️ Web App Features
+- 🚀 Landing page
+- 📄 Agents directory
+- 🤖 Chat with agent swarm through web interface
+- 👛 Multichain wallet connector + Account Abstraction (Privy)
+- 📊 Portfolio & analytics dashboards
+- 📝 Chat history
+- 💬 Example Prompts
+- ⚙️ Settings and preferences (WIP)
+- 🔄 Transaction history (WIP)
 
-### Public Agents
-- **Alpha Agent**: Market opportunity detection
-- **Predictions Agent**: Market trend analysis
-- **KOL Agent**: Social media management
-- **Web3 Advisor**: Technical guidance
-- **Token/NFT Deployer**: Asset deployment
+## 🤖 Agent Categories
 
-### Private Agents
-- **Coordinator Agent**: Task orchestration
-- **Analytics Agent**: Data analysis
-- **Chain-Specific Agents**: Specialized operations
-- **Cross Chain Agent**: Bridge operations
+### 🏢 Internal Agents (Platform Operations)
+1. **Meme Agent**: Social media content creation and distribution
+2. **Sales Agent**: Customer relations and onboarding
+3. **Demo Agent**: Platform demonstration and showcase
 
-## DeFi Operations
+### 🌐 Public Agents (Shared Services)
+4. **Alpha Agent**: Market opportunity identification
+5. **Predictions Agent**: Market forecasting and trend analysis
+6. **KOL Agent**: Social media engagement and management
+7. **Web3 Advisor Agent**: Technical guidance across chains
+8. **Token Deployer Agent**: Token deployment and management
+9. **NFT Deployer Agent**: NFT collection deployment
 
-### Trading
-- Token swaps across multiple DEXes
-- Price comparison and optimization
-- Slippage protection
-- Transaction monitoring
-- Historical tracking
+### 🔒 Private Agents (Custom Deployments)
+10. **Coordinator Agent**: Multi-agent orchestration and task delegation
+11. **Analytics Agent**: Cross-chain data analysis and visualization
+12. **Cross Chain Agent**: Cross-chain operations management
+13. **Mantle Agent**: Mantle-specific operations
+14. **Sonic Agent**: Sonic-specific operations
+15. **MultiChain Agent**: Multichain Protocols operations and integrations
 
-### Lending & Borrowing
-- Multi-protocol lending
-- Interest rate optimization
-- Collateral management
-- Risk monitoring
-- Automated repayments
-
-### Yield Farming
-- Yield opportunity discovery
-- APY comparison
-- Automated position management
-- Risk assessment
-- Performance tracking
-
-## Cross-Chain Features
-
-### Bridge Operations
-- **Wormhole Integration**
-  - Token bridging
-  - Transaction monitoring
-  - Security features
-
-- **DeBridge Support**
-  - Cross-chain transfers
-  - Asset tracking
-  - Security measures
-
-- **Multichain Functionality**
-  - Multiple bridge options
-  - Cost optimization
-  - Risk management
-
-### Asset Management
-- Cross-chain portfolio tracking
-- Unified balance view
-- Performance analytics
-- Risk assessment
-- Tax reporting assistance
-
-## Web Interface Features
-
-### Dashboard
-- Portfolio overview
-- Performance metrics
-- Transaction history
-- Active strategies
-- Market insights
-
-### Agent Interface
-- Natural language chat
-- Command suggestions
-- Operation status
-- Error handling
-- Help documentation
-
-### Analytics
-- Market analysis
-- Portfolio performance
-- Risk metrics
-- Yield comparisons
-- Historical data
-
-### Settings & Security
-- Wallet management
-- API configuration
-- Security settings
-- Preferences
-- Backup options
 
 Ready to explore these features? Check out our [User Guide](user-guide.md) to get started! 

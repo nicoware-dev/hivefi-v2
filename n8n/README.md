@@ -5,15 +5,16 @@ This directory contains n8n workflow configurations for the HiveFi Coordinator A
 ## Available Workflows
 
 ### Core Workflows
-- `coordinator-agent.json` - Main coordinator workflow for agent orchestration
-- `agent-tools.json` - Tool definitions for agent interactions
+- `HiveFi_Coordinator_Agent.json` - Main coordinator workflow for agent orchestration
+- `HiveFi_Eliza_Agent.json` - Tool definitions for eliza agent interactions
+- `HiveFi_Sales_Agent.json` - Tool definitions for sales agent interactions
 
-### Agent Integration Workflows
-- `analytics-agent.json` - Analytics and reporting workflow
-- `sonic-agent.json` - Sonic chain operations workflow
-- `mantle-agent.json` - Mantle chain operations workflow
-- `multichain-agent.json` - Multichain protocols operations workflow
-- `crosschain-agent.json` - Cross-chain operations workflow
+### Agent Integration Workflows (Same Eliza Agent Tool with different API urls)
+-  Anlytics Agent: Analytics and reporting workflow
+-  Sonic Agent: Sonic chain operations workflow
+-  Mantle Agent: Mantle chain operations workflow
+-  Multichain Agent: Multichain protocols operations workflow
+-  Crosschain Agent: Cross-chain operations workflow
 
 ## Coordinator Agent Architecture
 
