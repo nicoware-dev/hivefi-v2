@@ -15,7 +15,7 @@ A comprehensive plugin for HiveFi that provides multichain DeFi functionality an
 │  │   Mantle   |   Sonic   | MultiChain│   │
 │  └──────────────┬──────────────────┘     │
 │                 │                         │
-│  ┌─────── Future Agent Modules ────────┐  │
+│  ┌─────── Future Modules ────────┐  │
 │  │ Alpha | Predictions | KOL | Deploy │  │
 │  └────────────────────────────────────┘  │
 │                                          │
@@ -137,56 +137,6 @@ plugin-hivefi/
 pnpm add @elizaos/plugin-hivefi
 ```
 
-### Basic Setup
-
-```typescript
-import { HiveFiPlugin } from '@elizaos/plugin-hivefi';
-
-// Initialize plugin with configuration
-const plugin = new HiveFiPlugin({
-  mantleRpc: process.env.MANTLE_RPC_URL,
-  sonicRpc: process.env.SONIC_RPC_URL,
-  multichainRpc: process.env.MULTICHAIN_RPC_URL,
-  apiKeys: {
-    coingecko: process.env.COINGECKO_API_KEY,
-    defillama: process.env.DEFILLAMA_API_KEY
-  }
-});
-```
-
-### Example: Cross-Chain Operation with Wormhole
-
-```typescript
-// Bridge USDC from Ethereum to Arbitrum
-const result = await plugin.crosschain.wormhole.bridge({
-  fromChain: 'ethereum',
-  toChain: 'arbitrum',
-  token: 'USDC',
-  amount: '100'
-});
-```
-
-### Example: Analytics Query with DefiLlama
-
-```typescript
-// Get TVL across chains
-const tvl = await plugin.analytics.defillama.getTVL({
-  chains: ['mantle', 'sonic'],
-  protocols: ['merchant-moe', 'silo-finance']
-});
-```
-
-### Example: MultiChain Native Token Transfer
-
-```typescript
-// Transfer native tokens on a specific chain
-const transfer = await plugin.multichain.transferNativeToken({
-  chain: 'arbitrum',
-  amount: '0.01',
-  to: '0x123...'
-});
-```
-
 ## Development
 
 ### Prerequisites
@@ -197,8 +147,8 @@ const transfer = await plugin.multichain.transferNativeToken({
 ### Setup
 ```bash
 # Clone repository
-git clone https://github.com/hivefi/hivefi
-cd hivefi
+git clone https://github.com/nicoware-dev/hivefi-v2
+cd hivefi-v2
 
 # Install dependencies
 pnpm install
@@ -213,21 +163,7 @@ The module requires the following environment variables:
 
 ```bash
 # Required for MultiChain operations
-EVM_PRIVATE_KEY=your_private_key_here  # 64-character hex string without 0x prefix
-
-# Optional
-EVM_RPC_URL=your_preferred_rpc_url     # Override default RPC URL
-COINGECKO_API_KEY=your_api_key         # For CoinGecko API
-DEFILLAMA_API_KEY=your_api_key         # For DefiLlama API
-```
-
-### Testing
-```bash
-# Run tests
-pnpm test
-
-# Run specific test suite
-pnpm test:mantle
+EVM_PRIVATE_KEY=your_private_key_here  
 ```
 
 ## Current Status and Roadmap
@@ -237,13 +173,14 @@ pnpm test:mantle
 - Cross-chain module with Wormhole bridge support
 - Mantle and Sonic chain-specific modules
 - MultiChain module with basic wallet operations and native token transfers
+- ERC-20 token transfers in MultiChain module
 
 ### In Progress
-- ERC-20 token transfers in MultiChain module (currently in simulation mode)
+
 - Protocol integrations (Uniswap, Aave, Beefy)
 
 ### Planned Features
-- Additional bridge integrations (DeBridge, Multichain)
+- Additional bridge integrations (DeBridge, LayerZero)
 - Advanced portfolio analytics
 - Market analysis tools
 - Social and community tools
